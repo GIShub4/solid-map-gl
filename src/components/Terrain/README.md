@@ -1,14 +1,15 @@
 # Solid Component for [Mapbox GL JS Terrain Layer](https://docs.mapbox.com/mapbox-gl-js/style-spec/terrain/)
 
-> ### props
->
-> ---
->
-> `style`: [Terrain style specs](https://docs.mapbox.com/mapbox-gl-js/style-spec/terrain/)
->
-> `visible`: [Boolean]()
+## Props
 
-<br>
+| Prop    | Type    | Description                                                                     |
+| ------- | ------- | ------------------------------------------------------------------------------- |
+| style\* | object  | [Terrain style specs](https://docs.mapbox.com/mapbox-gl-js/style-spec/terrain/) |
+| visible | boolean | Show / Hide Layer                                                               |
+
+_\*required_
+
+## Example
 
 ```jsx
 import { Component, createSignal } from 'solid-js'

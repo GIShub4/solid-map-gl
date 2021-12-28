@@ -1,18 +1,17 @@
 # Solid Component for [Mapbox GL JS Image](https://docs.mapbox.com/mapbox-gl-js/api/sources/)
 
-> ### props
->
-> ---
->
-> `id`: [String]()
->
-> `url?`: [String](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#loadimage) Loadable Image URL
->
-> `image?`: [HTMLImageElement | ImageBitmap | ImageData | {width: number, height: number, data: (Uint8Array | Uint8ClampedArray)} | StyleImageInterface](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#addimage)
->
-> `options?`: [Add image options](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#addimage)
+## Props
 
-<br>
+| Prop    | Type                                                                                                                                                                                                               | Description                                                                       |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
+| id\*    | string                                                                                                                                                                                                             | Id to reference image in layer style                                              |
+| url     | string                                                                                                                                                                                                             | [Loadable Image URL](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#loadimage) |
+| image   | [HTMLImageElement \| ImageBitmap \| ImageData \| StyleImageInterface \|<br> {width: number, height: number, data: (Uint8Array \| Uint8ClampedArray)} ](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#addimage) | Image Data                                                                        |
+| options | object                                                                                                                                                                                                             | [Add image options](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#addimage)   |
+
+_\*required_
+
+## Example
 
 ```jsx
 import { Component, createSignal } from 'solid-js'

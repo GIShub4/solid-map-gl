@@ -1,14 +1,15 @@
 # Solid Component for [Mapbox GL JS Sky Layer](https://docs.mapbox.com/mapbox-gl-js/style-spec/layers/#sky)
 
-> ### props
->
-> ---
->
-> `style`: [Sky style specs](https://docs.mapbox.com/mapbox-gl-js/style-spec/layers/#sky)
->
-> `visible`: [Boolean]()
+## Props
 
-<br>
+| Prop    | Type    | Description                                                                    |
+| ------- | ------- | ------------------------------------------------------------------------------ |
+| style\* | object  | [Sky style specs](https://docs.mapbox.com/mapbox-gl-js/style-spec/layers/#sky) |
+| visible | boolean | Show / Hide Layer                                                              |
+
+_\*required_
+
+## Example
 
 ```jsx
 import { Component, createSignal } from 'solid-js'

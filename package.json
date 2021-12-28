@@ -1,21 +1,42 @@
 {
-  "name": "solid-map-gl",
   "version": "1.0.0",
+  "name": "solid-map-gl",
   "description": "Solid Component Library for Mapbox GL JS",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "serve": "vite preview"
-  },
+  "author": "kaihuebner",
   "license": "MIT",
-  "devDependencies": {
-    "vite": "^2.7.6",
-    "vite-plugin-solid": "^2.1.4"
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/esm/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "solid": "./dist/source/index.jsx",
+      "default": "./dist/esm/index.js"
+    }
   },
+  "scripts": {
+    "build": "rollup -c"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gishub4/solid-map-gl.git"
+  },
+  "keywords": [],
+  "homepage": "https://github.com/gishub4/solid-map-gl#readme",
   "dependencies": {
     "@mapbox/mapbox-gl-language": "^1.0.0",
     "@mapbox/mapbox-gl-traffic": "^1.0.2",
     "mapbox-gl": "^2.6.1",
+    "rollup-plugin-import-css": "^3.0.2",
     "solid-js": "^1.2.6"
+  },
+  "devDependencies": {
+    "@types/mapbox-gl": "^2.4.2",
+    "rollup": "^2.59.0",
+    "rollup-preset-solid": "^1.0.1",
+    "typescript": "^4.4.4"
   }
 }

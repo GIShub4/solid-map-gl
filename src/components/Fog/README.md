@@ -1,14 +1,15 @@
 # Solid Component for [Mapbox GL JS Fog Layer](https://docs.mapbox.com/mapbox-gl-js/style-spec/fog/)
 
-> ### props
->
-> ---
->
-> `style`: [Fog style specs](https://docs.mapbox.com/mapbox-gl-js/style-spec/fog/)
->
-> `visible`: [Boolean]()
+## Props
 
-<br>
+| Prop    | Type    | Description                                                             |
+| ------- | ------- | ----------------------------------------------------------------------- |
+| style\* | object  | [Fog style specs](https://docs.mapbox.com/mapbox-gl-js/style-spec/fog/) |
+| visible | boolean | Show / Hide Layer                                                       |
+
+_\*required_
+
+## Example
 
 ```jsx
 import { Component, createSignal } from 'solid-js'

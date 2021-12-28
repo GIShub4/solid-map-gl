@@ -2,11 +2,11 @@
 
 # GIShub - Solid Mapbox GL JS
 
-[![Node CI](https://github.com/urbica/react-map-gl/workflows/Node%20CI/badge.svg)](https://github.com/urbica/react-map-gl/actions)
+<!-- [![Node CI](https://github.com/urbica/react-map-gl/workflows/Node%20CI/badge.svg)](https://github.com/urbica/react-map-gl/actions)
 [![codecov](https://codecov.io/gh/urbica/react-map-gl/branch/main/graph/badge.svg)](https://codecov.io/gh/urbica/react-map-gl)
 [![npm](https://img.shields.io/npm/dt/@urbica/react-map-gl.svg?style=popout)](https://www.npmjs.com/package/@urbica/react-map-gl)
 [![npm](https://img.shields.io/npm/v/@urbica/react-map-gl.svg?style=popout)](https://www.npmjs.com/package/@urbica/react-map-gl)
-![npm bundle size (scoped)](https://img.shields.io/bundlephobia/minzip/@urbica/react-map-gl.svg)
+![npm bundle size (scoped)](https://img.shields.io/bundlephobia/minzip/@urbica/react-map-gl.svg) -->
 
 [Solid](https://www.solidjs.com/) Component Library for [Mapbox GL JS.](https://github.com/mapbox/mapbox-gl-js) Mapbox GL JS is a JavaScript library that renders interactive maps from vector tiles and Mapbox styles using WebGL. This project is intended to be as close as possible to the [Mapbox GL JS API.](https://docs.mapbox.com/mapbox-gl-js/api/)
 
@@ -244,3 +244,7 @@ const myDeckLayer = new MapboxLayer({
         <Layer customLayer={myDeckLayer} />
 </MapGL>
 ```
+
+## Changelog
+
+- 1.0.0 - Initial release

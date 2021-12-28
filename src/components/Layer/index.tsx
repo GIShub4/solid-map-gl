@@ -27,7 +27,7 @@ const diff = (newProps: KV = {}, prevProps: KV = {}) => {
 const Layer: Component<{
   id?: string
   style?: StyleSpecification
-  customLayer?: CustomLayerInterface
+  layer?: CustomLayerInterface
   filter?: FilterSpecification
   visible?: boolean
   sourceId?: string
@@ -45,7 +45,7 @@ const Layer: Component<{
     if (map().getLayer(props.id)) return
 
     map().addLayer(
-      props.customLayer || {
+      props.layer || {
         ...props.style,
         id: props.id,
         source: source.source,

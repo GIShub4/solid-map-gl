@@ -1,16 +1,16 @@
 # Solid Component for [Mapbox GL JS Popup](https://docs.mapbox.com/mapbox-gl-js/api/markers/#popup)
 
-> ### props
->
-> ---
->
-> `options`: [Popup Parameters](https://docs.mapbox.com/mapbox-gl-js/api/markers/#popup-parameters)
->
-> `lnglat`: [LngLatLike](https://docs.mapbox.com/mapbox-gl-js/api/geography/#lnglatlike)
->
-> `children`: [HTML Element | String](https://developer.mozilla.org/en-US/docs/Web/API/Element)
+## Props
 
-<br>
+| Prop     | Type                                                                               | Description                                                                            |
+| -------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| options  | object                                                                             | [Popup Parameters](https://docs.mapbox.com/mapbox-gl-js/api/markers/#popup-parameters) |
+| lnglat\* | [LngLatLike](https://docs.mapbox.com/mapbox-gl-js/api/geography/#lnglatlike)       | Popup Location                                                                         |
+| children | [HTML Element \| String](https://developer.mozilla.org/en-US/docs/Web/API/Element) | Popup Content                                                                          |
+
+_\*required_
+
+## Example
 
 ```jsx
 import { Component, createSignal } from 'solid-js'
