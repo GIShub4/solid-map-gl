@@ -8,7 +8,7 @@
 >
 > `style?`: [Layer Style Object](https://docs.mapbox.com/mapbox-gl-js/style-spec/layers/)
 >
-> `layer?`: CustomLayerInterface
+> `customLayer?`: CustomLayerInterface
 >
 > `filter?`: FilterSpecification
 >
@@ -49,7 +49,6 @@ const Map: Component = props => {
         }}>
             <Layer style={{
                 type: 'circle',
-                source: 'earthquakes',
                 paint: {
                     'circle-radius': 8,
                     'circle-color': 'red',

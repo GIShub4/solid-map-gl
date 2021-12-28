@@ -15,14 +15,12 @@
 - [Usage](#usage)
   - [Static Map](#static-map)
   - [Interactive Map](#interactive-map)
-  - [MapGL with Source and Layer](#mapgl-with-source-and-layer)
-  - [MapGL with GeoJSON Source](#mapgl-with-geojson-source)
+  - [Map with Source and Layer](#map-with-source-and-layer)
+  - [Map with GeoJSON Source](#map-with-geojson-source)
 
 <br>
 
 ![Gallery](./docs/gallery.png)
-
-<br>
 
 ## Installation
 
@@ -36,7 +34,7 @@ npm install --save GIShub4/solid-map-gl
 
 ### Optional Dependencies
 
-If you want to use the `LanguageControl` and `TrafficControl`:
+If you want to use `LanguageControl` and `TrafficControl`:
 
 ```shell
 yarn add @mapbox/mapbox-gl-language @mapbox/mapbox-gl-traffic
@@ -53,19 +51,17 @@ npm install --save @mapbox/mapbox-gl-language @mapbox/mapbox-gl-traffic
 | [MapGL](src/components/MapGL)     | Represents map on the page                                                                                             |
 | [Source](src/components/Source)   | [Sources](https://docs.mapbox.com/mapbox-gl-js/api/#sources) specify the geographic features to be rendered on the map |
 | [Layer](src/components/Layer)     | [Layers](https://docs.mapbox.com/mapbox-gl-js/style-spec/#layers) specify the `Sources` style                          |
-| [Sky](src/components/Sky)         | Represents the Sky Layer                                                                                               |
-| [Fog](src/components/Fog)         | Represents the Fog Layer                                                                                               |
-| [Terrain](src/components/Terrain) | Represents the Terrain Layer                                                                                           |
+| [Sky](src/components/Sky)         | Specify the Sky Layer                                                                                                  |
+| [Fog](src/components/Fog)         | Specify the Fog Layer                                                                                                  |
+| [Terrain](src/components/Terrain) | Specify the Terrain Layer                                                                                              |
 | [Image](src/components/Image)     | Adds an image to the map style                                                                                         |
-| [Popup](src/components/Popup)     | React Component for [Mapbox GL JS Popup](https://docs.mapbox.com/mapbox-gl-js/api/#popup)                              |
-| [Marker](src/components/Marker)   | React Component for [Mapbox GL JS Marker](https://docs.mapbox.com/mapbox-gl-js/api/#marker)                            |
+| [Popup](src/components/Popup)     | Component for [Mapbox GL JS Popup](https://docs.mapbox.com/mapbox-gl-js/api/#popup)                                    |
+| [Marker](src/components/Marker)   | Component for [Mapbox GL JS Marker](https://docs.mapbox.com/mapbox-gl-js/api/#marker)                                  |
 | [Control](src/components/Control) | Represents the map's control                                                                                           |
 
 ## Usage
 
 To use any of Mapbox’s tools, APIs, or SDKs, you’ll need a Mapbox [access token](https://www.mapbox.com/help/define-access-token/). Mapbox uses access tokens to associate requests to API resources with your account. You can find all your access tokens, create new ones, or delete existing ones on your [API access tokens page](https://www.mapbox.com/studio/account/tokens/).
-
-<br>
 
 ### Static Map
 
@@ -86,11 +82,9 @@ import MapGL from '../solid-map-gl'
 </MapGL>
 ```
 
-<br>
-
 ### Interactive Map
 
-In most cases, you will want the user to interact with the map. To do this, you need to provide `onViewportChange` handler, that will update map viewport state.
+In most cases, you will want the user to interact with the map. To do this, you need to provide `onViewportChange` handler, that will update the map's viewport state.
 
 ```jsx
 import { createSignal } from 'solid-js'
@@ -111,13 +105,13 @@ const [viewport, setViewport] = createSignal({
 </MapGL>
 ```
 
-### MapGL with Source and Layer
+### Map with Source and Layer
 
-[Sources](https://docs.mapbox.com/mapbox-gl-js/api/#sources) specify the geographic features to be rendered on the map.
+[Sources](https://docs.mapbox.com/mapbox-gl-js/api/sources/) specify the geographic features to be rendered on the map.
 
-[Layers](https://docs.mapbox.com/mapbox-gl-js/style-spec/#layers) specify the Sources styles. The type of layer is specified by the `"type"` property, and must be one of `background`, `fill`, `line`, `symbol`, `raster`, `circle`, `fill-extrusion`, `heatmap`, `hillshade`.
+[Layers](https://docs.mapbox.com/mapbox-gl-js/style-spec/layers/) specify the Sources styles. The type of layer is specified by the `"type"` property in the layers style object, and must be one of `background`, `fill`, `line`, `symbol`, `raster`, `circle`, `fill-extrusion`, `heatmap`, `hillshade`.
 
-Except for layers of the `background` type, each layer needs to refer to a source. Layers take the data that they get from a source, optionally filter features, and then define how those features are styled.
+Except for layers of the `background` type, each layer needs to refer to a source. Either buy referencing the `id` in `sourceId` or by nesting the layer within the source component. Layers take the data that they get from a source, optionally filter features, and then define how those features are styled.
 
 ```jsx
 import MapGL, { Source, Layer } from '../solid-map-gl'
@@ -144,7 +138,7 @@ import MapGL, { Source, Layer } from '../solid-map-gl'
 </MapGL>
 ```
 
-### MapGL with GeoJSON Source
+### Map with GeoJSON Source
 
 To draw a GeoJSON on a map, add `Source` with the `type` property set to `geojson` and `data` property set to a URL or inline [GeoJSON](http://geojson.org/).
 
@@ -196,8 +190,8 @@ const data = {
     onViewportChange={evt => setViewport(evt)}>
     <Source
         source={{
-        type: 'geojson',
-        data: {data}
+            type: 'geojson',
+            data: {data}
     }}>
         <Layer style={{
             type: 'line',
@@ -216,16 +210,20 @@ const data = {
 
 ### Custom Layers support
 
-[Custom layers](https://docs.mapbox.com/mapbox-gl-js/api/#customlayerinterface) allow a user to render directly into the map's GL context using the map's camera.
+[Custom layers](https://docs.mapbox.com/mapbox-gl-js/api/properties/#customlayerinterface) allow a user to render directly into the Map's GL context using the map's camera.
 
-Here is an Uber [deck.gl](https://github.com/uber/deck.gl) usage example.
+Here is an example using [deck.gl.](https://github.com/uber/deck.gl)
 
 ```jsx
-import React from 'react'
-import MapGL, { CustomLayer } from '@urbica/react-map-gl'
+import { createSignal } from 'solid-js'
+import MapGL, { Source, Layer } from '../solid-map-gl'
 import { MapboxLayer } from '@deck.gl/mapbox'
 import { ScatterplotLayer } from '@deck.gl/layers'
-import 'mapbox-gl/dist/mapbox-gl.css'
+
+const [viewport, setViewport] = createSignal({
+    center: [-74.5, 40],
+    zoom: 9,
+})
 
 const myDeckLayer = new MapboxLayer({
   id: 'my-scatterplot',
@@ -236,13 +234,13 @@ const myDeckLayer = new MapboxLayer({
   getColor: [255, 0, 0],
 })
 
-;<MapGL
-  style={{ width: '100%', height: '400px' }}
-  mapStyle='mapbox://styles/mapbox/light-v9'
-  accessToken={MAPBOX_ACCESS_TOKEN}
-  latitude={40}
-  longitude={-74.5}
-  zoom={9}>
-  <CustomLayer layer={myDeckLayer} />
+<MapGL
+    options={{
+        accessToken: { MAPBOX_ACCESS_TOKEN },
+        style: 'mapbox://styles/mapbox/light-v10',
+    }}
+    viewport={viewport()}
+    onViewportChange={evt => setViewport(evt)}>
+        <Layer customLayer={myDeckLayer} />
 </MapGL>
 ```
