@@ -1,0 +1,21 @@
+{
+  "name": "solid-map-gl",
+  "version": "1.0.0",
+  "description": "Solid Component Library for Mapbox GL JS",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^2.7.6",
+    "vite-plugin-solid": "^2.1.4"
+  },
+  "dependencies": {
+    "@mapbox/mapbox-gl-language": "^1.0.0",
+    "@mapbox/mapbox-gl-traffic": "^1.0.2",
+    "mapbox-gl": "^2.6.1",
+    "solid-js": "^1.2.6"
+  }
+}
