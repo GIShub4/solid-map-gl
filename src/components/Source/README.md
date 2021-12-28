@@ -1,14 +1,15 @@
 # Solid Component for [Mapbox GL JS Source](https://docs.mapbox.com/mapbox-gl-js/api/sources/)
 
-> ### props
->
-> ---
->
-> `source`: [Source style specs](https://docs.mapbox.com/mapbox-gl-js/style-spec/sources/)
->
-> `id?`: [String]() required if Layer Components are not nested
+## Props
 
-<br>
+| Prop     | Type   | Description                                                                    |
+| -------- | ------ | ------------------------------------------------------------------------------ |
+| id       | string | required if Layer Components are not nested                                    |
+| source\* | object | [Source style specs](https://docs.mapbox.com/mapbox-gl-js/style-spec/sources/) |
+
+_\*required_
+
+## Example
 
 ```jsx
 import { Component, createSignal } from 'solid-js'
