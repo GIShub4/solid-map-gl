@@ -1,16 +1,17 @@
 # Solid Component for [Mapbox GL JS Control](https://docs.mapbox.com/mapbox-gl-js/api/markers/)
 
-> ### props
->
-> ---
->
-> `type`: [navigation | scale | attribution | fullscreen | geolocate | language | traffic]()
->
-> `options?`: [Parameters Object](https://docs.mapbox.com/mapbox-gl-js/api/markers/)
->
-> `position?`: [top-left | top-right | bottom-left | bottom-right]()
+## Props
 
-<br>
+| Prop     | Type   | Description                                                                           |
+| -------- | ------ | ------------------------------------------------------------------------------------- |
+| type\*   | string | navigation^ \| scale \| attribution \| fullscreen \| geolocate \| language \| traffic |
+| options  | object | [Control Options](https://docs.mapbox.com/mapbox-gl-js/api/markers/)                  |
+| position | string | top-left \| top-right^ \| bottom-left \| bottom-right                                 |
+
+_\*required_
+_\^default_
+
+## Example
 
 ```jsx
 import { Component, createSignal } from 'solid-js'
