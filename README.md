@@ -25,11 +25,11 @@
 ## Installation
 
 ```shell
-yarn add gishub/solid-map-gl
+yarn add solid-map-gl
 ```
 
 ```shell
-npm install --save gishub/solid-map-gl
+npm install --save solid-map-gl
 ```
 
 ### Optional Dependencies

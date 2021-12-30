@@ -32,6 +32,9 @@ const Control: Component<{
     let control
 
     switch (props.type) {
+      case 'navigation':
+        control = new mapboxgl.NavigationControl(props.options)
+        break
       case 'scale':
         control = new mapboxgl.ScaleControl(props.options)
         break
@@ -44,8 +47,6 @@ const Control: Component<{
       case 'geolocate':
         control = new mapboxgl.GeolocateControl(props.options)
         break
-      default:
-        control = new mapboxgl.NavigationControl(props.options)
       // case 'language':
       //   const MapboxLanguage = (await import('@mapbox/mapbox-gl-language'))
       //     .default
@@ -58,7 +59,7 @@ const Control: Component<{
       //   control = new MapboxTraffic(props.options)
       //   break
     }
-    map().addControl(control, props.position)
+    control && map().addControl(control, props.position)
     setControl(control)
   })
 

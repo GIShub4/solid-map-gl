@@ -2,11 +2,11 @@
 
 ## Props
 
-| Prop     | Type   | Description                                                                           |
-| -------- | ------ | ------------------------------------------------------------------------------------- |
-| type\*   | string | navigation^ \| scale \| attribution \| fullscreen \| geolocate \| language \| traffic |
-| options  | object | [Control Options](https://docs.mapbox.com/mapbox-gl-js/api/markers/)                  |
-| position | string | top-left \| top-right^ \| bottom-left \| bottom-right                                 |
+| Prop     | Type   | Description                                                                          |
+| -------- | ------ | ------------------------------------------------------------------------------------ |
+| type\*   | string | navigation \| scale \| attribution \| fullscreen \| geolocate \| language \| traffic |
+| options  | object | [Control Options](https://docs.mapbox.com/mapbox-gl-js/api/markers/)                 |
+| position | string | top-left \| top-right^ \| bottom-left \| bottom-right                                |
 
 _\*required_
 _\^default_

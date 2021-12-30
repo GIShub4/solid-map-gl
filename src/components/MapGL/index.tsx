@@ -8,14 +8,17 @@ import {
   useTransition,
 } from 'solid-js'
 import mapboxgl from 'mapbox-gl'
+import 'mapbox-gl/dist/mapbox-gl.css'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type MapboxOptions from 'mapbox-gl/src/ui/map'
 import type MapMouseEvent from 'mapbox-gl/src/ui/events'
+import type { LngLatLike } from 'mapbox-gl/src/geo/lng_lat.js'
+import type { LngLatBounds } from 'mapbox-gl/src/geo/lng_lat_bounds.js'
 
 export type Viewport = {
-  center?: object
+  center?: LngLatLike
+  bounds?: LngLatBounds
   zoom?: number
-  bounds?: number[][]
   pitch?: number
   bearing?: number
   padding?: number

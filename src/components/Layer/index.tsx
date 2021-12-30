@@ -31,7 +31,17 @@ const Layer: Component<{
   filter?: FilterSpecification
   visible?: boolean
   sourceId?: string
-  beforeType?: string
+  beforeType?:
+    | 'background'
+    | 'fill'
+    | 'line'
+    | 'symbol'
+    | 'raster'
+    | 'circle'
+    | 'fill-extrusion'
+    | 'heatmap'
+    | 'hillshade'
+    | 'sky'
   beforeId?: string
   featureState?: { id: number | string; state: object }
 }> = props => {

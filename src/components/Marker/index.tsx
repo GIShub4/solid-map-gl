@@ -3,10 +3,11 @@ import { useMap } from '../MapGL'
 import mapboxgl from 'mapbox-gl'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type { MarkerSpecification } from 'mapbox-gl/src/style-spec/types.js'
+import type { LngLatLike } from 'mapbox-gl/src/geo/lng_lat.js'
 
 const Marker: Component<{
   options?: MarkerSpecification
-  lnglat: number[]
+  lnglat: LngLatLike
 }> = props => {
   const map: MapboxMap = useMap()
   let marker = null
