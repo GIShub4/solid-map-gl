@@ -1,12 +1,11 @@
 ![Banner](./docs/banner.png)
 
-# GIShub - Solid Mapbox GL JS
+# Solid Mapbox GL JS
 
-<!-- [![Node CI](https://github.com/urbica/react-map-gl/workflows/Node%20CI/badge.svg)](https://github.com/urbica/react-map-gl/actions)
-[![codecov](https://codecov.io/gh/urbica/react-map-gl/branch/main/graph/badge.svg)](https://codecov.io/gh/urbica/react-map-gl)
-[![npm](https://img.shields.io/npm/dt/@urbica/react-map-gl.svg?style=popout)](https://www.npmjs.com/package/@urbica/react-map-gl)
-[![npm](https://img.shields.io/npm/v/@urbica/react-map-gl.svg?style=popout)](https://www.npmjs.com/package/@urbica/react-map-gl)
-![npm bundle size (scoped)](https://img.shields.io/bundlephobia/minzip/@urbica/react-map-gl.svg) -->
+![npm-version](https://badgen.net/npm/v/solid-map-gl)
+![licence](https://badgen.net/badge/license/MIT/blue)
+![types](https://badgen.net/npm/types/solid-map-gl)
+![downloads](https://badgen.net/npm/dt/solid-map-gl)
 
 [Solid](https://www.solidjs.com/) Component Library for [Mapbox GL JS.](https://github.com/mapbox/mapbox-gl-js) Mapbox GL JS is a JavaScript library that renders interactive maps from vector tiles and Mapbox styles using WebGL. This project is intended to be as close as possible to the [Mapbox GL JS API.](https://docs.mapbox.com/mapbox-gl-js/api/)
 
@@ -68,7 +67,7 @@ To use any of Mapbox’s tools, APIs, or SDKs, you’ll need a Mapbox [access to
 By default, `MapGL` component renders in a static mode. That means that the user cannot interact with the map.
 
 ```jsx
-import MapGL from '../solid-map-gl'
+import MapGL from 'solid-map-gl'
 
 <MapGL
     options={{
@@ -88,7 +87,7 @@ In most cases, you will want the user to interact with the map. To do this, you 
 
 ```jsx
 import { createSignal } from 'solid-js'
-import MapGL, { Viewport } from '../solid-map-gl'
+import MapGL, { Viewport } from 'solid-map-gl'
 
 const [viewport, setViewport] = createSignal({
     center: [-122.41, 37.78]
@@ -114,7 +113,7 @@ const [viewport, setViewport] = createSignal({
 Except for layers of the `background` type, each layer needs to refer to a source. Either buy referencing the `id` in `sourceId` or by nesting the layer within the source component. Layers take the data that they get from a source, optionally filter features, and then define how those features are styled.
 
 ```jsx
-import MapGL, { Source, Layer } from '../solid-map-gl'
+import MapGL, { Source, Layer } from 'solid-map-gl'
 
 <MapGL
     options={{
@@ -144,7 +143,7 @@ To draw a GeoJSON on a map, add `Source` with the `type` property set to `geojso
 
 ```jsx
 import { createSignal } from 'solid-js'
-import MapGL, { Source, Layer } from '../solid-map-gl'
+import MapGL, { Source, Layer } from 'solid-map-gl'
 
 const [viewport, setViewport] = createSignal({
     center: [-122.486052, 37.830348],
@@ -216,7 +215,7 @@ Here is an example using [deck.gl.](https://github.com/uber/deck.gl)
 
 ```jsx
 import { createSignal } from 'solid-js'
-import MapGL, { Source, Layer } from '../solid-map-gl'
+import MapGL, { Source, Layer } from 'solid-map-gl'
 import { MapboxLayer } from '@deck.gl/mapbox'
 import { ScatterplotLayer } from '@deck.gl/layers'
 
@@ -248,3 +247,4 @@ const myDeckLayer = new MapboxLayer({
 ## Changelog
 
 - 1.0.0 - Initial release
+- 1.1.0 - Bug fixing

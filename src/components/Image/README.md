@@ -15,7 +15,7 @@ _\*required_
 
 ```jsx
 import { Component, createSignal } from 'solid-js'
-import MapGL, { Viewport, Source, Layer } from '../solid-map-gl'
+import MapGL, { Viewport, Source, Layer } from 'solid-map-gl'
 
 const Map: Component = props => {
     const [viewport, setViewport] = createSignal({
