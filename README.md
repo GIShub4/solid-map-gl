@@ -7,6 +7,10 @@
 ![types](https://badgen.net/npm/types/solid-map-gl)
 ![downloads](https://badgen.net/npm/dt/solid-map-gl)
 
+![size](https://badgen.net/bundlephobia/min/solid-map-gl)
+![zip](https://badgen.net/bundlephobia/minzip/solid-map-gl)
+![treeshaking](https://badgen.net/bundlephobia/tree-shaking/solid-map-gl)
+
 [Solid](https://www.solidjs.com/) Component Library for [Mapbox GL JS.](https://github.com/mapbox/mapbox-gl-js) Mapbox GL JS is a JavaScript library that renders interactive maps from vector tiles and Mapbox styles using WebGL. This project is intended to be as close as possible to the [Mapbox GL JS API.](https://docs.mapbox.com/mapbox-gl-js/api/)
 
 - [Installation](#installation)
@@ -17,7 +21,7 @@
   - [Map with Source and Layer](#map-with-source-and-layer)
   - [Map with GeoJSON Source](#map-with-geojson-source)
 - [Examples](#examples)
-- [Changelog](#changelog)
+- [Roadmap](#roadmap)
 
 <br>
 
@@ -248,10 +252,15 @@ const myDeckLayer = new MapboxLayer({
 
 ## Examples
 
-### Coming Soon
+#### Coming Soon
 
-## Changelog
+<br>
 
-- 1.0.0 - Initial release
-- 1.1.0 - Bug fixing
-- 1.2.0 - Bug fixing
+## Roadmap
+
+- [x] Basic Mapbox GL Functionality
+- [x] Include Map Controls
+- [x] Include Fog, Sky, and Terrain
+- [x] Include Popup and Markers
+- [x] Minify bundle & reduce size
+- [ ] Add basemap switching

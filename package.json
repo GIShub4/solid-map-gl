@@ -33,6 +33,10 @@
     "solidjs"
   ],
   "homepage": "https://github.com/gishub4/solid-map-gl#readme",
+  "browserList": [
+    "defaults",
+    "not ie 11"
+  ],
   "dependencies": {
     "mapbox-gl": "^2.6.1",
     "solid-js": "^1.2.6"
