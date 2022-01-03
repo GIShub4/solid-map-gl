@@ -9,11 +9,10 @@ import type {
 } from 'mapbox-gl/src/style-spec/types.js'
 import type { CustomLayerInterface } from 'mapbox-gl/src/style/style_layer/custom_style_layer'
 
-type KV = {
-  string?: any
-}
-
-const diff = (newProps: KV = {}, prevProps: KV = {}) => {
+const diff = (
+  newProps: StyleSpecification = {},
+  prevProps: StyleSpecification = {}
+) => {
   const keys = new Set([...Object.keys(newProps), ...Object.keys(prevProps)])
   return [...keys].reduce((acc, key: string) => {
     const value = newProps[key]
@@ -69,7 +68,7 @@ const Layer: Component<{
   })
 
   // Update Style
-  createEffect((prev: any) => {
+  createEffect((prev: StyleSpecification) => {
     if (!props.style && map().getLayer(props.id)) return
 
     diff(props.style.paint, prev.paint).forEach(([key, value]) =>
@@ -116,7 +115,7 @@ const Layer: Component<{
 
   // Update Feature State
   createEffect(async () => {
-    if (!props.featureState?.id) return
+    if (!props.featureState || !props.featureState.id) return
 
     map().loaded() ? null : await map().once('render')
 

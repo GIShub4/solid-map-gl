@@ -31,10 +31,12 @@ const useMap = () => useContext(MapContext)
 
 const MapGL: Component<{
   class?: string
-  classList?: any
+  classList?: {
+    [k: string]: boolean | undefined
+  }
   viewport?: Viewport
   options?: MapboxOptions
-  children?: any[] | any
+  children?: Component[] | Component
   triggerResize?: boolean
   onMouseMove?: (event: MapMouseEvent) => void
   onViewportChange?: (viewport: Viewport) => void
@@ -88,7 +90,7 @@ const MapGL: Component<{
 
   createEffect(async () => {
     if (!props.viewport.bounds) return
-    // await map.once('idle')
+
     map.fitBounds(props.viewport.bounds, {
       padding: props.viewport.padding,
     })
