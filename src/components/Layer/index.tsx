@@ -95,9 +95,9 @@ const Layer: Component<{
 
   // Update Visibility
   createEffect(async () => {
-    if (!props.visible) return
+    if (props.visible === undefined) return
 
-    !map().loaded() && (await map().once('styledata'))
+    !map().isStyleLoaded() && (await map().once('styledata'))
     map().setLayoutProperty(
       props.id,
       'visibility',
@@ -110,7 +110,7 @@ const Layer: Component<{
   createEffect(async () => {
     if (!props.filter) return
 
-    !map().loaded() && (await map().once('styledata'))
+    !map().isStyleLoaded() && (await map().once('styledata'))
     map().setFilter(props.id, props.filter)
   })
 

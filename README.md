@@ -16,6 +16,8 @@
   - [Interactive Map](#interactive-map)
   - [Map with Source and Layer](#map-with-source-and-layer)
   - [Map with GeoJSON Source](#map-with-geojson-source)
+- [Examples](#examples)
+- [Changelog](#changelog)
 
 <br>
 
@@ -244,7 +246,12 @@ const myDeckLayer = new MapboxLayer({
 </MapGL>
 ```
 
+## Examples
+
+### Coming Soon
+
 ## Changelog
 
 - 1.0.0 - Initial release
 - 1.1.0 - Bug fixing
+- 1.2.0 - Bug fixing

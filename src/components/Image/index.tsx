@@ -19,7 +19,8 @@ const Image: Component<{
 }> = props => {
   const map: MapboxMap = useMap()
   // Add Image
-  onMount(() => {
+  onMount(async () => {
+    !map().isStyleLoaded() && (await map().once('styledata'))
     if (props.url) {
       map().loadImage(props.url, (error, image) => {
         if (error) throw error
