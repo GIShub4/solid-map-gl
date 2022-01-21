@@ -17,7 +17,7 @@ const Terrain: Component<{
   // Add Terrain Layer
   onMount(async () => {
     !map().isStyleLoaded() && (await map().once('styledata'))
-    map().setTerrain({ ...props.style, source: source.source })
+    map().setTerrain({ ...props.style, source: source.id })
   })
 
   // Remove Terrain Layer

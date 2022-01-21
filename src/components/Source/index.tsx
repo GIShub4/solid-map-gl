@@ -49,7 +49,7 @@ const SourceComponent: Component<{
   })
 
   return (
-    <SourceContext.Provider value={{ source: props.id }}>
+    <SourceContext.Provider value={{ id: props.id }}>
       {props.children}
     </SourceContext.Provider>
   )

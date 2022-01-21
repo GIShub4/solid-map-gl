@@ -57,7 +57,7 @@ const Layer: Component<{
       props.layer || {
         ...props.style,
         id: props.id,
-        source: source.source,
+        source: source.id,
       },
       props.beforeType
         ? map()
@@ -68,8 +68,15 @@ const Layer: Component<{
   })
 
   // Update Style
-  createEffect((prev: StyleSpecification) => {
-    if (!props.style && map().getLayer(props.id)) return
+  createEffect(async (prev: StyleSpecification) => {
+    if (
+      !props.style ||
+      !map().getSource(source.id) ||
+      !map().getLayer(props.id)
+    )
+      return
+
+    !map().isSourceLoaded(source.id) && (await map().once('data'))
 
     diff(props.style.paint, prev.paint).forEach(([key, value]) =>
       map().setPaintProperty(props.id, key, value)
@@ -94,9 +101,14 @@ const Layer: Component<{
 
   // Update Visibility
   createEffect(async () => {
-    if (props.visible === undefined) return
+    if (
+      props.visible === undefined ||
+      !map().getSource(source.id) ||
+      !map().getLayer(props.id)
+    )
+      return
 
-    !map().isStyleLoaded() && (await map().once('styledata'))
+    !map().isSourceLoaded(source.id) && (await map().once('data'))
     map().setLayoutProperty(
       props.id,
       'visibility',
@@ -120,12 +132,12 @@ const Layer: Component<{
     map().loaded() ? null : await map().once('render')
 
     map().removeFeatureState({
-      source: source.source,
+      source: source.id,
       sourceLayer: props.style['source-layer'],
     })
     map().setFeatureState(
       {
-        source: source.source,
+        source: source.id,
         sourceLayer: props.style['source-layer'],
         id: props.featureState.id,
       },

@@ -36,7 +36,7 @@ const MapGL: Component<{
   }
   viewport?: Viewport
   options?: MapboxOptions
-  children?: Component[] | Component
+  children?: Element[]
   triggerResize?: boolean
   onMouseMove?: (event: MapMouseEvent) => void
   onViewportChange?: (viewport: Viewport) => void

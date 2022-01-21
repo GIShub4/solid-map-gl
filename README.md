@@ -74,17 +74,15 @@ By default, `MapGL` component renders in a static mode. That means that the user
 
 ```jsx
 import MapGL from 'solid-map-gl'
-
-<MapGL
-    options={{
-        accessToken: { MAPBOX_ACCESS_TOKEN },
-        style: 'mapbox://styles/mapbox/light-v10',
-    }}
-    viewport={{
-        center: [-122.41, 37.78]
-        zoom: 11,
-    }}>
-</MapGL>
+;<MapGL
+  options={{
+    accessToken: { MAPBOX_ACCESS_TOKEN },
+    style: 'mapbox://styles/mapbox/light-v10',
+  }}
+  viewport={{
+    center: [-122.41, 37.78],
+    zoom: 11,
+  }}></MapGL>
 ```
 
 ### Interactive Map
@@ -96,14 +94,14 @@ import { createSignal } from 'solid-js'
 import MapGL, { Viewport } from 'solid-map-gl'
 
 const [viewport, setViewport] = createSignal({
-    center: [-122.41, 37.78]
-    zoom: 11,
+    center: [-122.41, 37.78],
+    zoom: 11
 } as Viewport)
 
 <MapGL
     options={{
         accessToken: { MAPBOX_ACCESS_TOKEN },
-        style: 'mapbox://styles/mapbox/light-v10',
+        style: 'mapbox://styles/mapbox/light-v10'
     }}
     viewport={viewport()}
     onViewportChange={evt => setViewport(evt)}>
@@ -124,7 +122,7 @@ import MapGL, { Source, Layer } from 'solid-map-gl'
 <MapGL
     options={{
         accessToken: { MAPBOX_ACCESS_TOKEN },
-        style: 'mapbox://styles/mapbox/light-v10',
+        style: 'mapbox://styles/mapbox/light-v10'
     }}>
     <Source
         source={{
@@ -152,8 +150,8 @@ import { createSignal } from 'solid-js'
 import MapGL, { Source, Layer } from 'solid-map-gl'
 
 const [viewport, setViewport] = createSignal({
-    center: [-122.486052, 37.830348],
-    zoom: 15,
+  center: [-122.486052, 37.830348],
+  zoom: 15,
 })
 
 const data = {
@@ -186,30 +184,32 @@ const data = {
   },
 }
 
-<MapGL
-    options={{
-        accessToken: { MAPBOX_ACCESS_TOKEN },
-        style: 'mapbox://styles/mapbox/light-v10',
-    }}
-    viewport={viewport()}
-    onViewportChange={evt => setViewport(evt)}>
-    <Source
-        source={{
-            type: 'geojson',
-            data: {data}
+;<MapGL
+  options={{
+    accessToken: { MAPBOX_ACCESS_TOKEN },
+    style: 'mapbox://styles/mapbox/light-v10',
+  }}
+  viewport={viewport()}
+  onViewportChange={evt => setViewport(evt)}>
+  <Source
+    source={{
+      type: 'geojson',
+      data: { data },
     }}>
-        <Layer style={{
-            type: 'line',
-            layout: {
-                'line-join': 'round',
-                'line-cap': 'round',
-            }
-            paint: {
-                'line-color': '#888',
-                'line-width': 8,
-            }
-        }} />
-    </Source>
+    <Layer
+      style={{
+        type: 'line',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round',
+        },
+        paint: {
+          'line-color': '#888',
+          'line-width': 8,
+        },
+      }}
+    />
+  </Source>
 </MapGL>
 ```
 
@@ -227,7 +227,7 @@ import { ScatterplotLayer } from '@deck.gl/layers'
 
 const [viewport, setViewport] = createSignal({
     center: [-74.5, 40],
-    zoom: 9,
+    zoom: 9
 })
 
 const myDeckLayer = new MapboxLayer({
@@ -236,13 +236,13 @@ const myDeckLayer = new MapboxLayer({
   data: [{ position: [-74.5, 40], size: 1000 }],
   getPosition: d => d.position,
   getRadius: d => d.size,
-  getColor: [255, 0, 0],
+  getColor: [255, 0, 0]
 })
 
 <MapGL
     options={{
         accessToken: { MAPBOX_ACCESS_TOKEN },
-        style: 'mapbox://styles/mapbox/light-v10',
+        style: 'mapbox://styles/mapbox/light-v10'
     }}
     viewport={viewport()}
     onViewportChange={evt => setViewport(evt)}>
@@ -264,3 +264,4 @@ const myDeckLayer = new MapboxLayer({
 - [x] Include Popup and Markers
 - [x] Minify bundle & reduce size
 - [ ] Add basemap switching
+- [ ] Add edit functionality

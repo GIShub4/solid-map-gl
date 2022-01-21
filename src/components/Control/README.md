@@ -8,8 +8,16 @@
 | options  | object | [Control Options](https://docs.mapbox.com/mapbox-gl-js/api/markers/)                 |
 | position | string | top-left \| top-right^ \| bottom-left \| bottom-right                                |
 
-_\*required_
+_\*required_<br>
 _\^default_
+
+<br>
+
+` When using language or traffic type you must import the required library`
+
+```shell
+yarn add @mapbox/mapbox-gl-language @mapbox/mapbox-gl-traffic
+```
 
 ## Example
 

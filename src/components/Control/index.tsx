@@ -48,13 +48,16 @@ const Control: Component<{
         control = new mapboxgl.GeolocateControl(props.options)
         break
       // case 'language':
+      //   // @ts-ignore
       //   const MapboxLanguage = (await import('@mapbox/mapbox-gl-language'))
       //     .default
       //   control = new MapboxLanguage(props.options)
       //   break
       // case 'traffic':
+      //   // @ts-ignore
       //   const MapboxTraffic = (await import('@mapbox/mapbox-gl-traffic'))
       //     .default
+      //   // @ts-ignore
       //   await import('@mapbox/mapbox-gl-traffic/mapbox-gl-traffic.css')
       //   control = new MapboxTraffic(props.options)
       //   break

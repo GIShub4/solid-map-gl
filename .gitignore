@@ -14,6 +14,7 @@
 .env.test.local
 .env.production.local
 .idea
+Thumbs.db
 
 pnpm-lock.yaml
 npm-debug.log*
