@@ -11,8 +11,10 @@
 | triggerResize    | boolean |                                       |
 | onMouseMove      | Event   |                                       |
 | onViewportChange | Event   |                                       |
+| transitionType   | string  | flyTo^, easeTo, jumpTo                |
 
-_\*required_
+_\*required_<br>
+_\^default_
 
 ## Example
 

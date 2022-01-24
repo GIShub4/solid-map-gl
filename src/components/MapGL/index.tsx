@@ -38,6 +38,7 @@ const MapGL: Component<{
   options?: MapboxOptions
   children?: Element[]
   triggerResize?: boolean
+  transitionType?: 'flyTo' | 'easeTo' | 'jumpTo'
   onMouseMove?: (event: MapMouseEvent) => void
   onViewportChange?: (viewport: Viewport) => void
 }> = props => {
@@ -65,13 +66,15 @@ const MapGL: Component<{
       map.on('mousemove', event => props.onMouseMove(event.lngLat))
   )
 
-  const _onViewportChange = () => {
+  const _onViewportChange = evt => {
+    if (evt.isInternal) return
     const viewport: Viewport = {
       center: map.getCenter(),
       zoom: map.getZoom(),
       pitch: map.getPitch(),
       bearing: map.getBearing(),
       padding: props.viewport.padding,
+      bounds: props.viewport.bounds,
     }
     props.onViewportChange(viewport)
   }
@@ -88,13 +91,41 @@ const MapGL: Component<{
         .on('boxzoomend', _onViewportChange)
   )
 
-  createEffect(async () => {
-    if (!props.viewport.bounds) return
+  createEffect(prev => {
+    if (props.viewport.bounds != prev) {
+      const camera = map.cameraForBounds(props.viewport.bounds)
+      props.onViewportChange({
+        ...props.viewport,
+        ...camera,
+      })
+    }
+    return props.viewport.bounds
+  }, props.viewport.bounds)
 
-    map.fitBounds(props.viewport.bounds, {
-      padding: props.viewport.padding,
-    })
-  })
+  createEffect(async (prev: Viewport) => {
+    const vp: Viewport = props.viewport
+    const nvp: Viewport = {
+      ...(vp.zoom != prev.zoom && { zoom: vp.zoom }),
+      ...(vp.padding != prev.padding && { padding: vp.padding }),
+      ...(vp.bearing != prev.bearing && { bearing: vp.bearing }),
+      ...(vp.pitch != prev.pitch && { pitch: vp.pitch }),
+      ...(vp.center != prev.center && {
+        center: vp.center.lng ? [vp.center.lng, vp.center.lat] : vp.center,
+      }),
+    }
+    if (Object.keys(nvp).length) {
+      map.stop()
+      switch (props.transitionType) {
+        case 'easeTo':
+          map.easeTo(nvp, { isInternal: true })
+        case 'jumpTo':
+          map.jumpTo(nvp, { isInternal: true })
+        default:
+          map.flyTo(nvp, { isInternal: true })
+      }
+    }
+    return vp
+  }, props.viewport)
 
   let index = 0
 
