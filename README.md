@@ -2,14 +2,11 @@
 
 # Solid Mapbox GL JS
 
-![npm-version](https://badgen.net/npm/v/solid-map-gl)
-![licence](https://badgen.net/badge/license/MIT/blue)
-![types](https://badgen.net/npm/types/solid-map-gl)
-![downloads](https://badgen.net/npm/dt/solid-map-gl)
-
-![size](https://badgen.net/bundlephobia/min/solid-map-gl)
-![zip](https://badgen.net/bundlephobia/minzip/solid-map-gl)
-![treeshaking](https://badgen.net/bundlephobia/tree-shaking/solid-map-gl)
+[![npm](https://badgen.net/npm/v/solid-map-gl)
+![downloads](https://badgen.net/npm/dt/solid-map-gl)](https://www.npmjs.com/package/solid-map-gl)
+[![licence](https://badgen.net/badge/license/MIT/blue)](./LICENSE)
+[![zip](https://badgen.net/bundlephobia/minzip/solid-map-gl)
+![treeshaking](https://badgen.net/bundlephobia/tree-shaking/solid-map-gl)](https://bundlephobia.com/package/solid-map-gl@1.1.6)
 
 [Solid](https://www.solidjs.com/) Component Library for [Mapbox GL JS.](https://github.com/mapbox/mapbox-gl-js) Mapbox GL JS is a JavaScript library that renders interactive maps from vector tiles and Mapbox styles using WebGL. This project is intended to be as close as possible to the [Mapbox GL JS API.](https://docs.mapbox.com/mapbox-gl-js/api/)
 
@@ -96,7 +93,7 @@ import MapGL, { Viewport } from 'solid-map-gl'
 const [viewport, setViewport] = createSignal({
     center: [-122.41, 37.78],
     zoom: 11
-} as Viewport)
+} as Viewport);
 
 <MapGL
     options={{
@@ -117,7 +114,7 @@ const [viewport, setViewport] = createSignal({
 Except for layers of the `background` type, each layer needs to refer to a source. Either buy referencing the `id` in `sourceId` or by nesting the layer within the source component. Layers take the data that they get from a source, optionally filter features, and then define how those features are styled.
 
 ```jsx
-import MapGL, { Source, Layer } from 'solid-map-gl'
+import MapGL, { Source, Layer } from 'solid-map-gl';
 
 <MapGL
     options={{
@@ -226,8 +223,8 @@ import { MapboxLayer } from '@deck.gl/mapbox'
 import { ScatterplotLayer } from '@deck.gl/layers'
 
 const [viewport, setViewport] = createSignal({
-    center: [-74.5, 40],
-    zoom: 9
+  center: [-74.5, 40],
+  zoom: 9,
 })
 
 const myDeckLayer = new MapboxLayer({
@@ -236,17 +233,17 @@ const myDeckLayer = new MapboxLayer({
   data: [{ position: [-74.5, 40], size: 1000 }],
   getPosition: d => d.position,
   getRadius: d => d.size,
-  getColor: [255, 0, 0]
+  getColor: [255, 0, 0],
 })
 
-<MapGL
-    options={{
-        accessToken: { MAPBOX_ACCESS_TOKEN },
-        style: 'mapbox://styles/mapbox/light-v10'
-    }}
-    viewport={viewport()}
-    onViewportChange={evt => setViewport(evt)}>
-        <Layer customLayer={myDeckLayer} />
+;<MapGL
+  options={{
+    accessToken: { MAPBOX_ACCESS_TOKEN },
+    style: 'mapbox://styles/mapbox/light-v10',
+  }}
+  viewport={viewport()}
+  onViewportChange={evt => setViewport(evt)}>
+  <Layer customLayer={myDeckLayer} />
 </MapGL>
 ```
 

@@ -24,6 +24,12 @@ export type Viewport = {
   padding?: number
 }
 
+enum Type {
+  flyTo = 'flyTo',
+  easeTo = 'easeTo',
+  jumpTo = 'jumpTo',
+}
+
 const [pending, start] = useTransition()
 
 const MapContext = createContext<MapboxMap>()
@@ -38,7 +44,7 @@ const MapGL: Component<{
   options?: MapboxOptions
   children?: Element[]
   triggerResize?: boolean
-  transitionType?: 'flyTo' | 'easeTo' | 'jumpTo'
+  transitionType?: Type
   onMouseMove?: (event: MapMouseEvent) => void
   onViewportChange?: (viewport: Viewport) => void
 }> = props => {
@@ -93,7 +99,9 @@ const MapGL: Component<{
 
   createEffect(prev => {
     if (props.viewport.bounds != prev) {
-      const camera = map.cameraForBounds(props.viewport.bounds)
+      const camera = map.cameraForBounds(props.viewport.bounds, {
+        padding: props.viewport.padding,
+      })
       props.onViewportChange({
         ...props.viewport,
         ...camera,

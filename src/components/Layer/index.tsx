@@ -68,7 +68,7 @@ const Layer: Component<{
   })
 
   // Update Style
-  createEffect(async (prev: StyleSpecification) => {
+  createEffect((prev: StyleSpecification) => {
     if (
       !props.style ||
       !map().getSource(source.id) ||
@@ -76,19 +76,19 @@ const Layer: Component<{
     )
       return
 
-    !map().isSourceLoaded(source.id) && (await map().once('data'))
+    if (props.style.layout !== prev?.layout)
+      diff(props.style.layout, prev?.layout).forEach(([key, value]) =>
+        map().setLayoutProperty(props.id, key, value, { validate: false })
+      )
 
-    diff(props.style.paint, prev.paint).forEach(([key, value]) =>
-      map().setPaintProperty(props.id, key, value)
-    )
-
-    diff(props.style.layout, prev.layout).forEach(([key, value]) =>
-      map().setLayoutProperty(props.id, key, value)
-    )
+    if (props.style.paint !== prev?.paint)
+      diff(props.style.paint, prev?.paint).forEach(([key, value]) =>
+        map().setPaintProperty(props.id, key, value, { validate: false })
+      )
 
     if (
-      props.style.minzoom !== prev.minzoom ||
-      props.style.maxzoom !== prev.max
+      props.style.minzoom !== prev?.minzoom ||
+      props.style.maxzoom !== prev?.maxzoom
     )
       map().setLayerZoomRange(
         props.id,
@@ -96,26 +96,30 @@ const Layer: Component<{
         props.style.maxzoom
       )
 
+    if (props.style.filter !== prev?.filter)
+      map().setFilter(props.id, props.style.filter, { validate: false })
+
     return props.style
   }, props.style)
 
   // Update Visibility
-  createEffect(async () => {
+  createEffect((prev: boolean) => {
     if (
       props.visible === undefined ||
+      props.visible === prev ||
       !map().getSource(source.id) ||
       !map().getLayer(props.id)
     )
       return
 
-    !map().isSourceLoaded(source.id) && (await map().once('data'))
     map().setLayoutProperty(
       props.id,
       'visibility',
       props.visible ? 'visible' : 'none',
       { validate: false }
     )
-  })
+    return props.visible
+  }, props.visible)
 
   // Update Filter
   createEffect(async () => {
@@ -129,7 +133,7 @@ const Layer: Component<{
   createEffect(async () => {
     if (!props.featureState || !props.featureState.id) return
 
-    map().loaded() ? null : await map().once('render')
+    !map().isStyleLoaded() && (await map().once('styledata'))
 
     map().removeFeatureState({
       source: source.id,
