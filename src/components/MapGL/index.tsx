@@ -24,12 +24,6 @@ export type Viewport = {
   padding?: number
 }
 
-enum Type {
-  flyTo = 'flyTo',
-  easeTo = 'easeTo',
-  jumpTo = 'jumpTo',
-}
-
 const [pending, start] = useTransition()
 
 const MapContext = createContext<MapboxMap>()
@@ -44,7 +38,7 @@ const MapGL: Component<{
   options?: MapboxOptions
   children?: Element[]
   triggerResize?: boolean
-  transitionType?: Type
+  transitionType?: 'flyTo' | 'easeTo' | 'jumpTo'
   onMouseMove?: (event: MapMouseEvent) => void
   onViewportChange?: (viewport: Viewport) => void
 }> = props => {
@@ -152,13 +146,14 @@ const MapGL: Component<{
 
   return (
     <MapContext.Provider value={() => map}>
-      <main
-        ref={mapRef}
-        class={props.class || ''}
-        classList={props.classList}
-        style={{ height: '100%', width: '100%' }}>
+      <>
         {props.children}
-      </main>
+        <main
+          ref={mapRef}
+          class={props.class || ''}
+          classList={props.classList}
+          style={{ height: '100%', width: '100%' }}></main>
+      </>
     </MapContext.Provider>
   )
 }

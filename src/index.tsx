@@ -1,4 +1,4 @@
-export { default } from './components/MapGL'
+export { default, useMap } from './components/MapGL'
 export { default as Source } from './components/Source'
 export { default as Layer } from './components/Layer'
 export { default as Fog } from './components/Fog'
