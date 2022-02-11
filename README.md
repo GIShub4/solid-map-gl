@@ -6,7 +6,7 @@
 ![downloads](https://badgen.net/npm/dt/solid-map-gl)](https://www.npmjs.com/package/solid-map-gl)
 [![licence](https://badgen.net/badge/license/MIT/blue)](./LICENSE)
 [![zip](https://badgen.net/bundlephobia/minzip/solid-map-gl)
-![treeshaking](https://badgen.net/bundlephobia/tree-shaking/solid-map-gl)](https://bundlephobia.com/package/solid-map-gl@1.1.6)
+![treeshaking](https://badgen.net/bundlephobia/tree-shaking/solid-map-gl)](https://bundlephobia.com/package/solid-map-gl)
 
 [Solid](https://www.solidjs.com/) Component Library for [Mapbox GL JS.](https://github.com/mapbox/mapbox-gl-js) Mapbox GL JS is a JavaScript library that renders interactive maps from vector tiles and Mapbox styles using WebGL. This project is intended to be as close as possible to the [Mapbox GL JS API.](https://docs.mapbox.com/mapbox-gl-js/api/)
 
