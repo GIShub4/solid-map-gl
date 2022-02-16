@@ -42,7 +42,9 @@ const Control: Component<{
         control = new mapboxgl.AttributionControl(props.options)
         break
       case 'fullscreen':
-        control = new mapboxgl.FullscreenControl(props.options)
+        control = new mapboxgl.FullscreenControl(
+          props.options || { container: map().container }
+        )
         break
       case 'geolocate':
         control = new mapboxgl.GeolocateControl(props.options)

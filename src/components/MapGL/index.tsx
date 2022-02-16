@@ -43,7 +43,8 @@ const MapGL: Component<{
   onViewportChange?: (viewport: Viewport) => void
 }> = props => {
   let map: MapboxMap
-  let mapRef: HTMLElement
+  let mapRef: HTMLDivElement
+  let containerRef: HTMLElement
 
   onCleanup(() => map.remove())
 
@@ -58,6 +59,8 @@ const MapGL: Component<{
       bearing: props.viewport.bearing || null,
       fitBoundsOptions: { padding: props.viewport.padding },
     } as MapboxOptions)
+    
+    map.container = containerRef
   })
 
   createEffect(
@@ -146,14 +149,14 @@ const MapGL: Component<{
 
   return (
     <MapContext.Provider value={() => map}>
-      <>
+      <main ref={containerRef} style={{ height: '100%', width: '100%' }}>
         {props.children}
-        <main
+        <div
           ref={mapRef}
           class={props.class || ''}
           classList={props.classList}
-          style={{ height: '100%', width: '100%' }}></main>
-      </>
+          style={{ height: '100%', width: '100%' }}></div>
+      </main>
     </MapContext.Provider>
   )
 }
