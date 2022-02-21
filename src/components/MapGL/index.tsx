@@ -1,5 +1,6 @@
 import {
   createEffect,
+  createMemo,
   onMount,
   onCleanup,
   createContext,
@@ -24,6 +25,8 @@ export type Viewport = {
   padding?: number
 }
 
+export type TransitionType = 'flyTo' | 'easeTo' | 'jumpTo'
+
 const [pending, start] = useTransition()
 
 const MapContext = createContext<MapboxMap>()
@@ -36,9 +39,9 @@ const MapGL: Component<{
   }
   viewport?: Viewport
   options?: MapboxOptions
-  children?: Element[]
+  children?: Element | Element[]
   triggerResize?: boolean
-  transitionType?: 'flyTo' | 'easeTo' | 'jumpTo'
+  transitionType?: TransitionType
   onMouseMove?: (event: MapMouseEvent) => void
   onViewportChange?: (viewport: Viewport) => void
 }> = props => {
@@ -52,6 +55,7 @@ const MapGL: Component<{
     map = new mapboxgl.Map({
       ...props.options,
       container: mapRef,
+      interactive: props.onViewportChange,
       bounds: props.viewport.bounds,
       center: props.viewport.center,
       zoom: props.viewport.zoom || null,
@@ -59,15 +63,13 @@ const MapGL: Component<{
       bearing: props.viewport.bearing || null,
       fitBoundsOptions: { padding: props.viewport.padding },
     } as MapboxOptions)
-    
+
     map.container = containerRef
   })
 
-  createEffect(
-    () =>
-      props.onMouseMove &&
-      map.on('mousemove', event => props.onMouseMove(event.lngLat))
-  )
+  createEffect(() => map.on('mousemove', evt => props.onMouseMove(evt.lngLat)))
+
+  createMemo(() => map && map.setStyle(props.options.style))
 
   const _onViewportChange = evt => {
     if (evt.isInternal) return
@@ -149,14 +151,12 @@ const MapGL: Component<{
 
   return (
     <MapContext.Provider value={() => map}>
-      <main ref={containerRef} style={{ height: '100%', width: '100%' }}>
-        {props.children}
-        <div
-          ref={mapRef}
-          class={props.class || ''}
-          classList={props.classList}
-          style={{ height: '100%', width: '100%' }}></div>
-      </main>
+      {props.children}
+      <main
+        ref={mapRef}
+        class={props.class || ''}
+        classList={props.classList}
+        style={{ height: '100%', width: '100%' }}></main>
     </MapContext.Provider>
   )
 }
