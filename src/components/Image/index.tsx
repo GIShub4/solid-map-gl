@@ -44,7 +44,9 @@ const Image: Component<{
         !map().hasImage(props.id) && map().updateImage(props.id, image)
       })
     } else {
-      map().hasImage(props.id) && map().updateImage(props.id, props.image)
+      map().style &&
+        map().hasImage(props.id) &&
+        map().updateImage(props.id, props.image)
     }
   })
 

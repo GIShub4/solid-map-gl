@@ -44,7 +44,8 @@ const SourceComponent: Component<{
   createEffect(async () => {
     if (props.source.type !== 'geojson' && !props.source.data) return
 
-    map().getSource(props.id) &&
+    map().style &&
+      map().getSource(props.id) &&
       map().getSource(props.id).setData(props.source.data)
   })
 

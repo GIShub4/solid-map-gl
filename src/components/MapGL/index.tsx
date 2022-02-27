@@ -1,6 +1,5 @@
 import {
   createEffect,
-  createMemo,
   onMount,
   onCleanup,
   createContext,
@@ -8,6 +7,7 @@ import {
   Component,
   useTransition,
 } from 'solid-js'
+import events from './events'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
@@ -15,6 +15,7 @@ import type MapboxOptions from 'mapbox-gl/src/ui/map'
 import type MapMouseEvent from 'mapbox-gl/src/ui/events'
 import type { LngLatLike } from 'mapbox-gl/src/geo/lng_lat.js'
 import type { LngLatBounds } from 'mapbox-gl/src/geo/lng_lat_bounds.js'
+import type { PaddingOptions } from 'mapbox-gl/src/geo/edge_insets.js'
 
 export type Viewport = {
   center?: LngLatLike
@@ -22,10 +23,8 @@ export type Viewport = {
   zoom?: number
   pitch?: number
   bearing?: number
-  padding?: number
+  padding?: PaddingOptions
 }
-
-export type TransitionType = 'flyTo' | 'easeTo' | 'jumpTo'
 
 const [pending, start] = useTransition()
 
@@ -41,15 +40,12 @@ const MapGL: Component<{
   options?: MapboxOptions
   children?: Element | Element[]
   triggerResize?: boolean
-  transitionType?: TransitionType
+  transitionType?: 'flyTo' | 'easeTo' | 'jumpTo'
   onMouseMove?: (event: MapMouseEvent) => void
   onViewportChange?: (viewport: Viewport) => void
 }> = props => {
   let map: MapboxMap
   let mapRef: HTMLDivElement
-  let containerRef: HTMLElement
-
-  onCleanup(() => map.remove())
 
   onMount(() => {
     map = new mapboxgl.Map({
@@ -63,38 +59,48 @@ const MapGL: Component<{
       bearing: props.viewport.bearing || null,
       fitBoundsOptions: { padding: props.viewport.padding },
     } as MapboxOptions)
-
-    map.container = containerRef
   })
 
-  createEffect(() => map.on('mousemove', evt => props.onMouseMove(evt.lngLat)))
+  onCleanup(() => map.remove())
 
-  createMemo(() => map && map.setStyle(props.options.style))
-
-  const _onViewportChange = evt => {
-    if (evt.isInternal) return
-    const viewport: Viewport = {
-      center: map.getCenter(),
-      zoom: map.getZoom(),
-      pitch: map.getPitch(),
-      bearing: map.getBearing(),
-      padding: props.viewport.padding,
-      bounds: props.viewport.bounds,
-    }
-    props.onViewportChange(viewport)
-  }
-
-  createEffect(
-    () =>
-      props.onViewportChange &&
-      map
-        .on('dragend', _onViewportChange)
-        .on('moveend', _onViewportChange)
-        .on('zoomend', _onViewportChange)
-        .on('rotateend', _onViewportChange)
-        .on('pitchend', _onViewportChange)
-        .on('boxzoomend', _onViewportChange)
+  // Hook up events
+  createEffect(() =>
+    events.forEach(item => {
+      props[item] && map.on(item.slice(2).toLowerCase(), e => props[item](e))
+    })
   )
+
+  // Update map style
+  createEffect(
+    prev => prev !== props.options.style && map.setStyle(props.options.style),
+    props.options.style
+  )
+
+  // Update Viewport
+  createEffect(() => {
+    props.onViewportChange &&
+      [
+        'dragend',
+        'moveend',
+        'zoomend',
+        'pitchend',
+        'rotateend',
+        'boxzoomend',
+      ].forEach(item =>
+        map.on(item, evt => {
+          if (evt.isInternal) return
+          const viewport: Viewport = {
+            center: map.getCenter(),
+            zoom: map.getZoom(),
+            pitch: map.getPitch(),
+            bearing: map.getBearing(),
+            padding: props.viewport.padding,
+            bounds: props.viewport.bounds,
+          }
+          props.onViewportChange(viewport)
+        })
+      )
+  })
 
   createEffect(prev => {
     if (props.viewport.bounds != prev) {
@@ -152,11 +158,11 @@ const MapGL: Component<{
   return (
     <MapContext.Provider value={() => map}>
       {props.children}
-      <main
+      <section
         ref={mapRef}
         class={props.class || ''}
         classList={props.classList}
-        style={{ height: '100%', width: '100%' }}></main>
+        style={{ height: '100%', width: '100%' }}></section>
     </MapContext.Provider>
   )
 }

@@ -71,6 +71,7 @@ const Layer: Component<{
   createEffect((prev: StyleSpecification) => {
     if (
       !props.style ||
+      !map().style ||
       !map().getSource(source.id) ||
       !map().getLayer(props.id)
     )

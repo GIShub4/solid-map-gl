@@ -9,9 +9,9 @@
 | viewport         | object  |                                       |
 | options          | object  |                                       |
 | triggerResize    | boolean |                                       |
-| onMouseMove      | Event   |                                       |
-| onViewportChange | Event   |                                       |
 | transitionType   | string  | flyTo^, easeTo, jumpTo                |
+| onViewportChange | Event   |                                       |
+| on[Event]        | Event   |  Any [Map Event](https://docs.mapbox.com/mapbox-gl-js/api/map/#map-events) - eg.: onMouseMove                                   |
 
 _\*required_<br>
 _\^default_
