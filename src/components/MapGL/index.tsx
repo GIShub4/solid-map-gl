@@ -7,7 +7,7 @@ import {
   Component,
   useTransition,
 } from 'solid-js'
-import events from './events'
+import { mapEvents, viewportEvents } from '../../events'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
@@ -43,6 +43,13 @@ const MapGL: Component<{
   transitionType?: 'flyTo' | 'easeTo' | 'jumpTo'
   onMouseMove?: (event: MapMouseEvent) => void
   onViewportChange?: (viewport: Viewport) => void
+  showTileBoundaries?: boolean
+  showTerrainWireframe?: boolean
+  showPadding?: boolean
+  showCollisionBoxes?: boolean
+  showOverdrawInspector?: boolean
+  repaint?: boolean
+  cursorStyle?: string
 }> = props => {
   let map: MapboxMap
   let mapRef: HTMLDivElement
@@ -51,7 +58,7 @@ const MapGL: Component<{
     map = new mapboxgl.Map({
       ...props.options,
       container: mapRef,
-      interactive: props.onViewportChange,
+      interactive: !!props.onViewportChange,
       bounds: props.viewport.bounds,
       center: props.viewport.center,
       zoom: props.viewport.zoom || null,
@@ -61,14 +68,32 @@ const MapGL: Component<{
     } as MapboxOptions)
   })
 
-  onCleanup(() => map.remove())
+  onCleanup(() => {
+    mapEvents.forEach(item => {
+      props[item] && map.off(item.slice(2).toLowerCase(), e => props[item](e))
+    })
+    map.remove()
+  })
 
   // Hook up events
   createEffect(() =>
-    events.forEach(item => {
-      props[item] && map.on(item.slice(2).toLowerCase(), e => props[item](e))
+    mapEvents.forEach(item => {
+      if (props[item]) {
+        const eventString = item.slice(2).toLowerCase()
+        map
+          .off(eventString, e => props[item](e))
+          .on(eventString, e => props[item](e))
+      }
     })
   )
+
+  // Update debug features
+  createEffect(() => (map.showTileBoundaries = props.showTileBoundaries))
+  createEffect(() => (map.showTerrainWireframe = props.showTerrainWireframe))
+  createEffect(() => (map.showPadding = props.showPadding))
+  createEffect(() => (map.showCollisionBoxes = props.showCollisionBoxes))
+  createEffect(() => (map.showOverdrawInspector = props.showOverdrawInspector))
+  createEffect(() => (map.getCanvas().style.cursor = props.cursorStyle))
 
   // Update map style
   createEffect(
@@ -79,29 +104,22 @@ const MapGL: Component<{
   // Update Viewport
   createEffect(() => {
     props.onViewportChange &&
-      [
-        'dragend',
-        'moveend',
-        'zoomend',
-        'pitchend',
-        'rotateend',
-        'boxzoomend',
-      ].forEach(item =>
+      viewportEvents.forEach(item =>
         map.on(item, evt => {
-          if (evt.isInternal) return
-          const viewport: Viewport = {
+          if (!evt.originalEvent) return
+          props.onViewportChange({
             center: map.getCenter(),
             zoom: map.getZoom(),
             pitch: map.getPitch(),
             bearing: map.getBearing(),
             padding: props.viewport.padding,
             bounds: props.viewport.bounds,
-          }
-          props.onViewportChange(viewport)
+          })
         })
       )
   })
 
+  // Update boundaries
   createEffect(prev => {
     if (props.viewport.bounds != prev) {
       const camera = map.cameraForBounds(props.viewport.bounds, {
@@ -116,28 +134,30 @@ const MapGL: Component<{
   }, props.viewport.bounds)
 
   createEffect(async (prev: Viewport) => {
-    const vp: Viewport = props.viewport
-    const nvp: Viewport = {
-      ...(vp.zoom != prev.zoom && { zoom: vp.zoom }),
-      ...(vp.padding != prev.padding && { padding: vp.padding }),
-      ...(vp.bearing != prev.bearing && { bearing: vp.bearing }),
-      ...(vp.pitch != prev.pitch && { pitch: vp.pitch }),
-      ...(vp.center != prev.center && {
-        center: vp.center.lng ? [vp.center.lng, vp.center.lat] : vp.center,
+    const viewport: Viewport = props.viewport
+    const newViewport: Viewport = {
+      ...(viewport.zoom != prev.zoom && { zoom: viewport.zoom }),
+      ...(viewport.padding != prev.padding && { padding: viewport.padding }),
+      ...(viewport.bearing != prev.bearing && { bearing: viewport.bearing }),
+      ...(viewport.pitch != prev.pitch && { pitch: viewport.pitch }),
+      ...(viewport.center != prev.center && {
+        center: viewport.center.lng
+          ? [viewport.center.lng, viewport.center.lat]
+          : viewport.center,
       }),
     }
-    if (Object.keys(nvp).length) {
+    if (Object.keys(newViewport).length) {
       map.stop()
       switch (props.transitionType) {
         case 'easeTo':
-          map.easeTo(nvp, { isInternal: true })
+          map.easeTo(newViewport)
         case 'jumpTo':
-          map.jumpTo(nvp, { isInternal: true })
+          map.jumpTo(newViewport)
         default:
-          map.flyTo(nvp, { isInternal: true })
+          map.flyTo(newViewport)
       }
     }
-    return vp
+    return newViewport
   }, props.viewport)
 
   let index = 0

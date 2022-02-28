@@ -1,6 +1,13 @@
-import { onMount, createEffect, Component, createUniqueId } from 'solid-js'
+import {
+  onMount,
+  onCleanup,
+  createEffect,
+  Component,
+  createUniqueId,
+} from 'solid-js'
 import { useMap } from '../MapGL'
 import { useSource } from '../Source'
+import { layerEvents } from '../../events'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type {
   FilterSpecification,
@@ -66,6 +73,27 @@ const Layer: Component<{
         : props.beforeId
     )
   })
+
+  onCleanup(() => {
+    const layer = map().getLayer(props.id)
+    if (!layer) return
+    layerEvents.forEach(item => {
+      props[item] && layer.off(item.slice(2).toLowerCase(), e => props[item](e))
+    })
+    map().removeLayer(props.id)
+  })
+
+  // Hook up events
+  createEffect(() =>
+    layerEvents.forEach(item => {
+      if (props[item]) {
+        const eventString = item.slice(2).toLowerCase()
+        map()
+          .off(eventString, props.id, e => props[item](e))
+          .on(eventString, props.id, e => props[item](e))
+      }
+    })
+  )
 
   // Update Style
   createEffect((prev: StyleSpecification) => {
