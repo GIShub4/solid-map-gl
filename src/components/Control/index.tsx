@@ -1,4 +1,4 @@
-import { onMount, onCleanup, createSignal, Component, lazy } from 'solid-js'
+import { onMount, onCleanup, createSignal, Component } from 'solid-js'
 import { useMap } from '../MapGL'
 import mapboxgl from 'mapbox-gl'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
@@ -27,43 +27,38 @@ const Control: Component<{
 }> = props => {
   const map: MapboxMap = useMap()
   const [control, setControl] = createSignal(null)
-  // Add Control
-  onMount(async () => {
-    let control
 
-    switch (props.type) {
+  const getControl = (type, options) => {
+    switch (type) {
       case 'navigation':
-        control = new mapboxgl.NavigationControl(props.options)
-        break
+        return new mapboxgl.NavigationControl(options)
       case 'scale':
-        control = new mapboxgl.ScaleControl(props.options)
-        break
+        return new mapboxgl.ScaleControl(options)
       case 'attribution':
-        control = new mapboxgl.AttributionControl(props.options)
-        break
+        return new mapboxgl.AttributionControl(options)
       case 'fullscreen':
-        control = new mapboxgl.FullscreenControl(
-          props.options || { container: map().container }
+        return new mapboxgl.FullscreenControl(
+          options || { container: map().container }
         )
-        break
       case 'geolocate':
-        control = new mapboxgl.GeolocateControl(props.options)
-        break
+        return new mapboxgl.GeolocateControl(options)
       // case 'language':
-      //   // @ts-ignore
-      //   const MapboxLanguage = (await import('@mapbox/mapbox-gl-language'))
-      //     .default
-      //   control = new MapboxLanguage(props.options)
-      //   break
+      //   try {
+      //     const MapboxLanguage = require('@mapbox/mapbox-gl-language').default
+      //     return new MapboxLanguage(options)
+      //   } catch (e) {}
       // case 'traffic':
-      //   // @ts-ignore
-      //   const MapboxTraffic = (await import('@mapbox/mapbox-gl-traffic'))
-      //     .default
-      //   // @ts-ignore
-      //   await import('@mapbox/mapbox-gl-traffic/mapbox-gl-traffic.css')
-      //   control = new MapboxTraffic(props.options)
-      //   break
+      //   try {
+      //     const MapboxTraffic = require('@mapbox/mapbox-gl-traffic').default
+      //     require('@mapbox/mapbox-gl-traffic/mapbox-gl-traffic.css')
+      //     return new MapboxTraffic(options)
+      //   } catch (e) {}
     }
+  }
+
+  // Add Control
+  onMount(() => {
+    const control = getControl(props.type, props.options)
     control && map().addControl(control, props.position)
     setControl(control)
   })

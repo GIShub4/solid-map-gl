@@ -68,21 +68,16 @@ const MapGL: Component<{
     } as MapboxOptions)
   })
 
-  onCleanup(() => {
-    mapEvents.forEach(item => {
-      props[item] && map.off(item.slice(2).toLowerCase(), e => props[item](e))
-    })
-    map.remove()
-  })
+  onCleanup(() => map.remove())
 
   // Hook up events
   createEffect(() =>
     mapEvents.forEach(item => {
       if (props[item]) {
-        const eventString = item.slice(2).toLowerCase()
-        map
-          .off(eventString, e => props[item](e))
-          .on(eventString, e => props[item](e))
+        const event = item.slice(2).toLowerCase()
+        const callback = e => props[item](e)
+        map.on(event, callback)
+        onCleanup(() => map().off(event, callback))
       }
     })
   )

@@ -74,23 +74,16 @@ const Layer: Component<{
     )
   })
 
-  onCleanup(() => {
-    const layer = map().getLayer(props.id)
-    if (!layer) return
-    layerEvents.forEach(item => {
-      props[item] && layer.off(item.slice(2).toLowerCase(), e => props[item](e))
-    })
-    map().removeLayer(props.id)
-  })
+  onCleanup(() => map().removeLayer(props.id))
 
   // Hook up events
   createEffect(() =>
     layerEvents.forEach(item => {
       if (props[item]) {
-        const eventString = item.slice(2).toLowerCase()
-        map()
-          .off(eventString, props.id, e => props[item](e))
-          .on(eventString, props.id, e => props[item](e))
+        const event = item.slice(2).toLowerCase()
+        const callback = e => props[item](e)
+        map().on(event, props.id, callback)
+        onCleanup(() => map().off(event, props.id, callback))
       }
     })
   )

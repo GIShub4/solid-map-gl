@@ -55,7 +55,7 @@ const layerEvents: string[] = [
   'onMouseUp',
   'onMouseOver',
   'onMouseOut',
-  'onMouseOnMove',
+  'onMouseMove',
   'onMouseEnter',
   'onMouseLeave',
   'onClick',
