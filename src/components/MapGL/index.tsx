@@ -7,7 +7,7 @@ import {
   Component,
   useTransition,
 } from 'solid-js'
-import { mapEvents, viewportEvents } from '../../events'
+import { mapEvents, viewportEvents, viewportLiveEvents } from '../../events'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
@@ -41,8 +41,8 @@ const MapGL: Component<{
   children?: Element | Element[]
   triggerResize?: boolean
   transitionType?: 'flyTo' | 'easeTo' | 'jumpTo'
-  onMouseMove?: (event: MapMouseEvent) => void
   onViewportChange?: (viewport: Viewport) => void
+  onViewportChanging?: (viewport: Viewport) => void
   showTileBoundaries?: boolean
   showTerrainWireframe?: boolean
   showPadding?: boolean
@@ -96,6 +96,14 @@ const MapGL: Component<{
     props.options.style
   )
 
+  // Update projection
+  createEffect(
+    prev =>
+      prev !== props.options.projection &&
+      map.setProjection(props.options.projection),
+    props.options.projection
+  )
+
   // Update Viewport
   createEffect(() => {
     props.onViewportChange &&
@@ -103,6 +111,24 @@ const MapGL: Component<{
         map.on(item, evt => {
           if (!evt.originalEvent) return
           props.onViewportChange({
+            center: map.getCenter(),
+            zoom: map.getZoom(),
+            pitch: map.getPitch(),
+            bearing: map.getBearing(),
+            padding: props.viewport.padding,
+            bounds: props.viewport.bounds,
+          })
+        })
+      )
+  })
+
+  // Update Live Viewport
+  createEffect(() => {
+    props.onViewportChanging &&
+      viewportLiveEvents.forEach(item =>
+        map.on(item, evt => {
+          if (!evt.originalEvent) return
+          props.onViewportChanging({
             center: map.getCenter(),
             zoom: map.getZoom(),
             pitch: map.getPitch(),

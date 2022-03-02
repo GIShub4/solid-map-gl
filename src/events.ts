@@ -75,4 +75,6 @@ const viewportEvents: string[] = [
   'boxzoomend',
 ]
 
-export { mapEvents, layerEvents, viewportEvents }
+const viewportLiveEvents: string[] = ['drag', 'move', 'zoom', 'pitch', 'rotate']
+
+export { mapEvents, layerEvents, viewportEvents, viewportLiveEvents }
