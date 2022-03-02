@@ -20,7 +20,6 @@
   - [Interactive Map](#interactive-map)
   - [Map with Source and Layer](#map-with-source-and-layer)
   - [Map with GeoJSON Source](#map-with-geojson-source)
-- [Examples](#examples)
 - [Roadmap](#roadmap)
 
 <br>
@@ -249,13 +248,6 @@ const myDeckLayer = new MapboxLayer({
   <Layer customLayer={myDeckLayer} />
 </MapGL>
 ```
-
-## Examples
-
-#### Coming Soon
-
-<br>
-
 ## Roadmap
 
 - [x] Basic Mapbox GL Functionality
@@ -263,5 +255,6 @@ const myDeckLayer = new MapboxLayer({
 - [x] Include Fog, Sky, and Terrain
 - [x] Include Popup and Markers
 - [x] Minify bundle & reduce size
-- [ ] Add basemap switching
+- [x] Add basemap switching
+- [x] Include event handling
 - [ ] Add edit functionality
