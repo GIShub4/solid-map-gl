@@ -2,7 +2,26 @@
   "version": "1.1.12",
   "name": "solid-map-gl",
   "description": "Solid Component Library for Mapbox GL JS",
+  "info": "Solid Component Library for Mapbox GL JS. Mapbox GL JS is a JavaScript library that renders interactive maps from vector tiles and Mapbox styles using WebGL. This project is intended to be as close as possible to the Mapbox GL JS API.",
+  "homepage": "https://determined-mirzakhani-29bbc7.netlify.app",
   "author": "kaihuebner",
+  "contributors": [
+    {
+      "name": "Kai Huebner",
+      "email": "kai.huebner@gmail.com"
+    }
+  ],
+  "keywords": [
+    "gis",
+    "map",
+    "webgl",
+    "mapbox-gl",
+    "mapbox-gl-js",
+    "mapbox",
+    "solidjs",
+    "solidhack",
+    "best_ecosystem"
+  ],
   "license": "MIT",
   "type": "module",
   "files": [
@@ -24,15 +43,6 @@
     "type": "git",
     "url": "git+https://github.com/gishub4/solid-map-gl.git"
   },
-  "keywords": [
-    "map",
-    "webgl",
-    "mapbox-gl",
-    "mapbox-gl-js",
-    "mapbox",
-    "solidjs"
-  ],
-  "homepage": "https://github.com/gishub4/solid-map-gl#readme",
   "browserList": [
     "defaults",
     "not ie 11"
