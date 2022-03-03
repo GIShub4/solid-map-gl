@@ -137,13 +137,14 @@ const MapGL: Component<{
   // Update Viewport
   createEffect(() => {
     if (isInternal()) return
+    const viewport = { ...props.viewport, padding: props.viewport.padding || 0 }
     switch (props.transitionType) {
       case 'easeTo':
-        map.stop().easeTo(props.viewport)
+        map.stop().easeTo(viewport)
       case 'jumpTo':
-        map.stop().jumpTo(props.viewport)
+        map.stop().jumpTo(viewport)
       default:
-        map.stop().flyTo(props.viewport)
+        map.stop().flyTo(viewport)
     }
   })
 
