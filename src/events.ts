@@ -66,15 +66,4 @@ const layerEvents: string[] = [
   'onTouchCancel',
 ]
 
-const viewportEvents: string[] = [
-  'dragend',
-  'moveend',
-  'zoomend',
-  'pitchend',
-  'rotateend',
-  'boxzoomend',
-]
-
-const viewportLiveEvents: string[] = ['drag', 'move', 'zoom', 'pitch', 'rotate']
-
-export { mapEvents, layerEvents, viewportEvents, viewportLiveEvents }
+export { mapEvents, layerEvents }
