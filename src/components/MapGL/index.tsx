@@ -1,4 +1,5 @@
 import {
+  createSignal,
   createEffect,
   onMount,
   onCleanup,
@@ -7,12 +8,11 @@ import {
   Component,
   useTransition,
 } from 'solid-js'
-import { mapEvents, viewportEvents, viewportLiveEvents } from '../../events'
+import { mapEvents } from '../../events'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type MapboxOptions from 'mapbox-gl/src/ui/map'
-import type MapMouseEvent from 'mapbox-gl/src/ui/events'
 import type { LngLatLike } from 'mapbox-gl/src/geo/lng_lat.js'
 import type { LngLatBounds } from 'mapbox-gl/src/geo/lng_lat_bounds.js'
 import type { PaddingOptions } from 'mapbox-gl/src/geo/edge_insets.js'
@@ -27,6 +27,7 @@ export type Viewport = {
 }
 
 const [pending, start] = useTransition()
+const [isInternal, setInternal] = createSignal(false)
 
 const MapContext = createContext<MapboxMap>()
 const useMap = () => useContext(MapContext)
@@ -42,7 +43,6 @@ const MapGL: Component<{
   triggerResize?: boolean
   transitionType?: 'flyTo' | 'easeTo' | 'jumpTo'
   onViewportChange?: (viewport: Viewport) => void
-  onViewportChanging?: (viewport: Viewport) => void
   showTileBoundaries?: boolean
   showTerrainWireframe?: boolean
   showPadding?: boolean
@@ -91,95 +91,61 @@ const MapGL: Component<{
   createEffect(() => (map.getCanvas().style.cursor = props.cursorStyle))
 
   // Update map style
-  createEffect(
-    prev => prev !== props.options.style && map.setStyle(props.options.style),
-    props.options.style
-  )
+  createEffect(prev => {
+    prev !== props.options.style && map.setStyle(props.options.style)
+  }, props.options.style)
 
   // Update projection
-  createEffect(
-    prev =>
-      prev !== props.options.projection &&
-      map.setProjection(props.options.projection),
-    props.options.projection
-  )
+  createEffect(prev => {
+    prev !== props.options.projection &&
+      map.setProjection(props.options.projection)
+  }, props.options.projection)
 
-  // Update Viewport
+  // Hook up viewport events
   createEffect(() => {
-    props.onViewportChange &&
-      viewportEvents.forEach(item =>
-        map.on(item, evt => {
-          if (!evt.originalEvent) return
-          props.onViewportChange({
-            center: map.getCenter(),
-            zoom: map.getZoom(),
-            pitch: map.getPitch(),
-            bearing: map.getBearing(),
-            padding: props.viewport.padding,
-            bounds: props.viewport.bounds,
-          })
+    const callback = event => {
+      if (event.originalEvent) {
+        setInternal(true)
+        props.onViewportChange({
+          center: map.getCenter(),
+          zoom: map.getZoom(),
+          pitch: map.getPitch(),
+          bearing: map.getBearing(),
+          padding: props.viewport.padding,
+          bounds: props.viewport.bounds,
         })
-      )
-  })
+      }
+    }
+    const callEnd = event => setInternal(false)
 
-  // Update Live Viewport
-  createEffect(() => {
-    props.onViewportChanging &&
-      viewportLiveEvents.forEach(item =>
-        map.on(item, evt => {
-          if (!evt.originalEvent) return
-          props.onViewportChanging({
-            center: map.getCenter(),
-            zoom: map.getZoom(),
-            pitch: map.getPitch(),
-            bearing: map.getBearing(),
-            padding: props.viewport.padding,
-            bounds: props.viewport.bounds,
-          })
-        })
-      )
+    map.on('move', callback).on('moveend', callEnd)
+    onCleanup(() => map().off('move', callback).off('moveend', callEnd))
   })
 
   // Update boundaries
   createEffect(prev => {
-    if (props.viewport.bounds != prev) {
-      const camera = map.cameraForBounds(props.viewport.bounds, {
-        padding: props.viewport.padding,
-      })
+    if (props.viewport.bounds != prev)
       props.onViewportChange({
         ...props.viewport,
-        ...camera,
+        ...map.cameraForBounds(props.viewport.bounds, {
+          padding: props.viewport.padding,
+        }),
       })
-    }
     return props.viewport.bounds
   }, props.viewport.bounds)
 
-  createEffect(async (prev: Viewport) => {
-    const viewport: Viewport = props.viewport
-    const newViewport: Viewport = {
-      ...(viewport.zoom != prev.zoom && { zoom: viewport.zoom }),
-      ...(viewport.padding != prev.padding && { padding: viewport.padding }),
-      ...(viewport.bearing != prev.bearing && { bearing: viewport.bearing }),
-      ...(viewport.pitch != prev.pitch && { pitch: viewport.pitch }),
-      ...(viewport.center != prev.center && {
-        center: viewport.center.lng
-          ? [viewport.center.lng, viewport.center.lat]
-          : viewport.center,
-      }),
+  // Update Viewport
+  createEffect(() => {
+    if (isInternal()) return
+    switch (props.transitionType) {
+      case 'easeTo':
+        map.stop().easeTo(props.viewport)
+      case 'jumpTo':
+        map.stop().jumpTo(props.viewport)
+      default:
+        map.stop().flyTo(props.viewport)
     }
-    if (Object.keys(newViewport).length) {
-      map.stop()
-      switch (props.transitionType) {
-        case 'easeTo':
-          map.easeTo(newViewport)
-        case 'jumpTo':
-          map.jumpTo(newViewport)
-        default:
-          map.flyTo(newViewport)
-      }
-    }
-    return newViewport
-  }, props.viewport)
+  })
 
   let index = 0
 
