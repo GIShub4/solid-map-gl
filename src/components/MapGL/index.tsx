@@ -77,7 +77,7 @@ const MapGL: Component<{
         const event = item.slice(2).toLowerCase()
         const callback = e => props[item](e)
         map.on(event, callback)
-        onCleanup(() => map().off(event, callback))
+        onCleanup(() => map.off(event, callback))
       }
     })
   )
