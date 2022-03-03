@@ -119,7 +119,7 @@ const MapGL: Component<{
     const callEnd = event => setInternal(false)
 
     map.on('move', callback).on('moveend', callEnd)
-    onCleanup(() => map().off('move', callback).off('moveend', callEnd))
+    onCleanup(() => map.off('move', callback).off('moveend', callEnd))
   })
 
   // Update boundaries
