@@ -13,11 +13,11 @@ import {
 import { mapEvents } from '../../events'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import type MapboxMap from 'mapbox-gl/src/ui/map'
-import type MapboxOptions from 'mapbox-gl/src/ui/map'
+import type { MapboxMap, MapboxOptions } from 'mapbox-gl/src/ui/map'
 import type { LngLatLike } from 'mapbox-gl/src/geo/lng_lat.js'
 import type { LngLatBounds } from 'mapbox-gl/src/geo/lng_lat_bounds.js'
 import type { PaddingOptions } from 'mapbox-gl/src/geo/edge_insets.js'
+import type { JSX } from 'solid-js'
 
 export type Viewport = {
   id?: string
@@ -37,6 +37,7 @@ const useMap = () => useContext(MapContext)
 
 const MapGL: Component<{
   id?: string
+  style?: JSX.CSSProperties
   class?: string
   classList?: {
     [k: string]: boolean | undefined
@@ -182,7 +183,7 @@ const MapGL: Component<{
         ref={mapRef}
         class={props.class || ''}
         classList={props.classList}
-        style={{ height: '100%', width: '100%' }}></section>
+        style={{ height: '100%', width: '100%', ...props.style }}></section>
     </MapContext.Provider>
   )
 }
