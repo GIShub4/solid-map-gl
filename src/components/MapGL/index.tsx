@@ -55,6 +55,7 @@ const MapGL: Component<{
   showOverdrawInspector?: boolean
   repaint?: boolean
   cursorStyle?: string
+  sync?: boolean
 }> = props => {
   let map: MapboxMap
   let mapRef: HTMLDivElement
@@ -111,23 +112,24 @@ const MapGL: Component<{
 
   // Hook up viewport events
   createEffect(() => {
-    const getViewport = id => ({
-      id: id,
+    const viewport = {
+      id: null,
       center: map.getCenter(),
       zoom: map.getZoom(),
       pitch: map.getPitch(),
       bearing: map.getBearing(),
       padding: props.viewport.padding,
       bounds: props.viewport.bounds,
-    })
+    }
 
     const callMove = event => {
-      if (event.originalEvent) props.onViewportChange(getViewport(props.id))
+      if (event.originalEvent)
+        props.onViewportChange({ ...viewport, id: props.id })
       setTransitionType('jumpTo')
     }
 
     const callEnd = event => {
-      if (event.originalEvent) props.onViewportChange(getViewport(null))
+      if (event.originalEvent) props.onViewportChange(viewport)
       setTransitionType(props.transitionType)
     }
 
@@ -149,7 +151,7 @@ const MapGL: Component<{
 
   // Update Viewport
   createEffect(() => {
-    if (props.id === props.viewport.id) return
+    if (!props.sync || props.id === props.viewport.id) return
     const viewport = { ...props.viewport, padding: props.viewport.padding || 0 }
     switch (untrack(transitionType)) {
       case 'easeTo':
