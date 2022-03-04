@@ -7,6 +7,8 @@ import {
   useContext,
   Component,
   useTransition,
+  createUniqueId,
+  untrack,
 } from 'solid-js'
 import { mapEvents } from '../../events'
 import mapboxgl from 'mapbox-gl'
@@ -18,6 +20,7 @@ import type { LngLatBounds } from 'mapbox-gl/src/geo/lng_lat_bounds.js'
 import type { PaddingOptions } from 'mapbox-gl/src/geo/edge_insets.js'
 
 export type Viewport = {
+  id?: string
   center?: LngLatLike
   bounds?: LngLatBounds
   zoom?: number
@@ -27,12 +30,13 @@ export type Viewport = {
 }
 
 const [pending, start] = useTransition()
-const [isInternal, setInternal] = createSignal(false)
+const [transitionType, setTransitionType] = createSignal('flyTo')
 
 const MapContext = createContext<MapboxMap>()
 const useMap = () => useContext(MapContext)
 
 const MapGL: Component<{
+  id?: string
   class?: string
   classList?: {
     [k: string]: boolean | undefined
@@ -53,6 +57,7 @@ const MapGL: Component<{
 }> = props => {
   let map: MapboxMap
   let mapRef: HTMLDivElement
+  props.id = props.id || createUniqueId()
 
   onMount(() => {
     map = new mapboxgl.Map({
@@ -101,25 +106,32 @@ const MapGL: Component<{
       map.setProjection(props.options.projection)
   }, props.options.projection)
 
+  createEffect(() => setTransitionType(props.transitionType))
+
   // Hook up viewport events
   createEffect(() => {
-    const callback = event => {
-      if (event.originalEvent) {
-        setInternal(true)
-        props.onViewportChange({
-          center: map.getCenter(),
-          zoom: map.getZoom(),
-          pitch: map.getPitch(),
-          bearing: map.getBearing(),
-          padding: props.viewport.padding,
-          bounds: props.viewport.bounds,
-        })
-      }
-    }
-    const callEnd = event => setInternal(false)
+    const getViewport = id => ({
+      id: id,
+      center: map.getCenter(),
+      zoom: map.getZoom(),
+      pitch: map.getPitch(),
+      bearing: map.getBearing(),
+      padding: props.viewport.padding,
+      bounds: props.viewport.bounds,
+    })
 
-    map.on('move', callback).on('moveend', callEnd)
-    onCleanup(() => map.off('move', callback).off('moveend', callEnd))
+    const callMove = event => {
+      if (event.originalEvent) props.onViewportChange(getViewport(props.id))
+      setTransitionType('jumpTo')
+    }
+
+    const callEnd = event => {
+      if (event.originalEvent) props.onViewportChange(getViewport(null))
+      setTransitionType(props.transitionType)
+    }
+
+    map.on('move', callMove).on('moveend', callEnd)
+    onCleanup(() => map.off('move', callMove).off('moveend', callEnd))
   })
 
   // Update boundaries
@@ -136,9 +148,9 @@ const MapGL: Component<{
 
   // Update Viewport
   createEffect(() => {
-    if (isInternal()) return
+    if (props.id === props.viewport.id) return
     const viewport = { ...props.viewport, padding: props.viewport.padding || 0 }
-    switch (props.transitionType) {
+    switch (untrack(transitionType)) {
       case 'easeTo':
         map.stop().easeTo(viewport)
       case 'jumpTo':
