@@ -55,7 +55,7 @@ const MapGL: Component<{
   showOverdrawInspector?: boolean
   repaint?: boolean
   cursorStyle?: string
-  sync?: boolean
+  ref?: HTMLDivElement
 }> = props => {
   let map: MapboxMap
   let mapRef: HTMLDivElement
@@ -133,8 +133,13 @@ const MapGL: Component<{
       setTransitionType(props.transitionType)
     }
 
-    map.on('move', callMove).on('moveend', callEnd)
-    onCleanup(() => map.off('move', callMove).off('moveend', callEnd))
+    map.on('move', callMove).on('moveend', callEnd).on('boxzoomend', callEnd)
+    onCleanup(() =>
+      map
+        .off('move', callMove)
+        .off('moveend', callEnd)
+        .off('boxzoomend', callEnd)
+    )
   })
 
   // Update boundaries
@@ -151,7 +156,7 @@ const MapGL: Component<{
 
   // Update Viewport
   createEffect(() => {
-    if (!props.sync || props.id === props.viewport.id) return
+    if (props.id === props.viewport.id) return
     const viewport = { ...props.viewport, padding: props.viewport.padding || 0 }
     switch (untrack(transitionType)) {
       case 'easeTo':
