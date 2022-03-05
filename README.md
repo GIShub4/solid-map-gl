@@ -2,11 +2,12 @@
 
 # Solid Mapbox GL JS
 
-[![npm](https://badgen.net/npm/v/solid-map-gl)
+[![npm](https://badgen.net/npm/v/solid-map-gl?icon=npm&label)
 ![downloads](https://badgen.net/npm/dt/solid-map-gl)](https://www.npmjs.com/package/solid-map-gl)
 [![licence](https://badgen.net/badge/license/MIT/blue)](./LICENSE)
-[![zip](https://badgen.net/bundlephobia/minzip/solid-map-gl)
-![treeshaking](https://badgen.net/bundlephobia/tree-shaking/solid-map-gl)](https://bundlephobia.com/package/solid-map-gl)
+[![size](https://badgen.net/badge/color/114%20kB/blue?label=Unpacked%20Size)
+![treeshaking](https://badgen.net/badge/color/supported/green?label=tree%20shaking)](https://bundlephobia.com/package/solid-map-gl)
+![types](https://badgen.net/npm/types/solid-map-gl?icon=typescript&label)
 
 [Solid](https://www.solidjs.com/) Component Library for [Mapbox GL JS.](https://github.com/mapbox/mapbox-gl-js) Mapbox GL JS is a JavaScript library that renders interactive maps from vector tiles and Mapbox styles using WebGL. This project is intended to be as close as possible to the [Mapbox GL JS API.](https://docs.mapbox.com/mapbox-gl-js/api/)
 
@@ -36,7 +37,7 @@ yarn add solid-map-gl
 npm install --save solid-map-gl
 ```
 
-### Optional Dependencies
+<!-- ### Optional Dependencies
 
 If you want to use `LanguageControl` and `TrafficControl`:
 
@@ -46,7 +47,7 @@ yarn add @mapbox/mapbox-gl-language @mapbox/mapbox-gl-traffic
 
 ```shell
 npm install --save @mapbox/mapbox-gl-language @mapbox/mapbox-gl-traffic
-```
+``` -->
 
 ## Components
 
@@ -73,15 +74,16 @@ By default, `MapGL` component renders in a static mode. That means that the user
 
 ```jsx
 import MapGL from 'solid-map-gl'
-;<MapGL
+<MapGL
   options={{
-    accessToken: { MAPBOX_ACCESS_TOKEN },
+    accessToken: MAPBOX_ACCESS_TOKEN,
     style: 'mapbox://styles/mapbox/light-v10',
   }}
   viewport={{
     center: [-122.41, 37.78],
     zoom: 11,
-  }}></MapGL>
+  }}>
+</MapGL>
 ```
 
 ### Interactive Map
@@ -90,7 +92,8 @@ In most cases, you will want the user to interact with the map. To do this, you 
 
 ```jsx
 import { createSignal } from 'solid-js'
-import MapGL, { Viewport } from 'solid-map-gl'
+import MapGL from 'solid-map-gl'
+import type { Viewport } from 'solid-map-gl'
 
 const [viewport, setViewport] = createSignal({
     center: [-122.41, 37.78],
@@ -99,7 +102,7 @@ const [viewport, setViewport] = createSignal({
 
 <MapGL
     options={{
-        accessToken: { MAPBOX_ACCESS_TOKEN },
+        accessToken: MAPBOX_ACCESS_TOKEN,
         style: 'mapbox://styles/mapbox/light-v10'
     }}
     viewport={viewport()}
@@ -120,13 +123,13 @@ import MapGL, { Source, Layer } from 'solid-map-gl';
 
 <MapGL
     options={{
-        accessToken: { MAPBOX_ACCESS_TOKEN },
+        accessToken: MAPBOX_ACCESS_TOKEN,
         style: 'mapbox://styles/mapbox/light-v10'
     }}>
     <Source
         source={{
         type: 'vector',
-        url: 'mapbox://mapbox.mapbox-terrain-v2'
+        url: 'mapbox://mapbox.mapbox-terrain-v2',
     }}>
         <Layer style={{
             type: 'line',
@@ -147,6 +150,7 @@ To draw a GeoJSON on a map, add `Source` with the `type` property set to `geojso
 ```jsx
 import { createSignal } from 'solid-js'
 import MapGL, { Source, Layer } from 'solid-map-gl'
+import type { Viewport } from 'solid-map-gl'
 
 const [viewport, setViewport] = createSignal({
   center: [-122.486052, 37.830348],
@@ -183,9 +187,9 @@ const data = {
   },
 }
 
-;<MapGL
+<MapGL
   options={{
-    accessToken: { MAPBOX_ACCESS_TOKEN },
+    accessToken: MAPBOX_ACCESS_TOKEN,
     style: 'mapbox://styles/mapbox/light-v10',
   }}
   viewport={viewport()}
@@ -223,6 +227,7 @@ import { createSignal } from 'solid-js'
 import MapGL, { Source, Layer } from 'solid-map-gl'
 import { MapboxLayer } from '@deck.gl/mapbox'
 import { ScatterplotLayer } from '@deck.gl/layers'
+import type { Viewport } from 'solid-map-gl'
 
 const [viewport, setViewport] = createSignal({
   center: [-74.5, 40],
@@ -238,9 +243,9 @@ const myDeckLayer = new MapboxLayer({
   getColor: [255, 0, 0],
 })
 
-;<MapGL
+<MapGL
   options={{
-    accessToken: { MAPBOX_ACCESS_TOKEN },
+    accessToken: MAPBOX_ACCESS_TOKEN,
     style: 'mapbox://styles/mapbox/light-v10',
   }}
   viewport={viewport()}
@@ -257,4 +262,5 @@ const myDeckLayer = new MapboxLayer({
 - [x] Minify bundle & reduce size
 - [x] Add basemap switching
 - [x] Include event handling
-- [ ] Add edit functionality
+- [x] Sync Maps
+- [ ] Add draw functionality
