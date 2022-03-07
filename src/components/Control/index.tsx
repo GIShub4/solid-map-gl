@@ -9,26 +9,22 @@ import type { Options as NavigationOptions } from 'mapbox-gl/src/ui/control/navi
 import type { Options as ScaleOptions } from 'mapbox-gl/src/ui/control/scale_control'
 
 const Control: Component<{
-  type:
-    | 'navigation'
-    | 'scale'
-    | 'attribution'
-    | 'fullscreen'
-    | 'geolocate'
-    | 'language'
-    | 'traffic'
+  type: 'navigation' | 'scale' | 'attribution' | 'fullscreen' | 'geolocate'
   options?:
     | NavigationOptions
     | ScaleOptions
     | AttributionOptions
     | FullscreenOptions
     | GeolocateOptions
+    | object
+  custom?: any
   position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
 }> = props => {
   const map: MapboxMap = useMap()
   const [control, setControl] = createSignal(null)
 
   const getControl = (type, options) => {
+    if (props.custom) return new props.custom(options)
     switch (type) {
       case 'navigation':
         return new mapboxgl.NavigationControl(options)
@@ -36,23 +32,14 @@ const Control: Component<{
         return new mapboxgl.ScaleControl(options)
       case 'attribution':
         return new mapboxgl.AttributionControl(options)
+      case 'geolocate':
+        return new mapboxgl.GeolocateControl(options)
       case 'fullscreen':
         return new mapboxgl.FullscreenControl(
           options || { container: map().container }
         )
-      case 'geolocate':
-        return new mapboxgl.GeolocateControl(options)
-      // case 'language':
-      //   try {
-      //     const MapboxLanguage = require('@mapbox/mapbox-gl-language').default
-      //     return new MapboxLanguage(options)
-      //   } catch (e) {}
-      // case 'traffic':
-      //   try {
-      //     const MapboxTraffic = require('@mapbox/mapbox-gl-traffic').default
-      //     require('@mapbox/mapbox-gl-traffic/mapbox-gl-traffic.css')
-      //     return new MapboxTraffic(options)
-      //   } catch (e) {}
+      default:
+        throw new Error(`Unknown control type: ${type}`)
     }
   }
 

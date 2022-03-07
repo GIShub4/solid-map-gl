@@ -133,13 +133,8 @@ const MapGL: Component<{
       setTransitionType(props.transitionType)
     }
 
-    map.on('move', callMove).on('moveend', callEnd).on('boxzoomend', callEnd)
-    onCleanup(() =>
-      map
-        .off('move', callMove)
-        .off('moveend', callEnd)
-        .off('boxzoomend', callEnd)
-    )
+    map.on('move', callMove).on('moveend', callEnd)
+    onCleanup(() => map.off('move', callMove).off('moveend', callEnd))
   })
 
   // Update boundaries
