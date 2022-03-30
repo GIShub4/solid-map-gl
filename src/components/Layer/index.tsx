@@ -65,6 +65,9 @@ const Layer: Component<{
         ...props.style,
         id: props.id,
         source: source.id,
+        metadata: {
+          smg: { beforeType: props.beforeType, beforeId: props.beforeId },
+        },
       },
       props.beforeType
         ? map()

@@ -9,6 +9,7 @@ import {
   useTransition,
   createUniqueId,
   untrack,
+  on,
 } from 'solid-js'
 import { mapEvents } from '../../events'
 import mapboxgl from 'mapbox-gl'
@@ -59,20 +60,24 @@ const MapGL: Component<{
 }> = props => {
   let map: MapboxMap
   let mapRef: HTMLDivElement
+  let containerRef: HTMLElement
   props.id = props.id || createUniqueId()
 
   onMount(() => {
     map = new mapboxgl.Map({
       ...props.options,
+      style: props.options?.style || { version: 8, sources: {}, layers: [] },
       container: mapRef,
       interactive: !!props.onViewportChange,
-      bounds: props.viewport.bounds,
-      center: props.viewport.center,
-      zoom: props.viewport.zoom || null,
-      pitch: props.viewport.pitch || null,
-      bearing: props.viewport.bearing || null,
-      fitBoundsOptions: { padding: props.viewport.padding },
+      bounds: props.viewport?.bounds,
+      center: props.viewport?.center,
+      zoom: props.viewport?.zoom || null,
+      pitch: props.viewport?.pitch || null,
+      bearing: props.viewport?.bearing || null,
+      fitBoundsOptions: { padding: props.viewport?.padding },
     } as MapboxOptions)
+
+    map.container = containerRef
   })
 
   onCleanup(() => map.remove())
@@ -98,15 +103,37 @@ const MapGL: Component<{
   createEffect(() => (map.getCanvas().style.cursor = props.cursorStyle))
 
   // Update map style
-  createEffect(prev => {
-    prev !== props.options.style && map.setStyle(props.options.style)
-  }, props.options.style)
+  createEffect(
+    on(
+      () => props.options.style,
+      () => {
+        const oldStyle = map.getStyle()
+        const oldLayers = oldStyle.layers.filter(l => l.id.startsWith('cl-'))
+        const oldSources = Object.keys(oldStyle.sources)
+          .filter(s => s.startsWith('cl-'))
+          .reduce((obj, key) => ({ ...obj, [key]: oldStyle.sources[key] }), {})
+        map.setStyle(props.options.style)
+        map.once('styledata', () => {
+          const newStyle = map.getStyle()
+          map.setStyle({
+            ...newStyle,
+            sources: { ...newStyle.sources, ...oldSources },
+            layers: [...newStyle.layers, ...oldLayers],
+          })
+        })
+      },
+      { defer: true }
+    )
+  )
 
   // Update projection
-  createEffect(prev => {
-    prev !== props.options.projection &&
-      map.setProjection(props.options.projection)
-  }, props.options.projection)
+  createEffect(
+    on(
+      () => props.options.projection,
+      () => map.setProjection(props.options.projection),
+      { defer: true }
+    )
+  )
 
   createEffect(() => setTransitionType(props.transitionType))
 
@@ -118,8 +145,8 @@ const MapGL: Component<{
       zoom: map.getZoom(),
       pitch: map.getPitch(),
       bearing: map.getBearing(),
-      padding: props.viewport.padding,
-      bounds: props.viewport.bounds,
+      padding: props.viewport?.padding,
+      bounds: props.viewport?.bounds,
     }
 
     const callMove = event => {
@@ -139,20 +166,23 @@ const MapGL: Component<{
 
   // Update boundaries
   createEffect(prev => {
-    if (props.viewport.bounds != prev)
+    if (props.viewport?.bounds != prev)
       props.onViewportChange({
         ...props.viewport,
-        ...map.cameraForBounds(props.viewport.bounds, {
-          padding: props.viewport.padding,
+        ...map.cameraForBounds(props.viewport?.bounds, {
+          padding: props.viewport?.padding,
         }),
       })
-    return props.viewport.bounds
-  }, props.viewport.bounds)
+    return props.viewport?.bounds
+  }, props.viewport?.bounds)
 
   // Update Viewport
   createEffect(() => {
-    if (props.id === props.viewport.id) return
-    const viewport = { ...props.viewport, padding: props.viewport.padding || 0 }
+    if (props.id === props.viewport?.id) return
+    const viewport = {
+      ...props.viewport,
+      padding: props.viewport?.padding || 0,
+    }
     switch (untrack(transitionType)) {
       case 'easeTo':
         map.stop().easeTo(viewport)
@@ -180,12 +210,15 @@ const MapGL: Component<{
 
   return (
     <MapContext.Provider value={() => map}>
-      {props.children}
-      <section
-        ref={mapRef}
-        class={props.class || ''}
-        classList={props.classList}
-        style={{ height: '100%', width: '100%', ...props.style }}></section>
+      <section ref={containerRef} style={{ height: '100%', width: '100%' }}>
+        {props.children}
+        <div
+          ref={mapRef}
+          class={props.class || ''}
+          classList={props.classList}
+          style={{ height: '100%', width: '100%', ...props.style }}
+        />
+      </section>
     </MapContext.Provider>
   )
 }
