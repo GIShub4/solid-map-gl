@@ -151,12 +151,14 @@ const MapGL: Component<{
 
     const callMove = event => {
       if (event.originalEvent)
-        props.onViewportChange({ ...viewport, id: props.id })
+        props.onViewportChange &&
+          props.onViewportChange({ ...viewport, id: props.id })
       setTransitionType('jumpTo')
     }
 
     const callEnd = event => {
-      if (event.originalEvent) props.onViewportChange(viewport)
+      if (event.originalEvent)
+        props.onViewportChange && props.onViewportChange(viewport)
       setTransitionType(props.transitionType)
     }
 
@@ -210,15 +212,17 @@ const MapGL: Component<{
 
   return (
     <MapContext.Provider value={() => map}>
-      <section ref={containerRef} style={{ height: '100%', width: '100%' }}>
+      <section
+        ref={containerRef}
+        style={{ position: 'absolute', 'z-index': 1 }}>
         {props.children}
-        <div
-          ref={mapRef}
-          class={props.class || ''}
-          classList={props.classList}
-          style={{ height: '100%', width: '100%', ...props.style }}
-        />
       </section>
+      <div
+        ref={mapRef}
+        class={props.class || ''}
+        classList={props.classList}
+        style={{ height: '100%', width: '100%', ...props.style }}
+      />
     </MapContext.Provider>
   )
 }
