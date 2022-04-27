@@ -1,11 +1,11 @@
-![Banner](./docs/banner.png)
+![Banner](https://assets.solidjs.com/banner?project=solid-map-gl&background=tiles)
 
 # Solid Mapbox GL JS
 
 [![npm](https://badgen.net/npm/v/solid-map-gl?icon=npm&label)
 ![downloads](https://badgen.net/npm/dt/solid-map-gl)](https://www.npmjs.com/package/solid-map-gl)
 [![licence](https://badgen.net/badge/license/MIT/blue)](./LICENSE)
-[![size](https://badgen.net/badge/color/113%20kB/blue?label=Unpacked%20Size)
+[![size](https://badgen.net/badge/color/119%20kB/blue?label=Unpacked%20Size)
 ![treeshaking](https://badgen.net/badge/color/supported/green?label=tree%20shaking)](https://bundlephobia.com/package/solid-map-gl)
 ![types](https://badgen.net/npm/types/solid-map-gl?icon=typescript&label)
 
