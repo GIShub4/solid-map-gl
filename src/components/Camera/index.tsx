@@ -40,6 +40,7 @@ export const Camera: Component<{
     loop?: boolean
     duration: number
   }
+  children?: any
 }> = props => {
   const map: MapboxMap = useMap()
   let animationTime = 0.1

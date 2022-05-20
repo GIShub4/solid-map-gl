@@ -28,14 +28,20 @@
 ![Gallery](./docs/gallery.png)
 
 ## Installation
+<br>
+
+> :bangbang:
+>
+> There is a Mapbox bundle issue when using `npm or yarn` 
+>
+> Please use [`pnpm`](https://pnpm.io/) as a workaround 
+
+<br>
 
 ```shell
-yarn add solid-map-gl
+pnpm add solid-map-gl
 ```
 
-```shell
-npm install --save solid-map-gl
-```
 
 <!-- ### Optional Dependencies
 
