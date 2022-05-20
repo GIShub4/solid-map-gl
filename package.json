@@ -3,7 +3,6 @@
   "name": "solid-map-gl",
   "description": "Solid Component Library for Mapbox GL JS",
   "info": "Solid Component Library for Mapbox GL JS. Mapbox GL JS is a JavaScript library that renders interactive maps from vector tiles and Mapbox styles using WebGL. This project is intended to be as close as possible to the Mapbox GL JS API.",
-  "homepage": "https://determined-mirzakhani-29bbc7.netlify.app",
   "author": "kaihuebner",
   "contributors": [
     {
@@ -18,26 +17,30 @@
     "mapbox-gl",
     "mapbox-gl-js",
     "mapbox",
-    "solidjs",
-    "solidhack",
-    "best_ecosystem"
+    "solidjs"
   ],
   "license": "MIT",
   "type": "module",
   "files": [
     "dist"
   ],
+  "source": "dist/index/index.jsx",
   "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/types/index.d.ts",
   "exports": {
     ".": {
-      "solid": "./dist/source/index.jsx",
-      "default": "./dist/esm/index.js"
+      "solid": "./dist/index/index.jsx",
+      "default": "./dist/esm/index.js",
+      "import": "./dist/esm/index.js",
+      "browser": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "node": "./dist/cjs/index.js"
     }
   },
   "scripts": {
     "build": "rollup -c",
+    "watch": "rollup -c -w",
     "test": "vitest"
   },
   "repository": {
@@ -49,20 +52,19 @@
     "not ie 11"
   ],
   "dependencies": {
-    "mapbox-gl": "^2.8.0",
-    "solid-js": "^1.3.14"
+    "mapbox-gl": "^2.8.2",
+    "solid-js": "1.4.2"
   },
   "devDependencies": {
-    "canvas": "^2.9.1",
     "jsdom": "^19.0.0",
-    "rollup": "^2.70.1",
+    "rollup": "^2.74.1",
     "rollup-plugin-import-css": "^3.0.3",
     "rollup-plugin-uglify": "^6.0.4",
     "rollup-preset-solid": "^1.4.0",
     "solid-testing-library": "^0.3.0",
-    "typescript": "^4.6.3",
-    "vite": "^2.9.1",
+    "typescript": "^4.6.4",
+    "vite": "^2.9.9",
     "vite-plugin-solid": "^2.2.6",
-    "vitest": "^0.9.3"
+    "vitest": "^0.12.7"
   }
 }

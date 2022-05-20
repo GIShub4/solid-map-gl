@@ -12,6 +12,7 @@ import {
   on,
 } from 'solid-js'
 import { mapEvents } from '../../events'
+import { vectorStyleList } from '../../styles'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import type { MapboxMap, MapboxOptions } from 'mapbox-gl/src/ui/map'
@@ -30,43 +31,63 @@ export type Viewport = {
   padding?: PaddingOptions
 }
 
-const [pending, start] = useTransition()
-const [transitionType, setTransitionType] = createSignal('flyTo')
-
 const MapContext = createContext<MapboxMap>()
-const useMap = () => useContext(MapContext)
+/** Provides the Mapbox Map Object */
+export const useMap = (): MapboxMap => useContext(MapContext)
 
-const MapGL: Component<{
+/** Creates a new Map Container */
+export const MapGL: Component<{
   id?: string
+  /** Map Container CSS Style */
   style?: JSX.CSSProperties
+  /** Map Container CSS Class */
   class?: string
+  /** SolidJS Class List for Map Container */
   classList?: {
     [k: string]: boolean | undefined
   }
+  /** Current Map View */
   viewport?: Viewport
+  /** Mapbox Options
+   * @see https://docs.mapbox.com/mapbox-gl-js/api/map/#map-parameters
+   */
   options?: MapboxOptions
-  children?: Element | Element[]
-  triggerResize?: boolean
+  /** Type for pan, move and zoom transitions */
   transitionType?: 'flyTo' | 'easeTo' | 'jumpTo'
+  /** Event listener for Viewport updates */
   onViewportChange?: (viewport: Viewport) => void
+  /** Displays Map Tile Borders */
   showTileBoundaries?: boolean
+  /** Displays Wireframe if Terrain is visible */
   showTerrainWireframe?: boolean
+  /** Displays Borders if Padding is set */
   showPadding?: boolean
+  /** Displays Label Collision Boxes */
   showCollisionBoxes?: boolean
+  /** Displays all feature outlines even if normally not drawn by style rules */
   showOverdrawInspector?: boolean
+  triggerResize?: boolean
   repaint?: boolean
+  /** Mouse Cursor Style */
   cursorStyle?: string
   ref?: HTMLDivElement
+  /** Children within the Map Container */
+  children?: Element | Element[]
 }> = props => {
   let map: MapboxMap
   let mapRef: HTMLDivElement
   let containerRef: HTMLElement
   props.id = props.id || createUniqueId()
 
-  onMount(() => {
+  const [mapRoot, setMapRoot] = createSignal<MapboxMap>()
+  const [pending, start] = useTransition()
+  const [transitionType, setTransitionType] = createSignal('flyTo')
+
+  onMount(async () => {
     map = new mapboxgl.Map({
       ...props.options,
-      style: props.options?.style || { version: 8, sources: {}, layers: [] },
+      style: vectorStyleList[props.options?.style] ||
+        props.options?.style || { version: 8, sources: {}, layers: [] },
       container: mapRef,
       interactive: !!props.onViewportChange,
       bounds: props.viewport?.bounds,
@@ -78,6 +99,9 @@ const MapGL: Component<{
     } as MapboxOptions)
 
     map.container = containerRef
+
+    await map.once('styledata')
+    setMapRoot(map)
   })
 
   onCleanup(() => map.remove())
@@ -100,19 +124,33 @@ const MapGL: Component<{
   createEffect(() => (map.showPadding = props.showPadding))
   createEffect(() => (map.showCollisionBoxes = props.showCollisionBoxes))
   createEffect(() => (map.showOverdrawInspector = props.showOverdrawInspector))
+
   createEffect(() => (map.getCanvas().style.cursor = props.cursorStyle))
+  createEffect(() => setTransitionType(props.transitionType))
+
+  // Update projection
+  createEffect(
+    on(
+      () => props.options?.projection,
+      proj => map.setProjection(proj),
+      { defer: true }
+    )
+  )
 
   // Update map style
   createEffect(
     on(
-      () => props.options.style,
-      () => {
+      () => props.options?.style,
+      style => {
         const oldStyle = map.getStyle()
         const oldLayers = oldStyle.layers.filter(l => l.id.startsWith('cl-'))
         const oldSources = Object.keys(oldStyle.sources)
           .filter(s => s.startsWith('cl-'))
           .reduce((obj, key) => ({ ...obj, [key]: oldStyle.sources[key] }), {})
-        map.setStyle(props.options.style)
+        map.setStyle(
+          vectorStyleList[style] ||
+            style || { version: 8, sources: {}, layers: [] }
+        )
         map.once('styledata', () => {
           const newStyle = map.getStyle()
           map.setStyle({
@@ -125,17 +163,6 @@ const MapGL: Component<{
       { defer: true }
     )
   )
-
-  // Update projection
-  createEffect(
-    on(
-      () => props.options.projection,
-      () => map.setProjection(props.options.projection),
-      { defer: true }
-    )
-  )
-
-  createEffect(() => setTransitionType(props.transitionType))
 
   // Hook up viewport events
   createEffect(() => {
@@ -211,20 +238,18 @@ const MapGL: Component<{
   })
 
   return (
-    <MapContext.Provider value={() => map}>
+    <MapContext.Provider value={mapRoot}>
       <section
         ref={containerRef}
         style={{ position: 'absolute', 'z-index': 1 }}>
-        {props.children}
+        {props.children || null}
       </section>
       <div
         ref={mapRef}
-        class={props.class || ''}
-        classList={props.classList}
+        class={props.class || null}
+        classList={props.classList || null}
         style={{ height: '100%', width: '100%', ...props.style }}
       />
     </MapContext.Provider>
   )
 }
-
-export { MapGL as default, useMap }

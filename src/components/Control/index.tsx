@@ -1,4 +1,4 @@
-import { onMount, onCleanup, createSignal, Component } from 'solid-js'
+import { createEffect, onCleanup, createSignal, Component } from 'solid-js'
 import { useMap } from '../MapGL'
 import mapboxgl from 'mapbox-gl'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
@@ -8,7 +8,7 @@ import type { Options as GeolocateOptions } from 'mapbox-gl/src/ui/control/geolo
 import type { Options as NavigationOptions } from 'mapbox-gl/src/ui/control/navigation_control'
 import type { Options as ScaleOptions } from 'mapbox-gl/src/ui/control/scale_control'
 
-const Control: Component<{
+export const Control: Component<{
   type: 'navigation' | 'scale' | 'attribution' | 'fullscreen' | 'geolocate'
   options?:
     | NavigationOptions
@@ -19,6 +19,7 @@ const Control: Component<{
     | object
   custom?: any
   position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+  children?: any
 }> = props => {
   const map: MapboxMap = useMap()
   const [control, setControl] = createSignal(null)
@@ -35,18 +36,18 @@ const Control: Component<{
       case 'geolocate':
         return new mapboxgl.GeolocateControl(options)
       case 'fullscreen':
-        return new mapboxgl.FullscreenControl(
-          options || { container: map().container }
-        )
+        return new mapboxgl.FullscreenControl()
+        // options || { container: map().container }
       default:
         throw new Error(`Unknown control type: ${type}`)
     }
   }
 
   // Add Control
-  onMount(() => {
+  createEffect(() => {
+    if (!map()) return
     const control = getControl(props.type, props.options)
-    control && map().addControl(control, props.position)
+    control && map()?.addControl(control, props.position)
     setControl(control)
   })
 
@@ -54,5 +55,3 @@ const Control: Component<{
 
   return props.children
 }
-
-export default Control

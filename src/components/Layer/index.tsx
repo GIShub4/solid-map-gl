@@ -1,18 +1,11 @@
-import {
-  onMount,
-  onCleanup,
-  createEffect,
-  Component,
-  createUniqueId,
-} from 'solid-js'
+import { onCleanup, createEffect, Component, createUniqueId } from 'solid-js'
 import { useMap } from '../MapGL'
-import { useSource } from '../Source'
+import { useSourceId } from '../Source'
 import { layerEvents } from '../../events'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type {
   FilterSpecification,
   StyleSpecification,
-  SourceSpecification,
 } from 'mapbox-gl/src/style-spec/types.js'
 import type { CustomLayerInterface } from 'mapbox-gl/src/style/style_layer/custom_style_layer'
 
@@ -30,7 +23,7 @@ const diff = (
   }, [])
 }
 
-const Layer: Component<{
+export const Layer: Component<{
   id?: string
   style?: StyleSpecification
   customLayer?: CustomLayerInterface
@@ -50,33 +43,34 @@ const Layer: Component<{
     | 'sky'
   beforeId?: string
   featureState?: { id: number | string; state: object }
+  children?: any
 }> = props => {
   const map: MapboxMap = useMap()
-  const source: SourceSpecification = useSource()
+  const sourceId: string = useSourceId()
   props.id = props.id || createUniqueId()
+
   // Add Layer
-  onMount(async () => {
-    !map().isStyleLoaded() && (await map().once('styledata'))
-
-    if (map().getLayer(props.id)) return
-
-    map().addLayer(
-      props.customLayer || {
-        ...props.style,
-        id: props.id,
-        source: source.id,
-        metadata: {
-          smg: { beforeType: props.beforeType, beforeId: props.beforeId },
+  createEffect(() => {
+    if (!map()) return
+    !map().getLayer(props.id) &&
+      map().addLayer(
+        props.customLayer || {
+          ...props.style,
+          id: props.id,
+          source: sourceId,
+          metadata: {
+            smg: { beforeType: props.beforeType, beforeId: props.beforeId },
+          },
         },
-      },
-      props.beforeType
-        ? map()
-            .getStyle()
-            .layers.find(l => l.type === props.beforeType).id
-        : props.beforeId
-    )
+        props.beforeType
+          ? map()
+              ?.getStyle()
+              .layers.find(l => l.type === props.beforeType).id
+          : props.beforeId
+      )
   })
 
+  //Remove Layer
   onCleanup(() => map().removeLayer(props.id))
 
   // Hook up events
@@ -85,18 +79,19 @@ const Layer: Component<{
       if (props[item]) {
         const event = item.slice(2).toLowerCase()
         const callback = e => props[item](e)
-        map().on(event, props.id, callback)
-        onCleanup(() => map().off(event, props.id, callback))
+        map()?.on(event, props.id, callback)
+        onCleanup(() => map()?.off(event, props.id, callback))
       }
     })
   )
 
   // Update Style
   createEffect((prev: StyleSpecification) => {
+    if (!map()) return
     if (
       !props.style ||
       !map().style ||
-      !map().getSource(source.id) ||
+      !map().getSource(sourceId) ||
       !map().getLayer(props.id)
     )
       return
@@ -132,7 +127,7 @@ const Layer: Component<{
     if (
       props.visible === undefined ||
       props.visible === prev ||
-      !map().getSource(source.id) ||
+      !map().getSource(sourceId) ||
       !map().getLayer(props.id)
     )
       return
@@ -161,12 +156,12 @@ const Layer: Component<{
     !map().isStyleLoaded() && (await map().once('styledata'))
 
     map().removeFeatureState({
-      source: source.id,
+      source: sourceId,
       sourceLayer: props.style['source-layer'],
     })
     map().setFeatureState(
       {
-        source: source.id,
+        source: sourceId,
         sourceLayer: props.style['source-layer'],
         id: props.featureState.id,
       },
@@ -176,5 +171,3 @@ const Layer: Component<{
 
   return props.children
 }
-
-export default Layer

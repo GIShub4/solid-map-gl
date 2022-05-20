@@ -1,37 +1,35 @@
-import { onMount, onCleanup, createEffect, Component } from 'solid-js'
+import { onCleanup, createEffect, Component } from 'solid-js'
 import { useMap } from '../MapGL'
-import { useSource } from '../Source'
+import { useSourceId } from '../Source'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type {
   TerrainSpecification,
   SourceSpecification,
 } from 'mapbox-gl/src/style-spec/types.js'
 
-const Terrain: Component<{
+export const Terrain: Component<{
   style: TerrainSpecification
   visible?: boolean
+  children?: any
 }> = props => {
   const map: MapboxMap = useMap()
-  const source: SourceSpecification = useSource()
+  const sourceId: SourceSpecification = useSourceId()
 
   // Add Terrain Layer
-  onMount(async () => {
-    !map().isStyleLoaded() && (await map().once('styledata'))
-    map().setTerrain({ ...props.style, source: source.id })
+  createEffect(() => {
+    if (!map()) return
+    map().setTerrain({ ...props.style, source: sourceId })
   })
 
   // Remove Terrain Layer
   onCleanup(() => map().setTerrain(null))
 
   // Update Visibility
-  createEffect(async () => {
-    if (props.visible === undefined) return
-
-    !map().isStyleLoaded() && (await map().once('styledata'))
-    map().setTerrain(props.visible ? props.style : null)
+  createEffect(() => {
+    if (!map()) return
+    props.visible !== undefined &&
+      map().setTerrain(props.visible ? props.style : null)
   })
 
   return props.children
 }
-
-export default Terrain

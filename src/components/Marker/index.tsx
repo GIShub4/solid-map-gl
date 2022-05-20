@@ -1,19 +1,21 @@
-import { onMount, onCleanup, createEffect, Component, children } from 'solid-js'
+import { onCleanup, createEffect, Component } from 'solid-js'
 import { useMap } from '../MapGL'
 import mapboxgl from 'mapbox-gl'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type { MarkerSpecification } from 'mapbox-gl/src/style-spec/types.js'
 import type { LngLatLike } from 'mapbox-gl/src/geo/lng_lat.js'
 
-const Marker: Component<{
+export const Marker: Component<{
   options?: MarkerSpecification
   lnglat: LngLatLike
+  children?: any
 }> = props => {
   const map: MapboxMap = useMap()
   let marker = null
 
   // Add Marker
-  onMount(async () => {
+  createEffect(() => {
+    if (!map()) return
     marker = new mapboxgl.Marker(props.options)
       .setLngLat(props.lnglat)
       .setPopup(
@@ -27,9 +29,7 @@ const Marker: Component<{
   onCleanup(() => marker.remove())
 
   // Update Position
-  createEffect(() => marker.setLngLat(props.lnglat))
+  createEffect(() => marker && marker.setLngLat(props.lnglat))
 
   return <></>
 }
-
-export default Marker
