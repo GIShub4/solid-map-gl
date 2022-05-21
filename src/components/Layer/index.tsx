@@ -51,7 +51,6 @@ export const Layer: Component<{
 
   // Add Layer
   createEffect(() => {
-    if (!map()) return
     !map().getLayer(props.id) &&
       map().addLayer(
         props.customLayer || {
@@ -71,7 +70,7 @@ export const Layer: Component<{
   })
 
   //Remove Layer
-  onCleanup(() => map().removeLayer(props.id))
+  onCleanup(() => map().getLayer(props.id) && map().removeLayer(props.id))
 
   // Hook up events
   createEffect(() =>
@@ -87,7 +86,6 @@ export const Layer: Component<{
 
   // Update Style
   createEffect((prev: StyleSpecification) => {
-    if (!map()) return
     if (
       !props.style ||
       !map().style ||

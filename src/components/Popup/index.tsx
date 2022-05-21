@@ -15,7 +15,6 @@ export const Popup: Component<{
 
   // Add Popup
   createEffect(() => {
-    if (!map()) return
     popup = new mapboxgl.Popup(props.options)
       .setLngLat(props.lnglat)
       .setDOMContent(<div>{props.children}</div>)

@@ -13,7 +13,6 @@ export const Sky: Component<{
 
   // Add Sky Layer
   createEffect(() => {
-    if (!map()) return
     map().getLayer(layerId) && map().addLayer({ ...props.style, id: layerId })
   })
 
@@ -22,7 +21,6 @@ export const Sky: Component<{
 
   // Update Visibility
   createEffect(() => {
-    if (!map()) return
     props.visible !== undefined &&
       map().setLayoutProperty(
         layerId,

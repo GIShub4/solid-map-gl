@@ -20,7 +20,6 @@ export const Image: Component<{
   const map: MapboxMap = useMap()
   // Add Image
   createEffect(() => {
-    if (!map()) return
     if (props.url) {
       map().loadImage(
         props.url,
@@ -38,7 +37,6 @@ export const Image: Component<{
 
   // Update Image
   createEffect(async () => {
-    if (!map()) return
     if (props.image && props.url) return
 
     if (props.url) {

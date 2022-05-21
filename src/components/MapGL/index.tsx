@@ -88,7 +88,7 @@ export const MapGL: Component<{
       ...props.options,
       style: vectorStyleList[props.options?.style] ||
         props.options?.style || { version: 8, sources: {}, layers: [] },
-      container: mapRef,
+      container: mapRef || 'map',
       interactive: !!props.onViewportChange,
       bounds: props.viewport?.bounds,
       center: props.viewport?.center,
@@ -119,13 +119,16 @@ export const MapGL: Component<{
   )
 
   // Update debug features
-  createEffect(() => (map.showTileBoundaries = props.showTileBoundaries))
-  createEffect(() => (map.showTerrainWireframe = props.showTerrainWireframe))
-  createEffect(() => (map.showPadding = props.showPadding))
-  createEffect(() => (map.showCollisionBoxes = props.showCollisionBoxes))
-  createEffect(() => (map.showOverdrawInspector = props.showOverdrawInspector))
+  createEffect(() => {
+    if (!mapRoot()) return
+    mapRoot().showTileBoundaries = props.showTileBoundaries
+    mapRoot().showTerrainWireframe = props.showTerrainWireframe
+    mapRoot().showPadding = props.showPadding
+    mapRoot().showCollisionBoxes = props.showCollisionBoxes
+    mapRoot().showOverdrawInspector = props.showOverdrawInspector
+    mapRoot().getCanvas().style.cursor = props.cursorStyle
+  })
 
-  createEffect(() => (map.getCanvas().style.cursor = props.cursorStyle))
   createEffect(() => setTransitionType(props.transitionType))
 
   // Update projection
@@ -242,9 +245,10 @@ export const MapGL: Component<{
       <section
         ref={containerRef}
         style={{ position: 'absolute', 'z-index': 1 }}>
-        {props.children || null}
+        {mapRoot() ? props.children : null}
       </section>
       <div
+        id='map'
         ref={mapRef}
         class={props.class || null}
         classList={props.classList || null}

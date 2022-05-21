@@ -37,7 +37,7 @@ export const Control: Component<{
         return new mapboxgl.GeolocateControl(options)
       case 'fullscreen':
         return new mapboxgl.FullscreenControl()
-        // options || { container: map().container }
+      // options || { container: map().container }
       default:
         throw new Error(`Unknown control type: ${type}`)
     }
@@ -45,7 +45,6 @@ export const Control: Component<{
 
   // Add Control
   createEffect(() => {
-    if (!map()) return
     const control = getControl(props.type, props.options)
     control && map()?.addControl(control, props.position)
     setControl(control)

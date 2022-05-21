@@ -17,7 +17,6 @@ export const Terrain: Component<{
 
   // Add Terrain Layer
   createEffect(() => {
-    if (!map()) return
     map().setTerrain({ ...props.style, source: sourceId })
   })
 
@@ -26,7 +25,6 @@ export const Terrain: Component<{
 
   // Update Visibility
   createEffect(() => {
-    if (!map()) return
     props.visible !== undefined &&
       map().setTerrain(props.visible ? props.style : null)
   })

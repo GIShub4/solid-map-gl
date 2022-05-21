@@ -15,7 +15,6 @@ export const Marker: Component<{
 
   // Add Marker
   createEffect(() => {
-    if (!map()) return
     marker = new mapboxgl.Marker(props.options)
       .setLngLat(props.lnglat)
       .setPopup(

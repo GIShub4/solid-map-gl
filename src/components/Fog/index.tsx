@@ -11,7 +11,6 @@ export const Fog: Component<{
   const map: MapboxMap = useMap()
   // Add Fog Layer
   createEffect(() => {
-    if (!map()) return
     map().setFog(props.style)
   })
 
@@ -20,7 +19,6 @@ export const Fog: Component<{
 
   // Update Visibility
   createEffect(() => {
-    if (!map()) return
     props.visible !== undefined &&
       map().setFog(props.visible ? props.style : null)
   })

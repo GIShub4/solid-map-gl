@@ -38,7 +38,6 @@ export const Source: Component<{
 
   // Add Source
   createEffect(() => {
-    if (!map()) return
     const source = lookup(props.source.url)
     source.tiles &&
       (source.tiles = ['a', 'b', 'c'].map(i =>
@@ -59,7 +58,6 @@ export const Source: Component<{
 
   // Update
   createEffect(() => {
-    if (!map()) return
     const source = map().getSource(props.id)
     if (!source) return
 
