@@ -31,6 +31,9 @@ export type Viewport = {
   padding?: PaddingOptions
 }
 
+let mapRef: HTMLDivElement
+let containerRef: HTMLElement
+
 const MapContext = createContext<MapboxMap>()
 /** Provides the Mapbox Map Object */
 export const useMap = (): MapboxMap => useContext(MapContext)
@@ -74,9 +77,6 @@ export const MapGL: Component<{
   /** Children within the Map Container */
   children?: Element | Element[]
 }> = props => {
-  let map: MapboxMap
-  let mapRef: HTMLDivElement
-  let containerRef: HTMLElement
   props.id = props.id || createUniqueId()
 
   const [mapRoot, setMapRoot] = createSignal<MapboxMap>()
@@ -84,7 +84,7 @@ export const MapGL: Component<{
   const [transitionType, setTransitionType] = createSignal('flyTo')
 
   onMount(() => {
-    map = new mapboxgl.Map({
+    const map: MapboxMap = new mapboxgl.Map({
       ...props.options,
       style: vectorStyleList[props.options?.style] ||
         props.options?.style || { version: 8, sources: {}, layers: [] },
@@ -250,10 +250,9 @@ export const MapGL: Component<{
         {mapRoot() ? props.children : null}
       </section>
       <div
-        id='map'
         ref={mapRef}
-        class={props.class || null}
-        classList={props.classList || null}
+        class={props?.class}
+        classList={props?.classList}
         style={{ height: '100%', width: '100%', ...props.style }}
       />
     </MapContext.Provider>
