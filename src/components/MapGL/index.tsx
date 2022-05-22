@@ -88,7 +88,7 @@ export const MapGL: Component<{
       ...props.options,
       style: vectorStyleList[props.options?.style] ||
         props.options?.style || { version: 8, sources: {}, layers: [] },
-      container: mapRef || 'map',
+      container: mapRef,
       interactive: !!props.onViewportChange,
       bounds: props.viewport?.bounds,
       center: props.viewport?.center,
