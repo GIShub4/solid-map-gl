@@ -83,7 +83,7 @@ export const MapGL: Component<{
   const [pending, start] = useTransition()
   const [transitionType, setTransitionType] = createSignal('flyTo')
 
-  onMount(async () => {
+  onMount(() => {
     map = new mapboxgl.Map({
       ...props.options,
       style: vectorStyleList[props.options?.style] ||
@@ -100,144 +100,146 @@ export const MapGL: Component<{
 
     map.container = containerRef
 
-    await map.once('styledata')
-    setMapRoot(map)
-  })
+    map.once('styledata').then(() => setMapRoot(map))
 
-  onCleanup(() => map.remove())
+    onCleanup(() => map.remove())
 
-  // Hook up events
-  createEffect(() =>
-    mapEvents.forEach(item => {
-      if (props[item]) {
-        const event = item.slice(2).toLowerCase()
-        const callback = e => props[item](e)
-        map.on(event, callback)
-        onCleanup(() => map.off(event, callback))
-      }
-    })
-  )
-
-  // Update debug features
-  createEffect(() => {
-    if (!mapRoot()) return
-    mapRoot().showTileBoundaries = props.showTileBoundaries
-    mapRoot().showTerrainWireframe = props.showTerrainWireframe
-    mapRoot().showPadding = props.showPadding
-    mapRoot().showCollisionBoxes = props.showCollisionBoxes
-    mapRoot().showOverdrawInspector = props.showOverdrawInspector
-    mapRoot().getCanvas().style.cursor = props.cursorStyle
-  })
-
-  createEffect(() => setTransitionType(props.transitionType))
-
-  // Update projection
-  createEffect(
-    on(
-      () => props.options?.projection,
-      proj => map.setProjection(proj),
-      { defer: true }
-    )
-  )
-
-  // Update map style
-  createEffect(
-    on(
-      () => props.options?.style,
-      style => {
-        const oldStyle = map.getStyle()
-        const oldLayers = oldStyle.layers.filter(l => l.id.startsWith('cl-'))
-        const oldSources = Object.keys(oldStyle.sources)
-          .filter(s => s.startsWith('cl-'))
-          .reduce((obj, key) => ({ ...obj, [key]: oldStyle.sources[key] }), {})
-        map.setStyle(
-          vectorStyleList[style] ||
-            style || { version: 8, sources: {}, layers: [] }
-        )
-        map.once('styledata', () => {
-          const newStyle = map.getStyle()
-          map.setStyle({
-            ...newStyle,
-            sources: { ...newStyle.sources, ...oldSources },
-            layers: [...newStyle.layers, ...oldLayers],
-          })
-        })
-      },
-      { defer: true }
-    )
-  )
-
-  // Hook up viewport events
-  createEffect(() => {
-    const viewport = {
-      id: null,
-      center: map.getCenter(),
-      zoom: map.getZoom(),
-      pitch: map.getPitch(),
-      bearing: map.getBearing(),
-      padding: props.viewport?.padding,
-      bounds: props.viewport?.bounds,
-    }
-
-    const callMove = event => {
-      if (event.originalEvent)
-        props.onViewportChange &&
-          props.onViewportChange({ ...viewport, id: props.id })
-      setTransitionType('jumpTo')
-    }
-
-    const callEnd = event => {
-      if (event.originalEvent)
-        props.onViewportChange && props.onViewportChange(viewport)
-      setTransitionType(props.transitionType)
-    }
-
-    map.on('move', callMove).on('moveend', callEnd)
-    onCleanup(() => map.off('move', callMove).off('moveend', callEnd))
-  })
-
-  // Update boundaries
-  createEffect(prev => {
-    if (props.viewport?.bounds != prev)
-      props.onViewportChange({
-        ...props.viewport,
-        ...map.cameraForBounds(props.viewport?.bounds, {
-          padding: props.viewport?.padding,
-        }),
-      })
-    return props.viewport?.bounds
-  }, props.viewport?.bounds)
-
-  // Update Viewport
-  createEffect(() => {
-    if (props.id === props.viewport?.id) return
-    const viewport = {
-      ...props.viewport,
-      padding: props.viewport?.padding || 0,
-    }
-    switch (untrack(transitionType)) {
-      case 'easeTo':
-        map.stop().easeTo(viewport)
-      case 'jumpTo':
-        map.stop().jumpTo(viewport)
-      default:
-        map.stop().flyTo(viewport)
-    }
-  })
-
-  let index = 0
-
-  createEffect(() => {
-    if (props.triggerResize) {
-      index = 0
-      window.requestAnimationFrame(function loop() {
-        if (index < 15) {
-          index++
-          window.requestAnimationFrame(loop)
-          start(() => map.resize())
+    // Hook up events
+    createEffect(() =>
+      mapEvents.forEach(item => {
+        if (props[item]) {
+          const event = item.slice(2).toLowerCase()
+          const callback = e => props[item](e)
+          map.on(event, callback)
+          onCleanup(() => map.off(event, callback))
         }
       })
-    }
+    )
+
+    // Update debug features
+    createEffect(() => {
+      map.showTileBoundaries = props.showTileBoundaries
+      map.showTerrainWireframe = props.showTerrainWireframe
+      map.showPadding = props.showPadding
+      map.showCollisionBoxes = props.showCollisionBoxes
+      map.showOverdrawInspector = props.showOverdrawInspector
+    })
+
+    // Update cursor
+    createEffect(() => (map.getCanvas().style.cursor = props.cursorStyle))
+    //Update transition type
+    createEffect(() => setTransitionType(props.transitionType))
+    // Update projection
+    createEffect(
+      on(
+        () => props.options?.projection,
+        proj => map.setProjection(proj),
+        { defer: true }
+      )
+    )
+
+    // Update map style
+    createEffect(
+      on(
+        () => props.options?.style,
+        style => {
+          const oldStyle = map.getStyle()
+          const oldLayers = oldStyle.layers.filter(l => l.id.startsWith('cl-'))
+          const oldSources = Object.keys(oldStyle.sources)
+            .filter(s => s.startsWith('cl-'))
+            .reduce(
+              (obj, key) => ({ ...obj, [key]: oldStyle.sources[key] }),
+              {}
+            )
+          map.setStyle(
+            vectorStyleList[style] ||
+              style || { version: 8, sources: {}, layers: [] }
+          )
+          map.once('styledata', () => {
+            const newStyle = map.getStyle()
+            map.setStyle({
+              ...newStyle,
+              sources: { ...newStyle.sources, ...oldSources },
+              layers: [...newStyle.layers, ...oldLayers],
+            })
+          })
+        },
+        { defer: true }
+      )
+    )
+
+    // Hook up viewport events
+    createEffect(() => {
+      const viewport = {
+        id: null,
+        center: map.getCenter(),
+        zoom: map.getZoom(),
+        pitch: map.getPitch(),
+        bearing: map.getBearing(),
+        padding: props.viewport?.padding,
+        bounds: props.viewport?.bounds,
+      }
+
+      const callMove = event => {
+        if (event.originalEvent)
+          props.onViewportChange &&
+            props.onViewportChange({ ...viewport, id: props.id })
+        setTransitionType('jumpTo')
+      }
+
+      const callEnd = event => {
+        if (event.originalEvent)
+          props.onViewportChange && props.onViewportChange(viewport)
+        setTransitionType(props.transitionType)
+      }
+
+      map.on('move', callMove).on('moveend', callEnd)
+      onCleanup(() => map.off('move', callMove).off('moveend', callEnd))
+    })
+
+    // Update boundaries
+    createEffect(prev => {
+      if (props.viewport?.bounds != prev)
+        props.onViewportChange({
+          ...props.viewport,
+          ...map.cameraForBounds(props.viewport?.bounds, {
+            padding: props.viewport?.padding,
+          }),
+        })
+      return props.viewport?.bounds
+    }, props.viewport?.bounds)
+
+    // Update Viewport
+    createEffect(() => {
+      if (props.id === props.viewport?.id) return
+      const viewport = {
+        ...props.viewport,
+        padding: props.viewport?.padding || 0,
+      }
+      switch (untrack(transitionType)) {
+        case 'easeTo':
+          map.stop().easeTo(viewport)
+        case 'jumpTo':
+          map.stop().jumpTo(viewport)
+        default:
+          map.stop().flyTo(viewport)
+      }
+    })
+
+    let index = 0
+
+    createEffect(() => {
+      if (props.triggerResize) {
+        index = 0
+        window.requestAnimationFrame(function loop() {
+          if (index < 15) {
+            index++
+            window.requestAnimationFrame(loop)
+            start(() => map.resize())
+          }
+        })
+      }
+    })
   })
 
   return (

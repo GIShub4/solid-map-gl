@@ -12,7 +12,7 @@ specifiers:
   typescript: ^4.6.4
   vite: ^2.9.9
   vite-plugin-solid: ^2.2.6
-  vitest: ^0.12.8
+  vitest: ^0.12.9
 
 dependencies:
   mapbox-gl: 2.8.2
@@ -28,7 +28,7 @@ devDependencies:
   typescript: 4.6.4
   vite: 2.9.9
   vite-plugin-solid: 2.2.6
-  vitest: 0.12.8_jsdom@19.0.0
+  vitest: 0.12.9_jsdom@19.0.0
 
 packages:
 
@@ -2919,8 +2919,8 @@ packages:
       fsevents: 2.3.2
     dev: true
 
-  /vitest/0.12.8_jsdom@19.0.0:
-    resolution: {integrity: sha512-/h0myRYwsUEzNwz6c1GFHVZYMZ0mGYMhkLMEZgsX+lJXFfOVHikUpZl1MRnnCzaZxDVPnRsuUje7OemDeW+h5w==}
+  /vitest/0.12.9_jsdom@19.0.0:
+    resolution: {integrity: sha512-1NtyUANS72Qw5PwYvoztk067NX4fSiis2xQxhByOWS33eL2er/yupHyLxlBCOkF2ANe0dLFRvT1GVb+nczL5aw==}
     engines: {node: '>=v14.16.0'}
     hasBin: true
     peerDependencies:
