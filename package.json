@@ -51,20 +51,22 @@
     "defaults",
     "not ie 11"
   ],
-  "dependencies": {
-    "mapbox-gl": "^2.8.2",
-    "solid-js": "1.4.2"
-  },
   "devDependencies": {
     "jsdom": "^19.0.0",
+    "mapbox-gl": "^2.8.2",
     "rollup": "^2.74.1",
     "rollup-plugin-import-css": "^3.0.3",
     "rollup-plugin-uglify": "^6.0.4",
     "rollup-preset-solid": "^1.4.0",
+    "solid-js": "^1.4.2",
     "solid-testing-library": "^0.3.0",
     "typescript": "^4.6.4",
     "vite": "^2.9.9",
     "vite-plugin-solid": "^2.2.6",
     "vitest": "^0.12.9"
+  },
+  "peerDependencies": {
+    "mapbox-gl": "^2.8.2",
+    "solid-js": "^1.4.2"
   }
 }
