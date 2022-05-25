@@ -33,9 +33,7 @@
       "solid": "./dist/index/index.jsx",
       "default": "./dist/esm/index.js",
       "import": "./dist/esm/index.js",
-      "browser": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js",
-      "node": "./dist/cjs/index.js"
+      "browser": "./dist/esm/index.js"
     }
   },
   "scripts": {
