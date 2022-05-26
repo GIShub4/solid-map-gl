@@ -5,14 +5,14 @@
 
 ## Components
 
+* [Map](src/components/MapGL/README.md)
+* [Control](src/components/Control/README.md)
 * [Page 1](solid-map-gl/page-1.md)
 * [Page 2](solid-map-gl/page-2.md)
 
 ***
 
 * [Components](src/components/README.md)
-  * [Map](src/components/MapGL/README.md)
-  * [Control](src/components/Control/README.md)
   * [Source](src/components/Source/README.md)
   * [Layer](src/components/Layer/README.md)
   * [Image](src/components/Image/README.md)
