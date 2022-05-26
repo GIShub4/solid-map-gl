@@ -1,7 +1,8 @@
 # Table of contents
 
-* [Getting Started](README.md)
-* [Components](src/components/README.md)
+* [Introduction](README.md)
+* [Getting Started](START.md)
+## Components
   * [Map](src/components/MapGL/README.md)
   * [Control](src/components/Control/README.md)
   * [Source](src/components/Source/README.md)
