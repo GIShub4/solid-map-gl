@@ -1,6 +1,6 @@
 ---
 cover: docs/gallery.png
-coverY: 0
+coverY: -161.54352596927578
 ---
 
 # Getting Started
