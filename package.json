@@ -39,7 +39,7 @@
   "scripts": {
     "build": "rollup -c",
     "watch": "rollup -c -w",
-    "publish": "rollup -c && npm version patch && npm publish",
+    "pub": "rollup -c && npm version patch && npm publish",
     "test": "vitest"
   },
   "repository": {
