@@ -1,3 +1,5 @@
+# Introduction
+
 ![](https://assets.solidjs.com/banner?project=solid-map-gl\&background=tiles)
 
 #### Solid Mapbox GL JS
@@ -8,14 +10,14 @@
 
 [**Examples & Playground**](https://determined-mirzakhani-29bbc7.netlify.app)
 
-* [Installation](<README (1).md#installation>)
-* [Components](<README (1).md#components>)
-* [Usage](<README (1).md#usage>)
-  * [Static Map](<README (1).md#static-map>)
-  * [Interactive Map](<README (1).md#interactive-map>)
-  * [Map with Source and Layer](<README (1).md#map-with-source-and-layer>)
-  * [Map with GeoJSON Source](<README (1).md#map-with-geojson-source>)
-* [Roadmap](<README (1).md#roadmap>)
+* [Installation](broken-reference)
+* [Components](broken-reference)
+* [Usage](broken-reference)
+  * [Static Map](broken-reference)
+  * [Interactive Map](broken-reference)
+  * [Map with Source and Layer](broken-reference)
+  * [Map with GeoJSON Source](broken-reference)
+* [Roadmap](broken-reference)
 
 ![Gallery](docs/gallery.png)
 
