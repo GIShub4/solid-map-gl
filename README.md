@@ -1,12 +1,19 @@
+---
+coverY: 0
+layout: landing
+---
+
+# Getting Started
+
 ![Banner](https://assets.solidjs.com/banner?project=solid-map-gl\&background=tiles)
 
-## Solid Mapbox GL JS
+### Solid Mapbox GL JS
 
 [![npm](https://badgen.net/npm/v/solid-map-gl?icon=npm\&label) ![downloads](https://badgen.net/npm/dt/solid-map-gl)](https://www.npmjs.com/package/solid-map-gl) [![licence](https://badgen.net/badge/license/MIT/blue)](LICENSE/) [![size](https://badgen.net/badge/color/119%20kB/blue?label=Unpacked%20Size) ![treeshaking](https://badgen.net/badge/color/supported/green?label=tree%20shaking)](https://bundlephobia.com/package/solid-map-gl) ![types](https://badgen.net/npm/types/solid-map-gl?icon=typescript\&label)
 
 [Solid](https://www.solidjs.com/) Component Library for [Mapbox GL JS.](https://github.com/mapbox/mapbox-gl-js) Mapbox GL JS is a JavaScript library that renders interactive maps from vector tiles and Mapbox styles using WebGL. This project is intended to be as close as possible to the [Mapbox GL JS API.](https://docs.mapbox.com/mapbox-gl-js/api/)
 
-#### [Examples & Playground](https://determined-mirzakhani-29bbc7.netlify.app)
+[**Examples & Playground**](https://determined-mirzakhani-29bbc7.netlify.app)
 
 * [Installation](./#installation)
 * [Components](./#components)
@@ -19,7 +26,7 @@
 
 ![Gallery](docs/gallery.png)
 
-### Installation
+#### Installation
 
 > :bangbang:
 >
@@ -27,12 +34,11 @@
 >
 > Please use [`pnpm`](https://pnpm.io/) as a workaround
 
-
 ```shell
 pnpm add solid-map-gl
 ```
 
-### Components
+#### Components
 
 | Component                            | Description                                                                                                            |
 | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
@@ -47,11 +53,11 @@ pnpm add solid-map-gl
 | [Marker](src/components/Marker/)     | Component for [Mapbox GL JS Marker](https://docs.mapbox.com/mapbox-gl-js/api/#marker)                                  |
 | [Control](src/components/control.md) | Represents the map's control                                                                                           |
 
-### Usage
+#### Usage
 
 To use any of Mapbox’s tools, APIs, or SDKs, you’ll need a Mapbox [access token](https://www.mapbox.com/help/define-access-token/). Mapbox uses access tokens to associate requests to API resources with your account. You can find all your access tokens, create new ones, or delete existing ones on your [API access tokens page](https://www.mapbox.com/studio/account/tokens/).
 
-#### Static Map
+**Static Map**
 
 By default, `MapGL` component renders in a static mode. That means that the user cannot interact with the map.
 
@@ -69,7 +75,7 @@ import MapGL from 'solid-map-gl'
 </MapGL>
 ```
 
-#### Interactive Map
+**Interactive Map**
 
 In most cases, you will want the user to interact with the map. To do this, you need to provide `onViewportChange` handler, that will update the map's viewport state.
 
@@ -93,7 +99,7 @@ const [viewport, setViewport] = createSignal({
 </MapGL>
 ```
 
-#### Map with Source and Layer
+**Map with Source and Layer**
 
 [Sources](https://docs.mapbox.com/mapbox-gl-js/api/sources/) specify the geographic features to be rendered on the map.
 
@@ -126,7 +132,7 @@ import MapGL, { Source, Layer } from 'solid-map-gl';
 </MapGL>
 ```
 
-#### Map with GeoJSON Source
+**Map with GeoJSON Source**
 
 To draw a GeoJSON on a map, add `Source` with the `type` property set to `geojson` and `data` property set to a URL or inline [GeoJSON](http://geojson.org/).
 
@@ -199,7 +205,7 @@ const data = {
 </MapGL>
 ```
 
-#### Custom Layers support
+**Custom Layers support**
 
 [Custom layers](https://docs.mapbox.com/mapbox-gl-js/api/properties/#customlayerinterface) allow a user to render directly into the Map's GL context using the map's camera.
 
@@ -237,7 +243,7 @@ const myDeckLayer = new MapboxLayer({
 </MapGL>
 ```
 
-### Roadmap
+#### Roadmap
 
 * [x] Basic Mapbox GL Functionality
 * [x] Include Map Controls
