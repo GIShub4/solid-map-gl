@@ -1,6 +1,6 @@
 # Table of contents
 
-* [Getting Started](REARME.md)
+* [Getting Started](README.md)
 * [Components](src/components/README.md)
   * [Map](src/components/MapGL/README.md)
   * [Control](src/components/Control/README.md)
