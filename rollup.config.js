@@ -4,6 +4,5 @@ import { uglify } from 'rollup-plugin-uglify'
 
 export default withSolid({
   input: 'src/index.tsx',
-  printInstructions: false,
   plugins: [css({ output: 'styles.css' }), uglify()],
 })
