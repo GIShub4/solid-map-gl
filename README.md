@@ -1,6 +1,4 @@
-# Getting Started
-
-![Banner](https://assets.solidjs.com/banner?project=solid-map-gl\&background=tiles)
+![](https://assets.solidjs.com/banner?project=solid-map-gl\&background=tiles)
 
 ### Solid Mapbox GL JS
 
