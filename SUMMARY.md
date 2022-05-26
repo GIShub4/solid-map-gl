@@ -3,7 +3,7 @@
 * [README](README.md)
 * [src](src/README.md)
   * [Components](src/components/README.md)
-    * [Control Component](src/components/control.md)
+    * [Control](src/components/control.md)
     * [Solid Component for Mapbox GL JS Fog Layer](src/components/Fog/README.md)
     * [Solid Component for Mapbox GL JS Image](src/components/Image/README.md)
     * [Solid Component for Mapbox GL JS Layer](src/components/Layer/README.md)
