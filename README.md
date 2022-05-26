@@ -1,6 +1,6 @@
 ---
+cover: docs/gallery.png
 coverY: 0
-layout: landing
 ---
 
 # Getting Started
