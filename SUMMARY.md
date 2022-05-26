@@ -1,9 +1,9 @@
 # Table of contents
 
 * [Introduction](README.md)
-* [Getting Started](<README (1).md>)
+* [Getting Started](START.md)
 
-## solid-map-gl
+## Components
 
 * [Page 1](solid-map-gl/page-1.md)
 * [Page 2](solid-map-gl/page-2.md)
