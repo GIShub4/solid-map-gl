@@ -1,5 +1,3 @@
-# README
-
 ![Banner](https://assets.solidjs.com/banner?project=solid-map-gl\&background=tiles)
 
 ## Solid Mapbox GL JS
@@ -10,9 +8,6 @@
 
 #### [Examples & Playground](https://determined-mirzakhani-29bbc7.netlify.app)
 
-\
-
-
 * [Installation](./#installation)
 * [Components](./#components)
 * [Usage](./#usage)
@@ -22,23 +17,15 @@
   * [Map with GeoJSON Source](./#map-with-geojson-source)
 * [Roadmap](./#roadmap)
 
-\
-
-
 ![Gallery](docs/gallery.png)
 
 ### Installation
-
-\
-
 
 > :bangbang:
 >
 > There is a Mapbox bundle issue when using `npm or yarn`
 >
 > Please use [`pnpm`](https://pnpm.io/) as a workaround
-
-\
 
 
 ```shell
