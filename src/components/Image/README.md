@@ -1,13 +1,13 @@
-# Solid Component for [Mapbox GL JS Image](https://docs.mapbox.com/mapbox-gl-js/api/sources/)
+# Solid Component for Mapbox GL JS Image
 
 ## Props
 
-| Prop    | Type                                                                                                                                                                                                               | Description                                                                       |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
-| id\*    | string                                                                                                                                                                                                             | Id to reference image in layer style                                              |
-| url     | string                                                                                                                                                                                                             | [Loadable Image URL](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#loadimage) |
-| image   | [HTMLImageElement \| ImageBitmap \| ImageData \| StyleImageInterface \|<br> {width: number, height: number, data: (Uint8Array \| Uint8ClampedArray)} ](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#addimage) | Image Data                                                                        |
-| options | object                                                                                                                                                                                                             | [Add image options](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#addimage)   |
+| Prop    | Type                                                                                                                                                                                                                          | Description                                                                       |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| id\*    | string                                                                                                                                                                                                                        | Id to reference image in layer style                                              |
+| url     | string                                                                                                                                                                                                                        | [Loadable Image URL](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#loadimage) |
+| image   | <p><a href="https://docs.mapbox.com/mapbox-gl-js/api/map/#map#addimage">HTMLImageElement | ImageBitmap | ImageData | StyleImageInterface |<br>{width: number, height: number, data: (Uint8Array | Uint8ClampedArray)}</a></p> | Image Data                                                                        |
+| options | object                                                                                                                                                                                                                        | [Add image options](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#addimage)   |
 
 _\*required_
 
