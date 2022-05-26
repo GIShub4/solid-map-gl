@@ -1,8 +1,12 @@
-# Solid Component for Mapbox GL JS Control
+---
+description: Represents the map's control
+---
+
+# Control
 
 ## Props
 
-| Prop     | Type   | Description                                                                          |
+| Name     | Type   | Description                                                                          |
 | -------- | ------ | ------------------------------------------------------------------------------------ |
 | type\*   | string | navigation \| scale \| attribution \| fullscreen \| geolocate \| language \| traffic |
 | options  | object | [Control Options](https://docs.mapbox.com/mapbox-gl-js/api/markers/)                 |
@@ -11,14 +15,21 @@
 _\*required_\
 _^default_
 
-\
+#### Optional Dependencies
 
-
-`When using language or traffic type you must import the required library`
-
-```shell
-yarn add @mapbox/mapbox-gl-language @mapbox/mapbox-gl-traffic
+{% tabs %}
+{% tab title="Traffic" %}
 ```
+pnpm add @mapbox/mapbox-gl-traffic
+```
+{% endtab %}
+
+{% tab title="Language" %}
+```
+pnpm add @mapbox/mapbox-gl-language
+```
+{% endtab %}
+{% endtabs %}
 
 ## Example
 
