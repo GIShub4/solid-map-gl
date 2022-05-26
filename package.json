@@ -30,7 +30,7 @@
   "types": "dist/types/index.d.ts",
   "exports": {
     ".": {
-      "solid": "./dist/index/index.jsx",
+      "solid": "./dist/source/index.jsx",
       "default": "./dist/esm/index.js",
       "import": "./dist/esm/index.js",
       "browser": "./dist/esm/index.js"
@@ -57,7 +57,7 @@
     "rollup-plugin-import-css": "^3.0.3",
     "rollup-plugin-uglify": "^6.0.4",
     "rollup-preset-solid": "^1.4.0",
-    "solid-js": "1.3.14",
+    "solid-js": "^1.4.2",
     "solid-testing-library": "^0.3.0",
     "typescript": "^4.7.2",
     "vite": "^2.9.9",
@@ -66,6 +66,6 @@
   },
   "peerDependencies": {
     "mapbox-gl": "^2.8.2",
-    "solid-js": "1.3.14"
+    "solid-js": "^1.4.2"
   }
 }
