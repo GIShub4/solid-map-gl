@@ -1,8 +1,3 @@
----
-cover: docs/gallery.png
-coverY: -161.54352596927578
----
-
 # Getting Started
 
 ![Banner](https://assets.solidjs.com/banner?project=solid-map-gl\&background=tiles)
