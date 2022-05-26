@@ -1,4 +1,4 @@
-![](docs/gallery.png)
+![](gallery.png)
 
 ## Solid Mapbox GL JS
 
