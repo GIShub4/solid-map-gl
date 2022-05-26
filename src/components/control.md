@@ -1,4 +1,4 @@
-# Control
+# Solid Component for Mapbox GL JS Control
 
 ## Props
 
@@ -10,6 +10,9 @@
 
 _\*required_\
 _^default_
+
+\
+
 
 `When using language or traffic type you must import the required library`
 
