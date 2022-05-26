@@ -1,7 +1,6 @@
 # Table of contents
 
-* [solid-map-gl](README.md)
-* [Getting Started](START.md)
+* [Getting Started](REARME.md)
 * [Components](src/components/README.md)
   * [Map](src/components/MapGL/README.md)
   * [Control](src/components/Control/README.md)
