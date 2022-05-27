@@ -39,11 +39,11 @@ npm start
 {% endtabs %}
 
 {% hint style="danger" %}
-If you use **vite** and get the following error:
+If you use `vite` and get the following error:
 
 <mark style="color:red;">'mapbox-gl.js' does not provide an export named 'default'</mark>
 
-add this to your **vite.config.ts** file:
+add this to your `vite.config.ts` file:
 
 `optimizeDeps: {include: ['mapbox-gl']}`
 {% endhint %}
