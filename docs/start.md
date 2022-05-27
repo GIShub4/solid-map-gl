@@ -22,7 +22,7 @@ use [`pnpm`](https://pnpm.io/) (preferred)
 
 ```shell
 pnpm dlx degit solidjs/templates/ts my-app && cd my-app
-pnhpm i
+pnpm i
 pnpm add mapbox-gl solid-map-gl
 pnpm dev
 ```
@@ -38,7 +38,7 @@ npm start
 {% endtab %}
 {% endtabs %}
 
-{% hint style="warning" %}
+{% hint style="danger" %}
 If you use **vite** and get the following error:
 
 <mark style="color:red;">'mapbox-gl.js' does not provide an export named 'default'</mark>
@@ -48,11 +48,11 @@ add this to your **vite.config.ts** file:
 `optimizeDeps: {include: ['mapbox-gl']}`
 {% endhint %}
 
-### Usage
+## Usage
 
 To use any of Mapbox’s tools, APIs, or SDKs, you’ll need a Mapbox [access token](https://www.mapbox.com/help/define-access-token/). Mapbox uses access tokens to associate requests to API resources with your account. You can find all your access tokens, create new ones, or delete existing ones on your [API access tokens page](https://www.mapbox.com/studio/account/tokens/).
 
-**Static Map**
+### **Static Map**
 
 By default, `MapGL` component renders in a static mode. That means that the user cannot interact with the map.
 
@@ -70,7 +70,7 @@ import MapGL from 'solid-map-gl'
 </MapGL>
 ```
 
-**Interactive Map**
+### **Interactive Map**
 
 In most cases, you will want the user to interact with the map. To do this, you need to provide `onViewportChange` handler, that will update the map's viewport state.
 
