@@ -17,7 +17,7 @@
   * [Map with GeoJSON Source](broken-reference)
 * [Roadmap](broken-reference)
 
-![Gallery](docs/gallery.png)
+![Gallery](gallery.png)
 
 **Installation**
 
