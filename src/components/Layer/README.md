@@ -1,4 +1,4 @@
-# Solid Component for [Mapbox GL JS Layer](https://docs.mapbox.com/mapbox-gl-js/style-spec/layers/)
+# Layer
 
 ## Props
 
@@ -16,7 +16,9 @@
 
 _\*required_
 
-## Example
+## Examples
+
+### Circle Layer
 
 ```jsx
 import { Component, createSignal } from 'solid-js'

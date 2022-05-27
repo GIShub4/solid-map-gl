@@ -1,14 +1,14 @@
 # Table of contents
 
-* [Introduction](docs/intro.md)
+* [Introduction](README.md)
 * [Getting Started](docs/start.md)
 
 ## Components
 
 * [Map](src/components/MapGL/README.md)
-* [Control](src/components/Control/README.md)
 * [Source](src/components/Source/README.md)
 * [Layer](src/components/Layer/README.md)
+* [Control](src/components/Control/README.md)
 * [Image](src/components/Image/README.md)
 * [Marker](src/components/Marker/README.md)
 * [Popup](src/components/Popup/README.md)

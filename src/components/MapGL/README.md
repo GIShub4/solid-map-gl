@@ -68,7 +68,7 @@ const App: Component = () => {
 };
 ```
 
-### **Changing map Style**
+### **Changing Map Style**
 
 ```jsx
 import { Component, createSignal } from "solid-js";

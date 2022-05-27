@@ -1,7 +1,7 @@
 ---
 description: Solid Map GL provides Mapbox functionality within SolidJS applications
 cover: .gitbook/assets/header.png
-coverY: -235.96196049743963
+coverY: -40.73152889539137
 layout: landing
 ---
 
@@ -9,7 +9,9 @@ layout: landing
 
 [SolidJS](https://www.solidjs.com/) Component Library for [Mapbox GL JS.](https://github.com/mapbox/mapbox-gl-js) Mapbox GL JS is a JavaScript library that renders interactive maps from vector tiles and Mapbox styles using WebGL. This project is intended to be as close as possible to the [Mapbox GL JS API.](https://docs.mapbox.com/mapbox-gl-js/api/)
 
-[Getting Started](start.md)
+{% content-ref url="docs/start.md" %}
+[start.md](docs/start.md)
+{% endcontent-ref %}
 
 ## Code example
 
