@@ -1,5 +1,3 @@
-# Introduction
-
 ![](https://assets.solidjs.com/banner?project=solid-map-gl\&background=tiles)
 
 #### Solid Mapbox GL JS
