@@ -1,16 +1,54 @@
-### Installation
+---
+description: Installation and basic usage
+---
 
-> :bangbang:
->
-> There is a Mapbox bundle issue when using `npm or yarn`
->
-> Please use [`pnpm`](https://pnpm.io/) as a workaround
+# Getting Started
+
+`solid-map-gl` requires `mapbox-gl` as peer dependency
+
+{% tabs %}
+{% tab title="Existing project" %}
+```shell
+pnpm add mapbox-gl solid-map-gl
+# or
+yarn add mapbox-gl solid-map-gl
+# or
+npm i mapbox-gl solid-map-gl
+```
+{% endtab %}
+
+{% tab title="New project" %}
+use [`pnpm`](https://pnpm.io/) (preferred)
 
 ```shell
-pnpm add solid-map-gl
+pnpm dlx degit solidjs/templates/ts my-app && cd my-app
+pnhpm i
+pnpm add mapbox-gl solid-map-gl
+pnpm dev
 ```
 
-#### Usage
+or `npm`
+
+```shell
+npx degit solidjs/templates/ts my-app && cd my-app
+npm i
+npm i mapbox-gl solid-map-gl
+npm start
+```
+{% endtab %}
+{% endtabs %}
+
+{% hint style="warning" %}
+If you use **vite** and get the following error:
+
+<mark style="color:red;">'mapbox-gl.js' does not provide an export named 'default'</mark>
+
+add this to your **vite.config.ts** file:
+
+`optimizeDeps: {include: ['mapbox-gl']}`
+{% endhint %}
+
+### Usage
 
 To use any of Mapbox’s tools, APIs, or SDKs, you’ll need a Mapbox [access token](https://www.mapbox.com/help/define-access-token/). Mapbox uses access tokens to associate requests to API resources with your account. You can find all your access tokens, create new ones, or delete existing ones on your [API access tokens page](https://www.mapbox.com/studio/account/tokens/).
 
@@ -23,7 +61,7 @@ import MapGL from 'solid-map-gl'
 <MapGL
   options={{
     accessToken: MAPBOX_ACCESS_TOKEN,
-    style: 'mapbox://styles/mapbox/light-v10',
+    style: 'mb:basic',
   }}
   viewport={{
     center: [-122.41, 37.78],
@@ -49,10 +87,9 @@ const [viewport, setViewport] = createSignal({
 <MapGL
     options={{
         accessToken: MAPBOX_ACCESS_TOKEN,
-        style: 'mapbox://styles/mapbox/light-v10'
+        style: 'mb:light'
     }}
     viewport={viewport()}
-    onViewportChange={evt => setViewport(evt)}>
+    onViewportChange={(evt:Event) => setViewport(evt)}>
 </MapGL>
 ```
-
