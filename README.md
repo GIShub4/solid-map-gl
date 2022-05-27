@@ -1,7 +1,7 @@
 ---
 description: Solid Map GL provides Mapbox functionality within SolidJS applications
-cover: docs/header.png
-coverY: -115.9312362838332
+cover: .gitbook/assets/header.png
+coverY: 0
 layout: landing
 ---
 
