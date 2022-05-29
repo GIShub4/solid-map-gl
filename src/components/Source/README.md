@@ -1,8 +1,12 @@
+---
+description: Source Component
+---
+
 # Source
 
 ## Props
 
-| Prop     | Type   | Description                                                                    |
+| Name     | Type   | Description                                                                    |
 | -------- | ------ | ------------------------------------------------------------------------------ |
 | id       | string | required if `Layer` components are not nested                                  |
 | source\* | object | [Source style specs](https://docs.mapbox.com/mapbox-gl-js/style-spec/sources/) |
