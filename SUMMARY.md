@@ -1,7 +1,7 @@
 # Table of contents
 
 * [Introduction](README.md)
-* [Getting Started](docs/start.md)
+* [🚀 Getting Started](docs/start.md)
 
 ## Components
 
@@ -19,4 +19,4 @@
 
 ***
 
-* [Styles](styles.md)
+* [🗺 Styles](styles.md)

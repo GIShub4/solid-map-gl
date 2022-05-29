@@ -2,7 +2,7 @@
 description: List of available Map Styles
 ---
 
-# Styles
+# 🗺 Styles
 
 Additionally to the default [Mapbox referencing of map styles](https://docs.mapbox.com/mapbox-gl-js/style-spec/sources/#vector) you can use one of the following shortcuts.
 
