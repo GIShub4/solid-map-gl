@@ -10,7 +10,7 @@
 
 <br>
 
-![Gallery](docs/header.png)
+![Gallery](../docs/header.png)
 
 ## Installation
 
