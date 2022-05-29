@@ -19,4 +19,4 @@
 
 ***
 
-* [🗺 Styles](styles.md)
+* [🗺 Styles](docs/styles.md)
