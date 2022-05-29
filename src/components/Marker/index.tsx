@@ -7,7 +7,7 @@ import type { LngLatLike } from 'mapbox-gl/src/geo/lng_lat.js'
 
 export const Marker: Component<{
   options?: MarkerSpecification
-  lnglat: LngLatLike
+  lngLat: LngLatLike
   children?: any
 }> = props => {
   const map: MapboxMap = useMap()
@@ -16,7 +16,7 @@ export const Marker: Component<{
   // Add Marker
   createEffect(() => {
     marker = new mapboxgl.Marker(props.options)
-      .setLngLat(props.lnglat)
+      .setLngLat(props.lngLat)
       .setPopup(
         props.children
           ? new mapboxgl.Popup().setDOMContent(<div>{props.children}</div>)
@@ -28,7 +28,7 @@ export const Marker: Component<{
   onCleanup(() => marker.remove())
 
   // Update Position
-  createEffect(() => marker && marker.setLngLat(props.lnglat))
+  createEffect(() => marker && marker.setLngLat(props.lngLat))
 
   return <></>
 }

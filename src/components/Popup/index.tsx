@@ -7,7 +7,7 @@ import type { LngLatLike } from 'mapbox-gl/src/geo/lng_lat.js'
 
 export const Popup: Component<{
   options?: PopupSpecification
-  lnglat: LngLatLike
+  lngLat: LngLatLike
   children?: any
 }> = props => {
   const map: MapboxMap = useMap()
@@ -16,7 +16,7 @@ export const Popup: Component<{
   // Add Popup
   createEffect(() => {
     popup = new mapboxgl.Popup(props.options)
-      .setLngLat(props.lnglat)
+      .setLngLat(props.lngLat)
       .setDOMContent(<div>{props.children}</div>)
       .addTo(map())
   })
@@ -25,7 +25,7 @@ export const Popup: Component<{
   onCleanup(() => popup.remove())
 
   // Update Position
-  createEffect(() => popup && popup.setLngLat(props.lnglat))
+  createEffect(() => popup && popup.setLngLaL(props.lngLat))
 
   // Update Content
   createEffect(() => popup && popup.setDOMContent(<div>{props.children}</div>))
