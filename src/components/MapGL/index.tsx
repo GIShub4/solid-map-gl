@@ -83,7 +83,7 @@ export const MapGL: Component<{
   const [pending, start] = useTransition()
   const [transitionType, setTransitionType] = createSignal('flyTo')
 
-  onMount(() => {
+  onMount(async () => {
     const map: MapboxMap = new mapboxgl.Map({
       ...props.options,
       style: vectorStyleList[props.options?.style] ||
