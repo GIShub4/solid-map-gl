@@ -20,4 +20,4 @@
 ***
 
 * [🗺 Styles](docs/styles.md)
-* [🖥 Examples](examples.md)
+* [🖥 Examples](docs/examples.md)
