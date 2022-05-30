@@ -72,7 +72,7 @@ export const MapGL: Component<{
   cursorStyle?: string
   ref?: HTMLDivElement
   /** Children within the Map Container */
-  children?: Element | Element[]
+  children?: Element | Element[] | null
 }> = props => {
   props.id = props.id || createUniqueId()
 
@@ -84,13 +84,18 @@ export const MapGL: Component<{
     <div
       class={props?.class}
       classList={props?.classList}
-      style={{ height: '100%', width: '100%', ...props.style }}
+      style={{
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        ...props.style,
+      }}
     />
   )
   const containerRef = (
-    <section style={{ position: 'absolute', 'z-index': 1 }}>
-      {props.children}
-    </section>
+    <div style={{ position: 'absolute', 'z-index': 1 }}>{props.children}</div>
   )
 
   onMount(() => {
