@@ -2,7 +2,7 @@
 description: Installation and basic usage
 ---
 
-# Getting Started
+# 🚀 Getting Started
 
 `solid-map-gl` requires `mapbox-gl` as peer dependency
 
