@@ -86,6 +86,7 @@ Additionally to the default [Mapbox referencing of raster styles ](https://docs.
 {% tabs %}
 {% tab title="OSM" %}
 * osm:org
+* osm:human
 * osm:cycle
 * open:topo
 {% endtab %}
