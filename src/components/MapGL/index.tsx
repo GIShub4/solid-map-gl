@@ -74,13 +74,24 @@ export const MapGL: Component<{
   /** Children within the Map Container */
   children?: Element | Element[]
 }> = props => {
-  let mapRef: HTMLDivElement
-  let containerRef: HTMLElement
   props.id = props.id || createUniqueId()
 
   const [mapRoot, setMapRoot] = createSignal<MapboxMap>()
   const [pending, start] = useTransition()
   const [transitionType, setTransitionType] = createSignal('flyTo')
+
+  const mapRef = (
+    <div
+      class={props?.class}
+      classList={props?.classList}
+      style={{ height: '100%', width: '100%', ...props.style }}
+    />
+  )
+  const containerRef = (
+    <section style={{ position: 'absolute', 'z-index': 1 }}>
+      {props.children}
+    </section>
+  )
 
   onMount(() => {
     const map: MapboxMap = new mapboxgl.Map({
@@ -243,17 +254,8 @@ export const MapGL: Component<{
 
   return (
     <MapContext.Provider value={mapRoot}>
-      <section
-        ref={containerRef}
-        style={{ position: 'absolute', 'z-index': 1 }}>
-        {props.children}
-      </section>
-      <div
-        ref={mapRef}
-        class={props?.class}
-        classList={props?.classList}
-        style={{ height: '100%', width: '100%', ...props.style }}
-      />
+      {containerRef}
+      {mapRef}
     </MapContext.Provider>
   )
 }

@@ -10,7 +10,7 @@
 
 <br>
 
-![Gallery](../docs/header.png)
+![Gallery](https://github.com/GIShub4/solid-map-gl/blob/main/docs/header.png)
 
 ## Installation
 
