@@ -66,8 +66,6 @@ export const MapGL: Component<{
   showCollisionBoxes?: boolean
   /** Displays all feature outlines even if normally not drawn by style rules */
   showOverdrawInspector?: boolean
-  triggerResize?: boolean
-  repaint?: boolean
   /** Mouse Cursor Style */
   cursorStyle?: string
   ref?: HTMLDivElement
@@ -84,14 +82,7 @@ export const MapGL: Component<{
     <div
       class={props?.class}
       classList={props?.classList}
-      style={{
-        position: 'absolute',
-        top: 0,
-        bottom: 0,
-        left: 0,
-        right: 0,
-        ...props.style,
-      }}
+      style={{ position: 'absolute', inset: 0, ...props.style }}
     />
   )
   const containerRef = (
@@ -118,6 +109,10 @@ export const MapGL: Component<{
     map.once('styledata').then(() => setMapRoot(map))
 
     onCleanup(() => map.remove())
+
+    // listen to map container size changes
+    const resizeObserver = new ResizeObserver(() => map.resize())
+    resizeObserver.observe(mapRef as Element)
 
     // Hook up events
     createEffect(() =>
@@ -241,20 +236,20 @@ export const MapGL: Component<{
       }
     })
 
-    let index = 0
+    // let index = 0
 
-    createEffect(() => {
-      if (props.triggerResize) {
-        index = 0
-        window.requestAnimationFrame(function loop() {
-          if (index < 15) {
-            index++
-            window.requestAnimationFrame(loop)
-            start(() => map.resize())
-          }
-        })
-      }
-    })
+    // createEffect(() => {
+    //   if (props.triggerResize) {
+    //     index = 0
+    //     window.requestAnimationFrame(function loop() {
+    //       if (index < 15) {
+    //         index++
+    //         window.requestAnimationFrame(loop)
+    //         start(() => map.resize())
+    //       }
+    //     })
+    //   }
+    // })
   })
 
   return (
