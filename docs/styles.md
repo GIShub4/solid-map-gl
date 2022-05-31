@@ -69,10 +69,8 @@ Additionally to the default [Mapbox referencing of raster styles ](https://docs.
   <Source
     source={{
       type: "raster",
-      tiles: [
-        "osm:org",
-      ],
-      apikey: "..." // only needed for Thunder Forest
+      url: "osm:org",
+      apikey: "..." // only needed for Thunder Forest sources
     }}
   >
     <Layer
@@ -86,6 +84,7 @@ Additionally to the default [Mapbox referencing of raster styles ](https://docs.
 {% tabs %}
 {% tab title="OSM" %}
 * osm:org
+* osm:human
 * osm:cycle
 * open:topo
 {% endtab %}
