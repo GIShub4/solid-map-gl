@@ -13,6 +13,10 @@ layout: landing
 [start.md](docs/start.md)
 {% endcontent-ref %}
 
+{% content-ref url="docs/examples.md" %}
+[examples.md](docs/examples.md)
+{% endcontent-ref %}
+
 ## Code example
 
 ```jsx
