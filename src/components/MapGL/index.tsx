@@ -74,7 +74,7 @@ export const MapGL: Component<{
 }> = props => {
   props.id = props.id || createUniqueId()
 
-  const [mapRoot, setMapRoot] = createSignal<MapboxMap>()
+  const [mapRoot, setMapRoot] = createSignal<MapboxMap>(null)
   const [pending, start] = useTransition()
   const [transitionType, setTransitionType] = createSignal('flyTo')
 
@@ -84,9 +84,6 @@ export const MapGL: Component<{
       classList={props?.classList}
       style={{ position: 'absolute', inset: 0, ...props.style }}
     />
-  )
-  const containerRef = (
-    <div style={{ position: 'absolute', 'z-index': 1 }}>{props.children}</div>
   )
 
   onMount(() => {
@@ -104,13 +101,13 @@ export const MapGL: Component<{
       fitBoundsOptions: { padding: props.viewport?.padding },
     } as MapboxOptions)
 
-    map.container = containerRef
+    // map.container = containerRef
 
     map.once('styledata').then(() => setMapRoot(map))
 
     onCleanup(() => map.remove())
 
-    // listen to map container size changes
+    // Listen to map container size changes
     const resizeObserver = new ResizeObserver(() => map.resize())
     resizeObserver.observe(mapRef as Element)
 
@@ -140,43 +137,30 @@ export const MapGL: Component<{
     //Update transition type
     createEffect(() => setTransitionType(props.transitionType))
     // Update projection
-    createEffect(
-      on(
-        () => props.options?.projection,
-        proj => map.setProjection(proj),
-        { defer: true }
-      )
-    )
+    createEffect(() => map.setProjection(props.options?.projection))
 
     // Update map style
-    createEffect(
-      on(
-        () => props.options?.style,
-        style => {
-          const oldStyle = map.getStyle()
-          const oldLayers = oldStyle.layers.filter(l => l.id.startsWith('cl-'))
-          const oldSources = Object.keys(oldStyle.sources)
-            .filter(s => s.startsWith('cl-'))
-            .reduce(
-              (obj, key) => ({ ...obj, [key]: oldStyle.sources[key] }),
-              {}
-            )
-          map.setStyle(
-            vectorStyleList[style] ||
-              style || { version: 8, sources: {}, layers: [] }
-          )
-          map.once('styledata', () => {
-            const newStyle = map.getStyle()
-            map.setStyle({
-              ...newStyle,
-              sources: { ...newStyle.sources, ...oldSources },
-              layers: [...newStyle.layers, ...oldLayers],
-            })
-          })
-        },
-        { defer: true }
+    createEffect(() => {
+      const style = props.options?.style
+      if (!map.isStyleLoaded()) return
+      const oldStyle = map.getStyle()
+      const oldLayers = oldStyle.layers.filter(l => l.id.startsWith('cl-'))
+      const oldSources = Object.keys(oldStyle.sources)
+        .filter(s => s.startsWith('cl-'))
+        .reduce((obj, key) => ({ ...obj, [key]: oldStyle.sources[key] }), {})
+      map.setStyle(
+        vectorStyleList[style] ||
+          style || { version: 8, sources: {}, layers: [] }
       )
-    )
+      map.once('styledata', () => {
+        const newStyle = map.getStyle()
+        map.setStyle({
+          ...newStyle,
+          sources: { ...newStyle.sources, ...oldSources },
+          layers: [...newStyle.layers, ...oldLayers],
+        })
+      })
+    })
 
     // Hook up viewport events
     createEffect(() => {
@@ -235,26 +219,15 @@ export const MapGL: Component<{
           map.stop().flyTo(viewport)
       }
     })
-
-    // let index = 0
-
-    // createEffect(() => {
-    //   if (props.triggerResize) {
-    //     index = 0
-    //     window.requestAnimationFrame(function loop() {
-    //       if (index < 15) {
-    //         index++
-    //         window.requestAnimationFrame(loop)
-    //         start(() => map.resize())
-    //       }
-    //     })
-    //   }
-    // })
   })
 
   return (
     <MapContext.Provider value={mapRoot}>
-      {containerRef}
+      {mapRoot() && (
+        <div style={{ position: 'absolute', 'z-index': 10 }}>
+          {props.children}
+        </div>
+      )}
       {mapRef}
     </MapContext.Provider>
   )
