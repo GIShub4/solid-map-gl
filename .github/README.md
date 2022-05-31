@@ -2,13 +2,16 @@
 
 # Solid Mapbox GL JS
 
-[![npm](https://badgen.net/npm/v/solid-map-gl?icon=npm\&label) ![downloads](https://badgen.net/npm/dt/solid-map-gl)](https://www.npmjs.com/package/solid-map-gl) [![licence](https://badgen.net/badge/license/MIT/blue)](LICENSE/) [![size](https://badgen.net/badge/color/19.1%20kB/blue?label=Minified) ![treeshaking](https://badgen.net/badge/color/supported/green?label=tree%20shaking)](https://bundlephobia.com/package/solid-map-gl) ![types](https://badgen.net/npm/types/solid-map-gl?icon=typescript\&label)
+[![npm](https://img.shields.io/npm/v/solid-map-gl)](https://www.npmjs.com/package/solid-map-gl)
+[![downloads](https://img.shields.io/npm/dt/solid-map-gl)](https://www.npmjs.com/package/solid-map-gl)
+[![licence](https://img.shields.io/npm/l/solid-map-gl?color=blue)](LICENSE/)
+[![size](https://img.shields.io/bundlephobia/min/solid-map-gl)](https://bundlephobia.com/package/solid-map-gl)
+[![treeshaking](https://img.shields.io/badge/treeshaking-supported-success)](https://bundlephobia.com/package/solid-map-gl) 
+![ts](https://img.shields.io/badge/included-blue?logo=typescript&logoColor=white)
 
 [Solid](https://www.solidjs.com/) Component Library for [Mapbox GL JS.](https://github.com/mapbox/mapbox-gl-js) Mapbox GL JS is a JavaScript library that renders interactive maps from vector tiles and Mapbox styles using WebGL. This project is intended to be as close as possible to the [Mapbox GL JS API.](https://docs.mapbox.com/mapbox-gl-js/api/)
 
-## [Documentation](https://gis-hub.gitbook.io/solid-map-gl) &mdash; [Examples & Playground](https://determined-mirzakhani-29bbc7.netlify.app)
-
-<br>
+### [Documentation & Examples](https://gis-hub.gitbook.io/solid-map-gl)
 
 ![Gallery](https://github.com/GIShub4/solid-map-gl/blob/main/docs/header.png)
 
