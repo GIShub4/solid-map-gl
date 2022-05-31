@@ -9,7 +9,6 @@ import {
   useTransition,
   createUniqueId,
   untrack,
-  on,
 } from 'solid-js'
 import { mapEvents } from '../../events'
 import { vectorStyleList } from '../../styles'
@@ -74,8 +73,7 @@ export const MapGL: Component<{
 }> = props => {
   props.id = props.id || createUniqueId()
 
-  const [mapRoot, setMapRoot] = createSignal<MapboxMap>(null)
-  const [pending, start] = useTransition()
+  const [mapRoot, setMapRoot] = createSignal<MapboxMap>()
   const [transitionType, setTransitionType] = createSignal('flyTo')
 
   const mapRef = (
@@ -105,7 +103,7 @@ export const MapGL: Component<{
 
     map.once('styledata').then(() => setMapRoot(map))
 
-    onCleanup(() => map.remove())
+    // onCleanup(() => map.remove())
 
     // Listen to map container size changes
     const resizeObserver = new ResizeObserver(() => map.resize())
