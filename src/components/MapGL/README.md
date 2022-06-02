@@ -13,6 +13,8 @@
 | transitionType   | string    | flyTo^, easeTo, jumpTo                                                                       |
 | on\[Event]       | Event     | Any [Map Event](https://docs.mapbox.com/mapbox-gl-js/api/map/#map-events) - eg.: onMouseMove |
 | cursorStyle      | string    | Map cursor                                                                                   |
+| darkStyle        | object \| string    | Map style when application or browser is in dark mode                              |
+| debug            | boolean    | Enable debug messages                                                                       |
 
 _\*required_\
 _^default_

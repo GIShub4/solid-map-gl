@@ -9,7 +9,7 @@ import {
 import { useMap } from '../MapGL'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type { SourceSpecification } from 'mapbox-gl/src/style-spec/types.js'
-import { rasterStyleList } from '../../styles'
+import { rasterStyleList } from '../../mapStyles'
 
 const SourceContext = createContext<string>()
 export const useSourceId = (): string => useContext(SourceContext)

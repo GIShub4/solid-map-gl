@@ -6,14 +6,14 @@ import {
   createContext,
   useContext,
   Component,
-  useTransition,
   createUniqueId,
   untrack,
 } from 'solid-js'
 import { mapEvents } from '../../events'
-import { vectorStyleList } from '../../styles'
+import { vectorStyleList } from '../../mapStyles'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import '../../style.css'
 import type { MapboxMap, MapboxOptions } from 'mapbox-gl/src/ui/map'
 import type { LngLatLike } from 'mapbox-gl/src/geo/lng_lat.js'
 import type { LngLatBounds } from 'mapbox-gl/src/geo/lng_lat_bounds.js'
@@ -67,6 +67,10 @@ export const MapGL: Component<{
   showOverdrawInspector?: boolean
   /** Mouse Cursor Style */
   cursorStyle?: string
+  //** Dark Map Style */
+  darkStyle?: object | string
+  //** Debug Mode */
+  debug?: boolean
   ref?: HTMLDivElement
   /** Children within the Map Container */
   children?: Element | Element[] | null
@@ -75,6 +79,13 @@ export const MapGL: Component<{
 
   const [mapRoot, setMapRoot] = createSignal<MapboxMap>()
   const [transitionType, setTransitionType] = createSignal('flyTo')
+  const [darkMode, setDarkMode] = createSignal(
+    window.matchMedia('(prefers-color-scheme: dark)').matches ||
+      document.body.classList.contains('dark')
+  )
+
+  const debug = (text, value) =>
+    props.debug && console.debug(`${text}: %c${value}`, 'color: #00F')
 
   const mapRef = (
     <div
@@ -87,8 +98,7 @@ export const MapGL: Component<{
   onMount(() => {
     const map: MapboxMap = new mapboxgl.Map({
       ...props.options,
-      style: vectorStyleList[props.options?.style] ||
-        props.options?.style || { version: 8, sources: {}, layers: [] },
+      style: { version: 8, sources: {}, layers: [] },
       container: mapRef,
       interactive: !!props.onViewportChange,
       bounds: props.viewport?.bounds,
@@ -108,6 +118,15 @@ export const MapGL: Component<{
     // Listen to map container size changes
     const resizeObserver = new ResizeObserver(() => map.resize())
     resizeObserver.observe(mapRef as Element)
+
+    // Listen to dark theme changes
+    const darkTheme = window.matchMedia('(prefers-color-scheme: dark)')
+    darkTheme.addEventListener('change', () => setDarkMode(darkTheme.matches))
+
+    const bodyClassObserver = new MutationObserver(() =>
+      setDarkMode(document.body.classList.contains('dark'))
+    )
+    bodyClassObserver.observe(document.body, { attributes: true })
 
     // Hook up events
     createEffect(() =>
@@ -131,21 +150,39 @@ export const MapGL: Component<{
     })
 
     // Update cursor
-    createEffect(() => (map.getCanvas().style.cursor = props.cursorStyle))
+    createEffect(() => {
+      if (!props.cursorStyle) return
+      debug('Update cursor to', props.cursorStyle)
+      map.getCanvas().style.cursor = props.cursorStyle
+    })
     //Update transition type
-    createEffect(() => setTransitionType(props.transitionType))
+    createEffect(() => {
+      if (!props.transitionType) return
+      debug('Update transition to', props.transitionType)
+      setTransitionType(props.transitionType)
+    })
     // Update projection
-    createEffect(() => map.setProjection(props.options?.projection))
+    createEffect(() => {
+      if (!props.options?.projection) return
+      debug('Update projection to', props.options?.projection.name)
+      map.setProjection(props.options?.projection)
+    })
 
     // Update map style
     createEffect(() => {
-      const style = props.options?.style
-      if (!map.isStyleLoaded()) return
-      const oldStyle = map.getStyle()
-      const oldLayers = oldStyle.layers.filter(l => l.id.startsWith('cl-'))
-      const oldSources = Object.keys(oldStyle.sources)
-        .filter(s => s.startsWith('cl-'))
-        .reduce((obj, key) => ({ ...obj, [key]: oldStyle.sources[key] }), {})
+      const style = darkMode()
+        ? props.darkStyle || props.options?.style
+        : props.options?.style
+      debug('Update mapstyle to', style)
+      let oldLayers = [],
+        oldSources = {}
+      if (map.isStyleLoaded()) {
+        const oldStyle = map.getStyle()
+        oldLayers = oldStyle.layers.filter(l => l.id.startsWith('cl-'))
+        oldSources = Object.keys(oldStyle.sources)
+          .filter(s => s.startsWith('cl-'))
+          .reduce((obj, key) => ({ ...obj, [key]: oldStyle.sources[key] }), {})
+      }
       map.setStyle(
         vectorStyleList[style] ||
           style || { version: 8, sources: {}, layers: [] }
