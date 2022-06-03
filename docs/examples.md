@@ -12,8 +12,8 @@ description: List of example links run in SolidJS playground
 * [Toggle Dark Theme Map](https://stackblitz.com/edit/vitejs-vite-8vg2bv?embed=1&file=src%2FApp.tsx)
 * [Change Projection](https://stackblitz.com/edit/vitejs-vite-9j6tet?embed=1&file=src%2FApp.tsx)
 * [Display Mouse Coordinates](https://stackblitz.com/edit/vitejs-vite-asubdn?embed=1&file=src%2FApp.tsx)
-* ~~Sync Maps~~
-* ~~Swipe Maps~~
+* [Sync Maps](https://stackblitz.com/edit/vitejs-vite-eaujcp?embed=1&file=src%2FApp.tsx)
+* [~~Swipe Maps~~](https://stackblitz.com/edit/vitejs-vite-3wgugu?embed=1&file=src%2FApp.tsx)
 * ~~Debug Maps~~
 {% endtab %}
 
@@ -31,7 +31,7 @@ description: List of example links run in SolidJS playground
 
 {% tab title="Layer" %}
 * [Add Heatmap](https://stackblitz.com/edit/vitejs-vite-8usoyy?embed=1&file=src%2FApp.tsx)
-* ~~Add Custom Layer~~
+* [~~Add Custom Layer~~](https://stackblitz.com/edit/vitejs-vite-ex86ag?embed=1&file=src%2FApp.tsx)
 {% endtab %}
 
 {% tab title="Overlay" %}
