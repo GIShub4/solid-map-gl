@@ -13,11 +13,11 @@ import { mapEvents } from '../../events'
 import { vectorStyleList } from '../../mapStyles'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import '../../style.css'
 import type { MapboxMap, MapboxOptions } from 'mapbox-gl/src/ui/map'
 import type { LngLatLike } from 'mapbox-gl/src/geo/lng_lat.js'
 import type { LngLatBounds } from 'mapbox-gl/src/geo/lng_lat_bounds.js'
 import type { PaddingOptions } from 'mapbox-gl/src/geo/edge_insets.js'
+import type { StyleSpecification } from 'mapbox-gl/src/style-spec/types.js'
 import type { JSX } from 'solid-js'
 
 export type Viewport = {
@@ -68,7 +68,7 @@ export const MapGL: Component<{
   /** Mouse Cursor Style */
   cursorStyle?: string
   //** Dark Map Style */
-  darkStyle?: object | string
+  darkStyle?: StyleSpecification | string
   //** Debug Mode */
   debug?: boolean
   ref?: HTMLDivElement
@@ -96,9 +96,14 @@ export const MapGL: Component<{
   )
 
   onMount(() => {
+    const style = darkMode()
+      ? props.darkStyle || props.options?.style
+      : props.options?.style
+
     const map: MapboxMap = new mapboxgl.Map({
       ...props.options,
-      style: { version: 8, sources: {}, layers: [] },
+      style: vectorStyleList[style] ||
+        style || { version: 8, sources: {}, layers: [] },
       container: mapRef,
       interactive: !!props.onViewportChange,
       bounds: props.viewport?.bounds,
@@ -109,6 +114,7 @@ export const MapGL: Component<{
       fitBoundsOptions: { padding: props.viewport?.padding },
     } as MapboxOptions)
 
+    map.debug = props.debug
     // map.container = containerRef
 
     map.once('styledata').then(() => setMapRoot(map))
@@ -150,32 +156,38 @@ export const MapGL: Component<{
     })
 
     // Update cursor
-    createEffect(() => {
-      if (!props.cursorStyle) return
-      debug('Update cursor to', props.cursorStyle)
+    createEffect(prev => {
+      if (props.cursorStyle === prev) return
+      debug('Update Cursor to', props.cursorStyle)
       map.getCanvas().style.cursor = props.cursorStyle
+      return props.cursorStyle
     })
+
     //Update transition type
-    createEffect(() => {
-      if (!props.transitionType) return
-      debug('Update transition to', props.transitionType)
+    createEffect(prev => {
+      if (props.transitionType === prev) return
+      debug('Update Transition to', props.transitionType)
       setTransitionType(props.transitionType)
+      return props.transitionType
     })
+
     // Update projection
-    createEffect(() => {
-      if (!props.options?.projection) return
-      debug('Update projection to', props.options?.projection.name)
+    createEffect(prev => {
+      if (props.options?.projection === prev) return
+      debug('Update Projection to', props.options?.projection.name)
       map.setProjection(props.options?.projection)
+      return props.options?.projection
     })
 
     // Update map style
-    createEffect(() => {
+    createEffect(prev => {
       const style = darkMode()
         ? props.darkStyle || props.options?.style
         : props.options?.style
-      debug('Update mapstyle to', style)
-      let oldLayers = [],
-        oldSources = {}
+      if (style === prev) return
+      let oldLayers = []
+      let oldSources = {}
+      debug('Update Mapstyle to', style)
       if (map.isStyleLoaded()) {
         const oldStyle = map.getStyle()
         oldLayers = oldStyle.layers.filter(l => l.id.startsWith('cl-'))
@@ -195,7 +207,8 @@ export const MapGL: Component<{
           layers: [...newStyle.layers, ...oldLayers],
         })
       })
-    })
+      return style
+    }, props.options?.style)
 
     // Hook up viewport events
     createEffect(() => {

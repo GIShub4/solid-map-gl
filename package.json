@@ -53,7 +53,6 @@
     "jsdom": "^19.0.0",
     "mapbox-gl": "^2.8.2",
     "rollup": "^2.75.5",
-    "rollup-plugin-copy": "^3.4.0",
     "rollup-plugin-import-css": "^3.0.3",
     "rollup-plugin-uglify": "^6.0.4",
     "rollup-preset-solid": "^1.4.0",
