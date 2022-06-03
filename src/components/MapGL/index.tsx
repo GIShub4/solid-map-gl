@@ -69,11 +69,13 @@ export const MapGL: Component<{
   cursorStyle?: string
   //** Dark Map Style */
   darkStyle?: StyleSpecification | string
+  //** Disable automatic map resize */
+  disableResize?: boolean
   //** Debug Mode */
   debug?: boolean
   ref?: HTMLDivElement
   /** Children within the Map Container */
-  children?: Element | Element[] | null
+  children?: any
 }> = props => {
   props.id = props.id || createUniqueId()
 
@@ -89,6 +91,7 @@ export const MapGL: Component<{
 
   const mapRef = (
     <div
+      id={props.id}
       class={props?.class}
       classList={props?.classList}
       style={{ position: 'absolute', inset: 0, ...props.style }}
@@ -123,7 +126,11 @@ export const MapGL: Component<{
 
     // Listen to map container size changes
     const resizeObserver = new ResizeObserver(() => map.resize())
-    resizeObserver.observe(mapRef as Element)
+    createEffect(() =>
+      props.disableResize
+        ? resizeObserver.disconnect()
+        : resizeObserver.observe(mapRef as Element)
+    )
 
     // Listen to dark theme changes
     const darkTheme = window.matchMedia('(prefers-color-scheme: dark)')

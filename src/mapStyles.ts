@@ -1,5 +1,6 @@
 const mapBase = 'mapbox://styles/mapbox'
 const gitBase = 'https://raw.githubusercontent.com'
+const gishub = 'https://raw.githubusercontent.com/GIShub4/map-styles/main'
 
 export const vectorStyleList = {
   'mb:light': `${mapBase}/light-v10`,
@@ -35,6 +36,30 @@ export const vectorStyleList = {
   'mb:emerald': `${gitBase}/jingsam/mapbox-gl-styles/master/Emerald.json`,
   'mb:runner': `${gitBase}/jingsam/mapbox-gl-styles/master/Runner.json`,
   'mb:x-ray': `${gitBase}/jingsam/mapbox-gl-styles/master/X-ray.json`,
+
+  'esri:blueprint': `${gishub}/esri:blueprint.json`,
+  'esri:charted-territory': `${gishub}/esri:charted-territory.json`,
+  'esri:colored-pencil': `${gishub}/esri:colored-pencil.json`,
+  'esri:community': `${gishub}/esri:community.json`,
+  'esri:mid-century': `${gishub}/esri:mid-century.json`,
+  'esri:modern-antique': `${gishub}/esri:modern-antique.json`,
+  'esri:national-geographic': `${gishub}/esri:national-geographic.json`,
+  'esri:newspaper': `${gishub}/esri:newspaper.json`,
+  'esri:open-street-map': `${gishub}/esri:open-street-map.json`,
+  'esri:light-gray-canvas': `${gishub}/esri:light-gray-canvas.json`,
+  'esri:dark-gray-canvas': `${gishub}/esri:dark-gray-canvas.json`,
+  'esri:human-geography-light': `${gishub}/esri:human-geography-light.json`,
+  'esri:human-geography-dark': `${gishub}/esri:human-geography-dark.json`,
+  'esri:world-navigation-map': `${gishub}/esri:world-navigation-map.json`,
+  'esri:world-street-map': `${gishub}/esri:world-street-map.json`,
+  'esri:world-street-map-night': `${gishub}/esri:world-street-map-night.json`,
+  'esri:world-terrain-base': `${gishub}/esri:world-terrain-base.json`,
+  'esri:world-topographic-map': `${gishub}/esri:world-topographic-map.json`,
+  'esri:chromium': `${gishub}/esri:chromium.json`,
+  'esri:dreamcatcher': `${gishub}/esri:dreamcatcher.json`,
+  'esri:seahaven': `${gishub}/esri:seahaven.json`,
+  'esri:sangria': `${gishub}/esri:sangria.json`,
+  'esri:mercurial': `${gishub}/esri:mercurial.json`,
 }
 
 export const rasterStyleList = {

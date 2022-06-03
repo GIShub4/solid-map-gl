@@ -31,7 +31,7 @@ description: List of example links run in SolidJS playground
 
 {% tab title="Layer" %}
 * [Add Heatmap](https://stackblitz.com/edit/vitejs-vite-8usoyy?embed=1&file=src%2FApp.tsx)
-* [~~Add Custom Layer~~](https://stackblitz.com/edit/vitejs-vite-ex86ag?embed=1&file=src%2FApp.tsx)
+* [Add Custom Layer](https://stackblitz.com/edit/vitejs-vite-ex86ag?embed=1&file=src%2FApp.tsx)
 {% endtab %}
 
 {% tab title="Overlay" %}
