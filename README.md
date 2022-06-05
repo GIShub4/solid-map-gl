@@ -19,7 +19,7 @@ layout: landing
 
 ## Simple Demo
 
-{% embed url="https://stackblitz.com/edit/solid-map-gl-intro?embed=1&hideExplorer=1&hideNavigation=1&view=preview" %}
+{% embed url="https://stackblitz.com/edit/solid-map-gl-intro?embed=1&hideExplorer=1&hideNavigation=1&view=preview&file=src%2FApp.tsx" %}
 
 #### Roadmap
 
