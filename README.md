@@ -17,33 +17,9 @@ layout: landing
 [examples.md](docs/examples.md)
 {% endcontent-ref %}
 
-## Code example
+## Simple Demo
 
-```jsx
-import { render } from "solid-js/web";
-import { Component, createSignal } from "solid-js";
-import MapGL, { Viewport } from "solid-map-gl";
-
-const Map: Component = () => {
-  const [viewport, setViewport] = createSignal({
-    center: [0, 0],
-    zoom: 6,
-  } as Viewport);
-
-  return (
-    <MapGL
-      options={{
-        accessToken: MAPBOX_ACCESS_TOKEN,
-        style: "mb:light",
-      }}
-      viewport={viewport()}
-      onViewportChange={(evt: Event) => setViewport(evt)}
-    ></MapGL>
-  );
-};
-
-render(() => <Map />, document.getElementById("app")!);
-```
+{% embed url="https://stackblitz.com/edit/solid-map-gl-intro?embed=1&hideExplorer=1&hideNavigation=1&view=preview" %}
 
 #### Roadmap
 
