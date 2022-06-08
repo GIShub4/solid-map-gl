@@ -75,7 +75,7 @@ const tf = 'https://{s}.tile.thunderforest.com/'
 export const rasterStyleList = {
   osm: {
     org: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    human: 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}{r}.png',
+    human: 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
     cycle: 'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',
     topo: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
     _copy:

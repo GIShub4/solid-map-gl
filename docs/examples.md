@@ -8,7 +8,8 @@ description: List of example links run in SolidJS playground
 {% tab title="Map" %}
 * [Static Map](https://stackblitz.com/edit/solid-map-gl-static?embed=1&file=src%2FApp.tsx)
 * [Interactive Map](https://stackblitz.com/edit/solid-map-gl-interactive?embed=1&file=src%2FApp.tsx)
-* [Change Base Map](https://stackblitz.com/edit/solid-map-gl-change-mb?embed=1&file=src%2FApp.tsx)
+* [Change Base Map (Mapbox)](https://stackblitz.com/edit/solid-map-gl-change-mb?embed=1&file=src%2FApp.tsx)
+* [Change Base Map (Esri)](https://stackblitz.com/edit/solid-map-gl-change-esri?embed=1&file=src%2FApp.tsx)
 * [Toggle Dark Theme Map](https://stackblitz.com/edit/solid-map-gl-dark-theme?embed=1&file=src%2FApp.tsx)
 * [Change Projection](https://stackblitz.com/edit/solid-map-gl-projection?embed=1&file=src%2FApp.tsx)
 * [Display Mouse Coordinates](https://stackblitz.com/edit/solid-map-gl-mouse?embed=1&file=src%2FApp.tsx)
