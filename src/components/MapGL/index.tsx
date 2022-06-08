@@ -98,15 +98,17 @@ export const MapGL: Component<{
     />
   )
 
-  onMount(() => {
-    const style = darkMode()
-      ? props.darkStyle || props.options?.style
-      : props.options?.style
+  const getStyle = (light, dark) => {
+    const style = darkMode() ? dark || light : light
+    return typeof style === 'string' || style instanceof String
+      ? style.split(':').reduce((p, c) => p[c], vectorStyleList) || style
+      : style || { version: 8, sources: {}, layers: [] }
+  }
 
+  onMount(() => {
     const map: MapboxMap = new mapboxgl.Map({
       ...props.options,
-      style: vectorStyleList[style] ||
-        style || { version: 8, sources: {}, layers: [] },
+      style: getStyle(props.options.style, props.darkStyle),
       container: mapRef,
       interactive: !!props.onViewportChange,
       bounds: props.viewport?.bounds,
@@ -120,7 +122,7 @@ export const MapGL: Component<{
     map.debug = props.debug
     // map.container = containerRef
 
-    map.once('styledata').then(() => setMapRoot(map))
+    map.once('load').then(() => setMapRoot(map))
 
     // onCleanup(() => map.remove())
 
@@ -188,9 +190,7 @@ export const MapGL: Component<{
 
     // Update map style
     createEffect(prev => {
-      const style = darkMode()
-        ? props.darkStyle || props.options?.style
-        : props.options?.style
+      const style = getStyle(props.options?.style, props.darkStyle)
       if (style === prev) return
       let oldLayers = []
       let oldSources = {}
@@ -202,10 +202,7 @@ export const MapGL: Component<{
           .filter(s => s.startsWith('cl-'))
           .reduce((obj, key) => ({ ...obj, [key]: oldStyle.sources[key] }), {})
       }
-      map.setStyle(
-        vectorStyleList[style] ||
-          style || { version: 8, sources: {}, layers: [] }
-      )
+      map.setStyle(style)
       map.once('styledata', () => {
         const newStyle = map.getStyle()
         map.setStyle({

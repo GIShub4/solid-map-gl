@@ -24,17 +24,21 @@ export const Source: Component<{
   const map: MapboxMap = useMap()
   props.id = props.id || createUniqueId()
 
-  const lookup = url =>
-    rasterStyleList[url]
+  const lookup = url => {
+    const source = url.split(':').reduce((p, c) => p[c], rasterStyleList)
+    return source
       ? {
           ...props.source,
           url: '',
           tiles: [
-            rasterStyleList[url][0].replace('{apikey}', props.source.apikey),
+            source
+              .replace('{apikey}', props.source.apikey)
+              .replace('{r}', window.devicePixelRatio > 1 ? '@2x' : ''),
           ],
-          attribution: rasterStyleList[url][1],
+          attribution: rasterStyleList[url.split(':')[0]]._copy,
         }
       : props.source
+  }
 
   // Add Source
   createEffect(() => {
