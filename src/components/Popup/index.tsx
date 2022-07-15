@@ -25,7 +25,7 @@ export const Popup: Component<{
   onCleanup(() => popup.remove())
 
   // Update Position
-  createEffect(() => popup && popup.setLngLaL(props.lngLat))
+  createEffect(() => popup && popup.setLngLat(props.lngLat))
 
   // Update Content
   createEffect(() => popup && popup.setDOMContent(<div>{props.children}</div>))
