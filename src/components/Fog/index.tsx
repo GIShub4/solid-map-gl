@@ -11,7 +11,7 @@ export const Fog: Component<{
   const map: MapboxMap = useMap()
   // Add Fog Layer
   createEffect(() => {
-    map().setFog(props.style)
+    map().setFog(props.style || {})
   })
 
   // Remove Fog Layer
