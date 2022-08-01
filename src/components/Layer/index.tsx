@@ -64,7 +64,7 @@ export const Layer: Component<{
         props.beforeType
           ? map()
               ?.getStyle()
-              .layers.find(l => l.type === props.beforeType).id
+              .layers.find(l => l.type === props.beforeType)?.id
           : props.beforeId
       )
   })

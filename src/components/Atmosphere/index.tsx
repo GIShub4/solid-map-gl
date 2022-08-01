@@ -4,7 +4,7 @@ import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type { FogSpecification } from 'mapbox-gl/src/style-spec/types.js'
 
 export const Atmosphere: Component<{
-  style: FogSpecification
+  style?: FogSpecification
   visible?: boolean
   children?: any
 }> = props => {

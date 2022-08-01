@@ -5,7 +5,7 @@ import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type { SourceSpecification } from 'mapbox-gl/src/style-spec/types.js'
 
 export const Terrain: Component<{
-  exaggeration: number
+  exaggeration?: number
   visible?: boolean
   children?: any
 }> = props => {
