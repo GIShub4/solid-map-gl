@@ -46,8 +46,8 @@ description: List of example links run in SolidJS playground
 {% tab title="3D" %}
 * [Add Hillshade](https://stackblitz.com/edit/solid-map-gl-hillshade?embed=1&file=src%2FApp.tsx)
 * [Add Terrain](https://stackblitz.com/edit/solid-map-gl-terrain?embed=1&file=src%2FApp.tsx)
-* [Add Fog](https://stackblitz.com/edit/solid-map-gl-fog?embed=1&file=src%2FApp.tsx)
-* [Add Sky](https://stackblitz.com/edit/solid-map-gl-sky?embed=1&file=src%2FApp.tsx)
+* [Add Atmosphere](https://stackblitz.com/edit/solid-map-gl-atmosphere?embed=1&file=src%2FApp.tsx)
+* [Add Globe](https://stackblitz.com/edit/solid-map-gl-globe?embed=1&file=src%2FApp.tsx)
 * ~~Camera Transition~~
 {% endtab %}
 {% endtabs %}

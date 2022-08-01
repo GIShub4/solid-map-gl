@@ -1,23 +1,32 @@
-import { onCleanup, createEffect, Component } from 'solid-js'
+import { onCleanup, createEffect, Component, createUniqueId } from 'solid-js'
 import { useMap } from '../MapGL'
 import { useSourceId } from '../Source'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
-import type {
-  TerrainSpecification,
-  SourceSpecification,
-} from 'mapbox-gl/src/style-spec/types.js'
+import type { SourceSpecification } from 'mapbox-gl/src/style-spec/types.js'
 
 export const Terrain: Component<{
-  style: TerrainSpecification
+  exaggeration: number
   visible?: boolean
   children?: any
 }> = props => {
   const map: MapboxMap = useMap()
-  const sourceId: SourceSpecification = useSourceId()
+  let sourceId: SourceSpecification = useSourceId()
 
   // Add Terrain Layer
   createEffect(() => {
-    map().setTerrain({ ...props.style, source: sourceId })
+    if (!sourceId) {
+      sourceId = createUniqueId()
+      map().addSource(sourceId, {
+        type: 'raster-dem',
+        url: 'mapbox://mapbox.terrain-rgb',
+        tileSize: 512,
+        maxzoom: 14,
+      })
+    }
+    map().setTerrain({
+      exaggeration: props.exaggeration || 1,
+      source: sourceId,
+    })
   })
 
   // Remove Terrain Layer
@@ -26,7 +35,11 @@ export const Terrain: Component<{
   // Update Visibility
   createEffect(() => {
     props.visible !== undefined &&
-      map().setTerrain(props.visible ? props.style : null)
+      map().setTerrain(
+        props.visible
+          ? { exaggeration: props.exaggeration || 1, source: sourceId }
+          : null
+      )
   })
 
   return props.children

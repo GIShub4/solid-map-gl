@@ -32,10 +32,9 @@ npm i mapbox-gl solid-map-gl
 | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
 | [MapGL](https://gis-hub.gitbook.io/solid-map-gl/components/mapgl)       | Represents map on the page                                                                                             |
 | [Source](https://gis-hub.gitbook.io/solid-map-gl/components/source)     | [Sources](https://docs.mapbox.com/mapbox-gl-js/api/#sources) specify the geographic features to be rendered on the map |
-| [Layer](https://gis-hub.gitbook.io/solid-map-gl/components/layer)       | [Layers](https://docs.mapbox.com/mapbox-gl-js/style-spec/#layers) specify the `Sources` style                          |
-| [Sky](https://gis-hub.gitbook.io/solid-map-gl/components/sky)           | Specify the Sky Layer                                                                                                  |
-| [Fog](https://gis-hub.gitbook.io/solid-map-gl/components/fog)           | Specify the Fog Layer                                                                                                  |
-| [Terrain](https://gis-hub.gitbook.io/solid-map-gl/components/terrain)   | Specify the Terrain Layer                                                                                              |
+| [Layer](https://gis-hub.gitbook.io/solid-map-gl/components/layer)       | [Layers](https://docs.mapbox.com/mapbox-gl-js/style-spec/#layers) specify the `Sources` style                          |                                                                                                 |
+| [Atmosphere](https://gis-hub.gitbook.io/solid-map-gl/components/atmosphere)           | Specify the Atmosphere                                                                                                  |
+| [Terrain](https://gis-hub.gitbook.io/solid-map-gl/components/terrain)   | Specify the Terrain                                                                                              |
 | [Image](https://gis-hub.gitbook.io/solid-map-gl/components/image)       | Adds an image to the map style                                                                                         |
 | [Popup](https://gis-hub.gitbook.io/solid-map-gl/components/popup)       | Component for [Mapbox GL JS Popup](https://docs.mapbox.com/mapbox-gl-js/api/#popup)                                    |
 | [Marker](https://gis-hub.gitbook.io/solid-map-gl/components/marker)     | Component for [Mapbox GL JS Marker](https://docs.mapbox.com/mapbox-gl-js/api/#marker)                                  |

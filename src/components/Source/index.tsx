@@ -25,7 +25,7 @@ export const Source: Component<{
   props.id = props.id || createUniqueId()
 
   const lookup = url => {
-    const source = url.split(':').reduce((p, c) => p[c], rasterStyleList)
+    const source = url.split(':').reduce((p, c) => p && p[c], rasterStyleList)
     return source
       ? {
           ...props.source,
