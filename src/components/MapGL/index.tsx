@@ -101,7 +101,7 @@ export const MapGL: Component<{
   const getStyle = (light, dark) => {
     const style = darkMode() ? dark || light : light
     return typeof style === 'string' || style instanceof String
-      ? style.split(':').reduce((p, c) => p[c], vectorStyleList) || style
+      ? style?.split(':').reduce((p, c) => p && p[c], vectorStyleList) || style
       : style || { version: 8, sources: {}, layers: [] }
   }
 
