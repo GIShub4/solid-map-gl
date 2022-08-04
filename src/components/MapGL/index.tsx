@@ -146,11 +146,20 @@ export const MapGL: Component<{
     // Hook up events
     createEffect(() =>
       mapEvents.forEach(item => {
-        if (props[item]) {
+        const prop = props[item]
+        if (prop) {
           const event = item.slice(2).toLowerCase()
-          const callback = e => props[item](e)
-          map.on(event, callback)
-          onCleanup(() => map.off(event, callback))
+          if (typeof prop === 'function') {
+            const callback = e => prop(e)
+            map.on(event, callback)
+            onCleanup(() => map.off(event, callback))
+          } else {
+            Object.keys(prop).forEach(layerId => {
+              const callback = e => prop[layerId](e)
+              map.on(event, layerId, callback)
+              onCleanup(() => map.off(event, layerId, callback))
+            })
+          }
         }
       })
     )
