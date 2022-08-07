@@ -15,6 +15,7 @@ export const Popup: Component<{
 
   // Add Popup
   createEffect(() => {
+    if (popup) return
     popup = new mapboxgl.Popup(props.options)
       .setLngLat(props.lngLat)
       .setDOMContent(<div>{props.children}</div>)
@@ -25,10 +26,10 @@ export const Popup: Component<{
   onCleanup(() => popup.remove())
 
   // Update Position
-  createEffect(() => popup && popup.setLngLat(props.lngLat))
+  createEffect(() => popup?.setLngLat(props.lngLat))
 
   // Update Content
-  createEffect(() => popup && popup.setDOMContent(<div>{props.children}</div>))
+  createEffect(() => popup?.setDOMContent(<div>{props.children}</div>))
 
   return <></>
 }

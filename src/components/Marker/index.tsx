@@ -2,7 +2,10 @@ import { onCleanup, createEffect, Component } from 'solid-js'
 import { useMap } from '../MapGL'
 import mapboxgl from 'mapbox-gl'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
-import type { MarkerSpecification } from 'mapbox-gl/src/style-spec/types.js'
+import type {
+  MarkerSpecification,
+  PopupSpecification,
+} from 'mapbox-gl/src/style-spec/types.js'
 import type { LngLatLike } from 'mapbox-gl/src/geo/lng_lat.js'
 
 export const Marker: Component<{
@@ -12,23 +15,30 @@ export const Marker: Component<{
 }> = props => {
   const map: MapboxMap = useMap()
   let marker = null
+  let popup = null
 
   // Add Marker
   createEffect(() => {
+    if (marker) return
+    if (props.children)
+      popup = new mapboxgl.Popup(
+        props.options.popup as PopupSpecification
+      ).setDOMContent(<div>{props.children}</div>)
+
     marker = new mapboxgl.Marker(props.options)
       .setLngLat(props.lngLat)
-      .setPopup(
-        props.children
-          ? new mapboxgl.Popup().setDOMContent(<div>{props.children}</div>)
-          : null
-      )
+      .setPopup(popup)
       .addTo(map())
+    marker.togglePopup()
   })
   // Remove Marker
-  onCleanup(() => marker.remove())
+  onCleanup(() => marker?.remove())
 
   // Update Position
-  createEffect(() => marker && marker.setLngLat(props.lngLat))
+  createEffect(() => marker?.setLngLat(props.lngLat))
+
+  // Update Content
+  createEffect(() => popup?.setDOMContent(<div>{props.children}</div>))
 
   return <></>
 }
