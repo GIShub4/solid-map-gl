@@ -10,9 +10,7 @@ export const Atmosphere: Component<{
 }> = props => {
   const map: MapboxMap = useMap()
   // Add Atmosphere Layer
-  createEffect(() => {
-    map().setFog(props.style || {})
-  })
+  createEffect(() => map().setFog(props.style || {}))
 
   // Remove Atmosphere Layer
   onCleanup(() => map().setFog(null))

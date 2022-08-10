@@ -2,7 +2,7 @@ const mapBase = 'mapbox://styles/mapbox'
 const gitBase = 'https://raw.githubusercontent.com/'
 const gishub = 'https://raw.githubusercontent.com/GIShub4/map-styles/main/'
 
-export const vectorStyleList = {
+export const vectorStyleList: object = {
   mb: {
     light: `${mapBase}/light-v10`,
     dark: `${mapBase}/dark-v10`,
@@ -72,7 +72,7 @@ const carto = 'https://{s}.basemaps.cartocdn.com/rastertiles/'
 const stamen = 'https://stamen-tiles-{s}.a.ssl.fastly.net/'
 const tf = 'https://{s}.tile.thunderforest.com/'
 
-export const rasterStyleList = {
+export const rasterStyleList: object = {
   osm: {
     org: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     human: 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
