@@ -1,6 +1,6 @@
 ![](https://assets.solidjs.com/banner?project=solid-map-gl\&background=tiles)
 
-# Solid Mapbox GL JS
+# Solid Map GL for Mapbox and MapLibre
 
 [![npm](https://img.shields.io/npm/v/solid-map-gl)](https://www.npmjs.com/package/solid-map-gl)
 [![downloads](https://img.shields.io/npm/dt/solid-map-gl)](https://www.npmjs.com/package/solid-map-gl)
@@ -9,21 +9,21 @@
 [![treeshaking](https://img.shields.io/badge/treeshaking-supported-success)](https://bundlephobia.com/package/solid-map-gl) 
 ![ts](https://img.shields.io/badge/types-included-blue?logo=typescript&logoColor=white)
 
-[Solid](https://www.solidjs.com/) Component Library for [Mapbox GL JS.](https://github.com/mapbox/mapbox-gl-js) Mapbox GL JS is a JavaScript library that renders interactive maps from vector tiles and Mapbox styles using WebGL. This project is intended to be as close as possible to the [Mapbox GL JS API.](https://docs.mapbox.com/mapbox-gl-js/api/)
+[Solid](https://www.solidjs.com/) Component Library for [Mapbox GL JS.](https://github.com/mapbox/mapbox-gl-js) and [MapLibre GL](https://maplibre.org/projects/maplibre-gl-js/) Both libraries render interactive maps from vector tiles and Map styles using WebGL. This project is intended to be as close as possible to the [Mapbox GL JS API.](https://docs.mapbox.com/mapbox-gl-js/api/)
 
 ### [Documentation & Examples](https://gis-hub.gitbook.io/solid-map-gl)
 
-![Gallery](https://github.com/GIShub4/solid-map-gl/blob/main/docs/header.png)
+[![Gallery](https://github.com/GIShub4/solid-map-gl/blob/main/docs/header.png)](https://gis-hub.gitbook.io/solid-map-gl)
 
 ## Installation
 
 
 ```shell
-pnpm add mapbox-gl solid-map-gl
+pnpm add solid-map-gl
 # or
-yarn add mapbox-gl solid-map-gl
+yarn add solid-map-gl
 # or
-npm i mapbox-gl solid-map-gl
+npm i solid-map-gl
 ```
 
 ## Components
@@ -40,7 +40,7 @@ npm i mapbox-gl solid-map-gl
 | [Marker](https://gis-hub.gitbook.io/solid-map-gl/components/marker)     | Component for [Mapbox GL JS Marker](https://docs.mapbox.com/mapbox-gl-js/api/#marker)                                  |
 | [Control](https://gis-hub.gitbook.io/solid-map-gl/components/control) | Represents the map's control                                                                                           |
 
-## Usage
+## Usage with Mapbox
 
 
 ```jsx
@@ -72,7 +72,6 @@ const App: Component = () => {
         <Layer
           style={{
             type: "circle",
-            source: "earthquakes",
             paint: {
               "circle-radius": 8,
               "circle-color": "red",
@@ -80,6 +79,35 @@ const App: Component = () => {
           }}
         />
       </Source>
+    </MapGL>
+  );
+};
+
+render(() => <App />, document.getElementById("app")!);
+```
+## Usage with MapLibre
+
+
+```jsx
+import { render } from "solid-js/web";
+import { Component, createSignal } from "solid-js";
+import MapGL, { Viewport } from "solid-map-gl";
+
+const App: Component = () => {
+  const [viewport, setViewport] = createSignal({
+    center: [-122.45, 37.78],
+    zoom: 11,
+  } as Viewport);
+
+  return (
+    <MapGL
+      asMapLibre
+      options={{
+        style: 'https://demotiles.maplibre.org/style.json',
+      }}
+      viewport={viewport()}
+      onViewportChange={(evt: Event) => setViewport(evt)}
+    >
     </MapGL>
   );
 };
@@ -97,5 +125,6 @@ render(() => <App />, document.getElementById("app")!);
 * [x] Add basemap switching
 * [x] Include event handling
 * [x] Sync Maps
+* [x] Add MapLibre support
 * [ ] Add draw functionality
 * [ ] Add debug functionality
