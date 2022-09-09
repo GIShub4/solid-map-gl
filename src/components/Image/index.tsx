@@ -18,20 +18,6 @@ export const Image: Component<{
   options?: StyleImageMetadata
 }> = props => {
   const map: MapboxMap = useMap()
-  // Add Image
-  createEffect(() => {
-    if (props.url) {
-      map().loadImage(
-        props.url,
-        (_, image) =>
-          !map().hasImage(props.id) && map().addImage(props.id, image)
-      )
-    } else {
-      !map().hasImage(props.id) &&
-        map().addImage(props.id, props.image, props.options)
-    }
-  })
-
   // Remove Image
   onCleanup(() => map().hasImage(props.id) && map().removeImage(props.id))
 
@@ -48,6 +34,20 @@ export const Image: Component<{
       map().style &&
         map().hasImage(props.id) &&
         map().updateImage(props.id, props.image)
+    }
+  })
+
+  // Add Image
+  createEffect(() => {
+    if (props.url) {
+      map().loadImage(
+        props.url,
+        (_, image) =>
+          !map().hasImage(props.id) && map().addImage(props.id, image)
+      )
+    } else {
+      !map().hasImage(props.id) &&
+        map().addImage(props.id, props.image, props.options)
     }
   })
 

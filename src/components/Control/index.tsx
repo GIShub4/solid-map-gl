@@ -1,6 +1,5 @@
 import { createEffect, onCleanup, createSignal, Component } from 'solid-js'
 import { useMap } from '../MapGL'
-import mapboxgl from 'mapbox-gl'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type { Options as AttributionOptions } from 'mapbox-gl/src/ui/control/attribution_control'
 import type { Options as FullscreenOptions } from 'mapbox-gl/src/ui/control/fullscreen_control'
@@ -24,27 +23,31 @@ export const Control: Component<{
   const map: MapboxMap = useMap()
   const [control, setControl] = createSignal(null)
 
-  const getControl = (type, options) => {
-    if (props.custom) return new props.custom(options)
-    switch (type) {
-      case 'navigation':
-        return new mapboxgl.NavigationControl(options)
-      case 'scale':
-        return new mapboxgl.ScaleControl(options)
-      case 'attribution':
-        return new mapboxgl.AttributionControl(options)
-      case 'geolocate':
-        return new mapboxgl.GeolocateControl(options)
-      case 'fullscreen':
-        return new mapboxgl.FullscreenControl()
-      // options || { container: map().container }
-      default:
-        throw new Error(`Unknown control type: ${type}`)
-    }
-  }
-
   // Add Control
-  createEffect(() => {
+  createEffect(async () => {
+    const mapLib = map().isMapLibre
+      ? await import('maplibre-gl')
+      : await import('mapbox-gl')
+
+    const getControl = (type, options) => {
+      if (props.custom) return new props.custom(options)
+      switch (type) {
+        case 'navigation':
+          return new mapLib.NavigationControl(options)
+        case 'scale':
+          return new mapLib.ScaleControl(options)
+        case 'attribution':
+          return new mapLib.AttributionControl(options)
+        case 'geolocate':
+          return new mapLib.GeolocateControl(options)
+        case 'fullscreen':
+          return new mapLib.FullscreenControl()
+        // options || { container: map().container }
+        default:
+          throw new Error(`Unknown control type: ${type}`)
+      }
+    }
+
     const control = getControl(props.type, props.options)
     control && map()?.addControl(control, props.position)
     setControl(control)

@@ -1,6 +1,5 @@
 import { onCleanup, createEffect, Component } from 'solid-js'
 import { useMap } from '../MapGL'
-import mapboxgl from 'mapbox-gl'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type { PopupSpecification } from 'mapbox-gl/src/style-spec/types.js'
 import type { LngLatLike } from 'mapbox-gl/src/geo/lng_lat.js'
@@ -14,9 +13,13 @@ export const Popup: Component<{
   let popup = null
 
   // Add Popup
-  createEffect(() => {
+  createEffect(async () => {
+    const mapLib = map().isMapLibre
+      ? await import('maplibre-gl')
+      : await import('mapbox-gl')
+
     if (popup) return
-    popup = new mapboxgl.Popup(props.options)
+    popup = new mapLib.Popup(props.options)
       .setLngLat(props.lngLat)
       .setDOMContent(<div>{props.children}</div>)
       .addTo(map())

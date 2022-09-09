@@ -49,26 +49,6 @@ export const Layer: Component<{
   const sourceId: string = useSourceId()
   props.id = props.id || createUniqueId()
 
-  // Add Layer
-  createEffect(() => {
-    !map().getLayer(props.id) &&
-      map().addLayer(
-        props.customLayer || {
-          ...props.style,
-          id: props.id,
-          source: sourceId,
-          metadata: {
-            smg: { beforeType: props.beforeType, beforeId: props.beforeId },
-          },
-        },
-        props.beforeType
-          ? map()
-              ?.getStyle()
-              .layers.find(l => l.type === props.beforeType)?.id
-          : props.beforeId
-      )
-  })
-
   //Remove Layer
   onCleanup(() => map().getLayer(props.id) && map().removeLayer(props.id))
 
@@ -165,6 +145,26 @@ export const Layer: Component<{
       },
       props.featureState.state
     )
+  })
+
+  // Add Layer
+  createEffect(() => {
+    !map().getLayer(props.id) &&
+      map().addLayer(
+        props.customLayer || {
+          ...props.style,
+          id: props.id,
+          source: sourceId,
+          metadata: {
+            smg: { beforeType: props.beforeType, beforeId: props.beforeId },
+          },
+        },
+        props.beforeType
+          ? map()
+              ?.getStyle()
+              .layers.find(l => l.type === props.beforeType)?.id
+          : props.beforeId
+      )
   })
 
   return props.children

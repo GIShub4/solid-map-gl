@@ -9,10 +9,10 @@ import {
   createUniqueId,
   untrack,
 } from 'solid-js'
+import 'mapbox-gl/dist/mapbox-gl.css'
+import 'maplibre-gl/dist/maplibre-gl.css'
 import { mapEvents } from '../../events'
 import { vectorStyleList } from '../../mapStyles'
-import mapboxgl from 'mapbox-gl'
-import 'mapbox-gl/dist/mapbox-gl.css'
 import type { MapboxMap, MapboxOptions } from 'mapbox-gl/src/ui/map'
 import type { LngLatLike } from 'mapbox-gl/src/geo/lng_lat.js'
 import type { LngLatBounds } from 'mapbox-gl/src/geo/lng_lat_bounds.js'
@@ -71,6 +71,8 @@ export const MapGL: Component<{
   darkStyle?: StyleSpecification | string
   //** Disable automatic map resize */
   disableResize?: boolean
+  //** Enable MapLibre support */
+  asMapLibre?: boolean
   //** Debug Mode */
   debug?: boolean
   ref?: HTMLDivElement
@@ -105,8 +107,12 @@ export const MapGL: Component<{
       : style || { version: 8, sources: {}, layers: [] }
   }
 
-  onMount(() => {
-    const map: MapboxMap = new mapboxgl.Map({
+  onMount(async () => {
+    const mapLib = props.asMapLibre
+      ? await import('maplibre-gl')
+      : await import('mapbox-gl')
+
+    const map: MapboxMap = new mapLib.Map({
       ...props.options,
       style: getStyle(props.options.style, props.darkStyle),
       container: mapRef,
@@ -119,10 +125,11 @@ export const MapGL: Component<{
       fitBoundsOptions: { padding: props.viewport?.padding },
     } as MapboxOptions)
 
+    map.isMapLibre = props.asMapLibre
     map.debug = props.debug
     // map.container = containerRef
 
-    map.once('load').then(() => setMapRoot(map))
+    map.once('load', () => setMapRoot(map))
 
     // onCleanup(() => map.remove())
 

@@ -16,12 +16,21 @@ export const Terrain: Component<{
   createEffect(() => {
     if (!sourceId) {
       sourceId = createUniqueId()
-      map().addSource(sourceId, {
-        type: 'raster-dem',
-        url: 'mapbox://mapbox.terrain-rgb',
-        tileSize: 512,
-        maxzoom: 14,
-      })
+      map().addSource(
+        sourceId,
+        map().isMapLibre
+          ? {
+              type: 'raster-dem',
+              url: 'https://demotiles.maplibre.org/terrain-tiles/tiles.json',
+              tileSize: 256,
+            }
+          : {
+              type: 'raster-dem',
+              url: 'mapbox://mapbox.terrain-rgb',
+              tileSize: 512,
+              maxzoom: 14,
+            }
+      )
     }
     map().setTerrain({
       exaggeration: props.exaggeration || 1,

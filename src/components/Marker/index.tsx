@@ -1,6 +1,5 @@
 import { onCleanup, createEffect, Component } from 'solid-js'
 import { useMap } from '../MapGL'
-import mapboxgl from 'mapbox-gl'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type {
   MarkerSpecification,
@@ -18,14 +17,18 @@ export const Marker: Component<{
   let popup = null
 
   // Add Marker
-  createEffect(() => {
+  createEffect(async () => {
+    const mapLib = map().isMapLibre
+      ? await import('maplibre-gl')
+      : await import('mapbox-gl')
+
     if (marker) return
     if (props.children)
-      popup = new mapboxgl.Popup(
+      popup = new mapLib.Popup(
         props.options.popup as PopupSpecification
       ).setDOMContent(<div>{props.children}</div>)
 
-    marker = new mapboxgl.Marker(props.options)
+    marker = new mapLib.Marker(props.options)
       .setLngLat(props.lngLat)
       .setPopup(popup)
       .addTo(map())

@@ -40,16 +40,6 @@ export const Source: Component<{
       : props.source
   }
 
-  // Add Source
-  createEffect(() => {
-    const source = lookup(props.source.url)
-    source.tiles &&
-      (source.tiles = ['a', 'b', 'c'].map(i =>
-        source.tiles[0].replace('{s}', i)
-      ))
-    !map().getSource(props.id) && map().addSource(props.id, source)
-  })
-
   // Remove Source
   onCleanup(() => {
     map()
@@ -100,6 +90,16 @@ export const Source: Component<{
       map().style._sourceCaches[`other:${props.id}`]?.clearTiles()
       source.load()
     }
+  })
+
+  // Add Source
+  createEffect(() => {
+    const source = lookup(props.source.url)
+    source.tiles &&
+      (source.tiles = ['a', 'b', 'c'].map(i =>
+        source.tiles[0].replace('{s}', i)
+      ))
+    !map().getSource(props.id) && map().addSource(props.id, source)
   })
 
   return (
