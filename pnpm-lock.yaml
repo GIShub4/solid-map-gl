@@ -10,10 +10,10 @@ specifiers:
   rollup-preset-solid: ^1.4.0
   solid-js: ^1.5.4
   solid-testing-library: ^0.3.0
-  typescript: ^4.8.2
+  typescript: ^4.8.3
   vite: ^3.1.0
   vite-plugin-solid: ^2.3.0
-  vitest: ^0.23.1
+  vitest: ^0.23.2
 
 devDependencies:
   jsdom: 20.0.0
@@ -25,10 +25,10 @@ devDependencies:
   rollup-preset-solid: 1.4.0
   solid-js: 1.5.4
   solid-testing-library: 0.3.0_solid-js@1.5.4
-  typescript: 4.8.2
+  typescript: 4.8.3
   vite: 3.1.0
   vite-plugin-solid: 2.3.0_solid-js@1.5.4+vite@3.1.0
-  vitest: 0.23.1_jsdom@20.0.0
+  vitest: 0.23.2_jsdom@20.0.0
 
 packages:
 
@@ -1655,7 +1655,7 @@ packages:
     hasBin: true
     dependencies:
       caniuse-lite: 1.0.30001393
-      electron-to-chromium: 1.4.244
+      electron-to-chromium: 1.4.247
       node-releases: 2.0.6
       update-browserslist-db: 1.0.7_browserslist@4.21.3
     dev: true
@@ -1859,8 +1859,8 @@ packages:
     resolution: {integrity: sha512-/pjZsA1b4RPHbeWZQn66SWS8nZZWLQQ23oE3Eam7aroEFGEvwKAsJfZ9ytiEMycfzXWpca4FA9QIOehf7PocBQ==}
     dev: true
 
-  /electron-to-chromium/1.4.244:
-    resolution: {integrity: sha512-E21saXLt2eTDaTxgUtiJtBUqanF9A32wZasAwDZ8gvrqXoxrBrbwtDCx7c/PQTLp81wj4X0OLDeoGQg7eMo3+w==}
+  /electron-to-chromium/1.4.247:
+    resolution: {integrity: sha512-FLs6R4FQE+1JHM0hh3sfdxnYjKvJpHZyhQDjc2qFq/xFvmmRt/TATNToZhrcGUFzpF2XjeiuozrA8lI0PZmYYw==}
     dev: true
 
   /entities/4.4.0:
@@ -2962,7 +2962,7 @@ packages:
       merge-anything: 5.0.4
       rollup: 2.79.0
       rollup-plugin-terser: 7.0.2_rollup@2.79.0
-      typescript: 4.8.2
+      typescript: 4.8.3
     transitivePeerDependencies:
       - '@types/babel__core'
       - supports-color
@@ -3123,8 +3123,8 @@ packages:
     resolution: {integrity: sha512-ak+PZZEuH3mw6CCFOgf5S90YH0MARnZNhxjhjguAmoJimEMAJuNip/rJRd6/wyylHItomVpKTzZk9zrhTrQCoQ==}
     dev: true
 
-  /tinypool/0.2.4:
-    resolution: {integrity: sha512-Vs3rhkUH6Qq1t5bqtb816oT+HeJTXfwt2cbPH17sWHIYKTotQIFPk3tf2fgqRrVyMDVOc1EnPgzIxfIulXVzwQ==}
+  /tinypool/0.3.0:
+    resolution: {integrity: sha512-NX5KeqHOBZU6Bc0xj9Vr5Szbb1j8tUHIeD18s41aDJaPeC5QTdEhK0SpdpUrZlj2nv5cctNcSjaKNanXlfcVEQ==}
     engines: {node: '>=14.0.0'}
     dev: true
 
@@ -3175,8 +3175,8 @@ packages:
     engines: {node: '>=4'}
     dev: true
 
-  /typescript/4.8.2:
-    resolution: {integrity: sha512-C0I1UsrrDHo2fYI5oaCGbSejwX4ch+9Y5jTQELvovfmFkK3HHSZJB8MSJcWLmCUBzQBchCrZ9rMRV6GuNrvGtw==}
+  /typescript/4.8.3:
+    resolution: {integrity: sha512-goMHfm00nWPa8UvR/CPSvykqf6dVV8x/dp0c5mFTMTIu0u0FlGWRioyy7Nn0PGAdHxpJZnuO/ut+PpQ8UiHAig==}
     engines: {node: '>=4.2.0'}
     hasBin: true
     dev: true
@@ -3277,8 +3277,8 @@ packages:
       fsevents: 2.3.2
     dev: true
 
-  /vitest/0.23.1_jsdom@20.0.0:
-    resolution: {integrity: sha512-kn9pG+h6VA3yj/xRvwgLKEd33rOlzMqJEg3tl5HSm3WUPlkY1Lr1FK8RN1uIqVKvFxmz6HGU3EQW+xW2kazRkQ==}
+  /vitest/0.23.2_jsdom@20.0.0:
+    resolution: {integrity: sha512-kTBKp3ROPDkYC+x2zWt4znkDtnT08W1FQ6ngRFuqxpBGNuNVS+eWZKfffr8y2JGvEzZ9EzMAOcNaiqMj/FZqMw==}
     engines: {node: '>=v14.16.0'}
     hasBin: true
     peerDependencies:
@@ -3308,7 +3308,7 @@ packages:
       local-pkg: 0.4.2
       strip-literal: 0.4.0
       tinybench: 2.1.5
-      tinypool: 0.2.4
+      tinypool: 0.3.0
       tinyspy: 1.0.2
       vite: 3.1.0
     transitivePeerDependencies:

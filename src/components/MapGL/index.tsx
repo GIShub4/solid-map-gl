@@ -84,8 +84,9 @@ export const MapGL: Component<{
   const [mapRoot, setMapRoot] = createSignal<MapboxMap>()
   const [transitionType, setTransitionType] = createSignal('flyTo')
   const [darkMode, setDarkMode] = createSignal(
-    window.matchMedia('(prefers-color-scheme: dark)').matches ||
-      document.body.classList.contains('dark')
+    typeof window !== 'undefined' &&
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ||
+        document.body.classList.contains('dark'))
   )
 
   const debug = (text, value) =>

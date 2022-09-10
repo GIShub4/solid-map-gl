@@ -2,7 +2,7 @@ import { createEffect, Component } from 'solid-js'
 import { useMap } from '../MapGL'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type LngLatLike from 'mapbox-gl/src/geo/lng_lat.js'
-import { MercatorCoordinate } from 'mapbox-gl'
+import mapboxgl from 'mapbox-gl'
 
 // linearly interpolate between two positions [x,y,z] based on time
 const lerp = (a, b, t) => a.map((_, idx) => (1.0 - t) * a[idx] + t * b[idx])
@@ -48,7 +48,7 @@ export const Camera: Component<{
 
   const updateCameraPosition = ([lng, lat, alt], target) => {
     const camera = map().getFreeCameraOptions()
-    camera.position = MercatorCoordinate.fromLngLat([lng, lat], alt)
+    camera.position = mapboxgl.MercatorCoordinate.fromLngLat([lng, lat], alt)
     camera.lookAtPoint(target)
     map().setFreeCameraOptions(camera)
   }
