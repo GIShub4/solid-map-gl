@@ -20,7 +20,7 @@ import type { PaddingOptions } from 'mapbox-gl/src/geo/edge_insets.js'
 import type { StyleSpecification } from 'mapbox-gl/src/style-spec/types.js'
 import type { JSX } from 'solid-js'
 
-export type Viewport = {
+export interface Viewport {
   id?: string
   center?: LngLatLike
   bounds?: LngLatBounds

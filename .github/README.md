@@ -1,6 +1,9 @@
 ![](https://assets.solidjs.com/banner?project=solid-map-gl\&background=tiles)
 
-# Solid Map GL - Mapbox & MapLibre
+# Solid Map GL
+## for Mapbox & MapLibre
+
+<br>
 
 [![npm](https://img.shields.io/npm/v/solid-map-gl)](https://www.npmjs.com/package/solid-map-gl)
 [![downloads](https://img.shields.io/npm/dt/solid-map-gl)](https://www.npmjs.com/package/solid-map-gl)
@@ -61,7 +64,7 @@ const App: Component = () => {
         style: "mb:light",
       }}
       viewport={viewport()}
-      onViewportChange={(evt: Event) => setViewport(evt)}
+      onViewportChange={(evt: Viewport) => setViewport(evt)}
     >
       <Source
         source={{
@@ -106,9 +109,8 @@ const App: Component = () => {
         style: 'https://demotiles.maplibre.org/style.json',
       }}
       viewport={viewport()}
-      onViewportChange={(evt: Event) => setViewport(evt)}
-    >
-    </MapGL>
+      onViewportChange={(evt: Viewport) => setViewport(evt)}
+    />
   );
 };
 
