@@ -1,4 +1,4 @@
-![Banner](https://assets.solidjs.com/banner?project=solid-map-gl&background=tiles&type=Mapping%20Component)
+![Banner](https://assets.solidjs.com/banner?project=solid-map-gl&background=tiles&type=Mapping%20Plugin)
 
 # ***Solid Map GL*** for Mapbox & MapLibre
 

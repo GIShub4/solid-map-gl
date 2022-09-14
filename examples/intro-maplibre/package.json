@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "maplibre-gl": "^2.4.0",
-    "solid-js": "^1.4.8"
+    "solid-js": "^1.4.8",
+    "solid-map-gl": "^1.4.1"
   }
 }
