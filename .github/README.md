@@ -1,9 +1,6 @@
-![](https://assets.solidjs.com/banner?project=solid-map-gl\&background=tiles)
+![Banner](https://assets.solidjs.com/banner?project=solid-map-gl&background=tiles&type=Mapping%20Component)
 
-# Solid Map GL
-## for Mapbox & MapLibre
-
-<br>
+# ***Solid Map GL*** for Mapbox & MapLibre
 
 [![npm](https://img.shields.io/npm/v/solid-map-gl)](https://www.npmjs.com/package/solid-map-gl)
 [![downloads](https://img.shields.io/npm/dt/solid-map-gl)](https://www.npmjs.com/package/solid-map-gl)
@@ -15,8 +12,7 @@
 [SolidJS](https://www.solidjs.com/) Component Library for [Mapbox GL JS](https://github.com/mapbox/mapbox-gl-js) and [MapLibre GL.](https://maplibre.org/projects/maplibre-gl-js/) Both libraries render interactive maps from vector tiles and Map styles using WebGL. This project is intended to be as close as possible to the [Mapbox GL JS API.](https://docs.mapbox.com/mapbox-gl-js/api/)
 
 ### [Documentation & Examples](https://gis-hub.gitbook.io/solid-map-gl)
-
-[![Gallery](https://github.com/GIShub4/solid-map-gl/blob/main/docs/header.png)](https://gis-hub.gitbook.io/solid-map-gl)
+[![Gallery](/docs/header.png)](https://gis-hub.gitbook.io/solid-map-gl)
 
 ## Installation
 
@@ -43,7 +39,7 @@ npm i solid-map-gl
 | [Marker](https://gis-hub.gitbook.io/solid-map-gl/components/marker)     | Component for [Mapbox GL JS Marker](https://docs.mapbox.com/mapbox-gl-js/api/#marker)                                  |
 | [Control](https://gis-hub.gitbook.io/solid-map-gl/components/control) | Represents the map's control                                                                                           |
 
-## Usage with Mapbox
+## Usage with [Mapbox](https://docs.mapbox.com/mapbox-gl-js/guides/)
 
 
 ```jsx
@@ -88,7 +84,7 @@ const App: Component = () => {
 
 render(() => <App />, document.getElementById("app")!);
 ```
-## Usage with MapLibre
+## Usage with [MapLibre](https://maplibre.org/maplibre-gl-js-docs/api/)
 
 
 ```jsx
