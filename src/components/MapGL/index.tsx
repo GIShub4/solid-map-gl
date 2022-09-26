@@ -9,8 +9,6 @@ import {
   createUniqueId,
   untrack,
 } from 'solid-js'
-import 'mapbox-gl/dist/mapbox-gl.css'
-import 'maplibre-gl/dist/maplibre-gl.css'
 import { mapEvents } from '../../events'
 import { vectorStyleList } from '../../mapStyles'
 import type { MapboxMap, MapboxOptions } from 'mapbox-gl/src/ui/map'
@@ -112,6 +110,10 @@ export const MapGL: Component<{
     const mapLib = props.asMapLibre
       ? await import('maplibre-gl')
       : await import('mapbox-gl')
+
+    props.asMapLibre
+      ? await import('maplibre-gl/dist/maplibre-gl.css')
+      : await import('mapbox-gl/dist/mapbox-gl.css')
 
     const map: MapboxMap = new mapLib.Map({
       ...props.options,

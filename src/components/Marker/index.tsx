@@ -10,6 +10,7 @@ import type { LngLatLike } from 'mapbox-gl/src/geo/lng_lat.js'
 export const Marker: Component<{
   options?: MarkerSpecification
   lngLat: LngLatLike
+  openPopup?: boolean
   children?: any
 }> = props => {
   const map: MapboxMap = useMap()
@@ -32,7 +33,7 @@ export const Marker: Component<{
       .setLngLat(props.lngLat)
       .setPopup(popup)
       .addTo(map())
-    marker.togglePopup()
+    props.openPopup && marker.togglePopup()
   })
   // Remove Marker
   onCleanup(() => marker?.remove())
