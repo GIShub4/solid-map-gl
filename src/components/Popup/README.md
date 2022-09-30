@@ -33,7 +33,7 @@ const Map: Component = () => {
         style: "mb:light",
       }}
       viewport={viewport()}
-      onViewportChange={(evt: Event) => setViewport(evt)}
+      onViewportChange={(evt: Viewport) => setViewport(evt)}
     >
       <Popup lngLat={[0, 0]} options={{ closeButton: false }}>
         Hi there! 👋

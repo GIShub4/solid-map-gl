@@ -50,7 +50,7 @@ const Map: Component = (props) => {
         style: "mb:light",
       }}
       viewport={viewport()}
-      onViewportChange={(evt: Event) => setViewport(evt)}
+      onViewportChange={(evt: Viewport) => setViewport(evt)}
     >
       <Control type="navigation" position="top-left" />
       <Control type="fullscreen" position="top-right" />

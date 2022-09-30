@@ -34,7 +34,7 @@ const Map: Component = () => {
         style: "mb:light",
       }}
       viewport={viewport()}
-      onViewportChange={(evt: Event) => setViewport(evt)}
+      onViewportChange={(evt: Viewport) => setViewport(evt)}
     >
       <Terrain exaggeration={2}/>
     </MapGL>
@@ -60,7 +60,7 @@ const Map: Component = () => {
         style: "mb:light",
       }}
       viewport={viewport()}
-      onViewportChange={(evt: Event) => setViewport(evt)}
+      onViewportChange={(evt: Viewport) => setViewport(evt)}
     >
       <Source
         source={{

@@ -9,7 +9,7 @@
 | class            | string    | CSS class for map container                                                                  |
 | classList        | string\[] | SolidJS classList attached to map container                                                  |
 | viewport         | object    | Current viewport of the map, contains: `latitude, longitude, zoom, ...`                      |
-| onViewportChange | Event     | Set the map viewport                                                                         |
+| onViewportChange | Viewport     | Set the map viewport                                                                         |
 | options          | object    | [Mapbox map parameter](https://docs.mapbox.com/mapbox-gl-js/api/map/#map-parameters)         |
 | transitionType   | string    | flyTo^, easeTo, jumpTo                                                                       |
 | on\[Event]       | Event     | Any [Map Event](https://docs.mapbox.com/mapbox-gl-js/api/map/#map-events) - eg.: onMouseMove |
@@ -65,7 +65,7 @@ const App: Component = () => {
         style: "mb:light",
       }}
       viewport={viewport()}
-      onViewportChange={(evt: Event) => setViewport(evt)}
+      onViewportChange={(evt: Viewport) => setViewport(evt)}
     ></MapGL>
   );
 };
@@ -100,7 +100,7 @@ const App: Component = () => {
           style: `mb:${style()}`,
         }}
         viewport={viewport()}
-        onViewportChange={(evt: Event) => setViewport(evt)}
+        onViewportChange={(evt: Viewport) => setViewport(evt)}
       ></MapGL>
     </>
   );

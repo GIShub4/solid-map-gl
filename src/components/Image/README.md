@@ -34,7 +34,7 @@ const Map: Component = () => {
         style: "mb:light",
       }}
       viewport={viewport()}
-      onViewportChange={(evt: Event) => setViewport(evt)}
+      onViewportChange={(evt: Viewport) => setViewport(evt)}
     >
       <Image
         id="cat"
