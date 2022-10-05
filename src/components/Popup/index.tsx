@@ -1,4 +1,5 @@
 import { onCleanup, createEffect, Component } from 'solid-js'
+import { getLibrary } from '../../utils'
 import { useMap } from '../MapGL'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type { PopupSpecification } from 'mapbox-gl/src/style-spec/types.js'
@@ -14,10 +15,9 @@ export const Popup: Component<{
 
   // Add Popup
   createEffect(async () => {
-    map().isMapLibre ? await import('maplibre-gl') : await import('mapbox-gl')
-    const mapLib = window[map().isMapLibre ? 'maplibregl' : 'mapboxgl']
-
     if (popup) return
+
+    const mapLib = await getLibrary(map().isMapLibre)
     popup = new mapLib.Popup(props.options)
       .setLngLat(props.lngLat)
       .setDOMContent(<div>{props.children}</div>)
