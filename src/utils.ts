@@ -1,17 +1,13 @@
 export const getLibrary = async isMapLibre => {
   if (isMapLibre) {
-    try {
-      await import('maplibre-gl')
-      //@ts-ignore
-      await import('maplibre-gl/dist/maplibre-gl.css')
-      return window['maplibregl']
-    } catch (e) {}
+    const mapLib = await import(/* @vite-ignore */ 'maplibre-gl')
+    // @ts-ignore
+    await import(/* @vite-ignore */ 'maplibre-gl/dist/maplibre-gl.css')
+    return window['maplibregl'] || mapLib
   } else {
-    try {
-      await import('mapbox-gl')
-      //@ts-ignore
-      await import('mapbox-gl/dist/mapbox-gl.css')
-      return window['mapboxgl']
-    } catch (e) {}
+    const mapLib = await import(/* @vite-ignore */ 'mapbox-gl')
+    // @ts-ignore
+    await import(/* @vite-ignore */ 'mapbox-gl/dist/mapbox-gl.css')
+    return window['mapboxgl'] || mapLib
   }
 }
