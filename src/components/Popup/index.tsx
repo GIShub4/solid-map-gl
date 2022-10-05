@@ -14,9 +14,8 @@ export const Popup: Component<{
 
   // Add Popup
   createEffect(async () => {
-    const mapLib = map().isMapLibre
-      ? await import('maplibre-gl')
-      : await import('mapbox-gl')
+    map().isMapLibre ? await import('maplibre-gl') : await import('mapbox-gl')
+    const mapLib = window[map().isMapLibre ? 'maplibregl' : 'mapboxgl']
 
     if (popup) return
     popup = new mapLib.Popup(props.options)

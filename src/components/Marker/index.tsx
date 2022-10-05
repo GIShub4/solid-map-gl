@@ -19,9 +19,8 @@ export const Marker: Component<{
 
   // Add Marker
   createEffect(async () => {
-    const mapLib = map().isMapLibre
-      ? await import('maplibre-gl')
-      : await import('mapbox-gl')
+    map().isMapLibre ? await import('maplibre-gl') : await import('mapbox-gl')
+    const mapLib = window[map().isMapLibre ? 'maplibregl' : 'mapboxgl']
 
     if (marker) return
     if (props.children)

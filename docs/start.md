@@ -4,16 +4,24 @@ description: Installation and basic usage
 
 # 🚀 Getting Started
 
-`solid-map-gl` requires `mapbox-gl` as peer dependency
+`solid-map-gl` requires `mapbox-gl` or `maplibre-gl` as peer dependency
 
 {% tabs %}
 {% tab title="Existing project" %}
 ```shell
-pnpm add mapbox-gl solid-map-gl
+pnpm add solid-map-gl
 # or
-yarn add mapbox-gl solid-map-gl
+yarn add solid-map-gl
 # or
-npm i mapbox-gl solid-map-gl
+npm i solid-map-gl
+```
+{% endtab %}
+
+{% tab title="New project with Solid Start" %}
+```shell
+pnpm create solid && pnpm i
+pnpm add solid-map-gl
+pnpm dev
 ```
 {% endtab %}
 
@@ -23,7 +31,7 @@ use [`pnpm`](https://pnpm.io/) (preferred)
 ```shell
 pnpm dlx degit solidjs/templates/ts my-app && cd my-app
 pnpm i
-pnpm add mapbox-gl solid-map-gl
+pnpm add solid-map-gl
 pnpm dev
 ```
 
@@ -32,7 +40,7 @@ or `npm`
 ```shell
 npx degit solidjs/templates/ts my-app && cd my-app
 npm i
-npm i mapbox-gl solid-map-gl
+npm i solid-map-gl
 npm start
 ```
 {% endtab %}

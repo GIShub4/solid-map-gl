@@ -107,13 +107,14 @@ export const MapGL: Component<{
   }
 
   onMount(async () => {
-    const mapLib = props.asMapLibre
-      ? await import('maplibre-gl')
-      : await import('mapbox-gl')
+    props.asMapLibre ? await import('maplibre-gl') : await import('mapbox-gl')
+    const mapLib = window[props.asMapLibre ? 'maplibregl' : 'mapboxgl']
 
     props.asMapLibre
-      ? await import('maplibre-gl/dist/maplibre-gl.css')
-      : await import('mapbox-gl/dist/mapbox-gl.css')
+      ? //@ts-ignore
+        await import('maplibre-gl/dist/maplibre-gl.css')
+      : //@ts-ignore
+        await import('mapbox-gl/dist/mapbox-gl.css')
 
     const map: MapboxMap = new mapLib.Map({
       ...props.options,

@@ -25,9 +25,8 @@ export const Control: Component<{
 
   // Add Control
   createEffect(async () => {
-    const mapLib = map().isMapLibre
-      ? await import('maplibre-gl')
-      : await import('mapbox-gl')
+    map().isMapLibre ? await import('maplibre-gl') : await import('mapbox-gl')
+    const mapLib = window[map().isMapLibre ? 'maplibregl' : 'mapboxgl']
 
     const getControl = (type, options) => {
       if (props.custom) return new props.custom(options)

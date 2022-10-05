@@ -16,13 +16,14 @@
 
 ## Installation
 
-
 ```shell
+pnpm add solid-map-gl   |   yarn add solid-map-gl   |   npm i solid-map-gl
+```
+### With [Solid Start](https://github.com/solidjs/solid-start)
+```shell
+pnpm create solid && pnpm i
 pnpm add solid-map-gl
-# or
-yarn add solid-map-gl
-# or
-npm i solid-map-gl
+pnpm dev
 ```
 
 ## Components
@@ -100,7 +101,7 @@ const App: Component = () => {
 
   return (
     <MapGL
-      asMapLibre
+      asMapLibre // <- Switch to MapLibre
       options={{
         style: 'https://demotiles.maplibre.org/style.json',
       }}
