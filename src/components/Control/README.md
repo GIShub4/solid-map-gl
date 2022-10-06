@@ -36,19 +36,17 @@ pnpm add @mapbox/mapbox-gl-language
 ```jsx
 import { Component, createSignal } from "solid-js";
 import MapGL, { Viewport, Control } from "solid-map-gl";
+import 'mapbox-gl/dist/mapbox-gl.css';
 
-const Map: Component = (props) => {
+const App: Component = (props) => {
   const [viewport, setViewport] = createSignal({
-    center: [0, 0],
+    center: [0, 52],
     zoom: 6,
   } as Viewport);
 
   return (
     <MapGL
-      options={{
-        accessToken: MAPBOX_ACCESS_TOKEN,
-        style: "mb:light",
-      }}
+      options={{ style: 'mb:light' }}
       viewport={viewport()}
       onViewportChange={(evt: Viewport) => setViewport(evt)}
     >

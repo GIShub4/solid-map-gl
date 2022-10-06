@@ -20,19 +20,17 @@ _\*required_
 ```jsx
 import { Component, createSignal } from "solid-js";
 import MapGL, { Viewport, Source, Image, Layer } from "solid-map-gl";
+import 'mapbox-gl/dist/mapbox-gl.css';
 
-const Map: Component = () => {
+const App: Component = () => {
   const [viewport, setViewport] = createSignal({
-    center: [0, 0],
+    center: [-77.4144, 25.0759],
     zoom: 6,
   } as Viewport);
 
   return (
     <MapGL
-      options={{
-        accessToken: MAPBOX_ACCESS_TOKEN,
-        style: "mb:light",
-      }}
+      options={{ style: 'mb:light' }}
       viewport={viewport()}
       onViewportChange={(evt: Viewport) => setViewport(evt)}
     >
@@ -42,14 +40,14 @@ const Map: Component = () => {
       />
       <Source
         source={{
-          type: "geojson",
+          type: 'geojson',
           data: {
-            type: "FeatureCollection",
+            type: 'FeatureCollection',
             features: [
               {
-                type: "Feature",
+                type: 'Feature',
                 geometry: {
-                  type: "Point",
+                  type: 'Point',
                   coordinates: [-77.4144, 25.0759],
                 },
               },
@@ -59,10 +57,10 @@ const Map: Component = () => {
       >
         <Layer
           style={{
-            type: "point",
+            type: 'symbol',
             layout: {
-              "icon-image": "cat",
-              "icon-size": 0.25,
+              'icon-image': 'cat',
+              'icon-size': 0.25,
             },
           }}
         />

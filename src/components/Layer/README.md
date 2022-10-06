@@ -27,34 +27,32 @@ _\*required_
 ```jsx
 import { Component, createSignal } from "solid-js";
 import MapGL, { Viewport, Source, Layer } from "solid-map-gl";
+import 'mapbox-gl/dist/mapbox-gl.css';
 
-const Map: Component = (props) => {
+const App: Component = (props) => {
   const [viewport, setViewport] = createSignal({
-    center: [0, 0],
+    center: [-122.45, 37.78],
     zoom: 6,
   } as Viewport);
 
   return (
     <MapGL
-      options={{
-        accessToken: MAPBOX_ACCESS_TOKEN,
-        style: "mb:light",
-      }}
+      options={{ style: 'mb:light' }}
       viewport={viewport()}
       onViewportChange={(evt: Viewport) => setViewport(evt)}
     >
       <Source
         source={{
-          type: "geojson",
-          data: "https://docs.mapbox.com/mapbox-gl-js/assets/earthquakes.geojson",
+          type: 'geojson',
+          data: 'https://docs.mapbox.com/mapbox-gl-js/assets/earthquakes.geojson',
         }}
       >
         <Layer
           style={{
-            type: "circle",
+            type: 'circle',
             paint: {
-              "circle-radius": 8,
-              "circle-color": "red",
+              'circle-radius': 5,
+              'circle-color': 'red',
             },
           }}
         />

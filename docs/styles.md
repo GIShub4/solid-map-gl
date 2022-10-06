@@ -23,12 +23,12 @@ Additionally to the default [Mapbox referencing of map styles](https://docs.mapb
 {% tab title="Base" %}
 * mb:light
 * mb:dark
-* mb:streets
+* mb:street
 * mb:outdoor
 * mb:sat
-* mb:sat-streets
+* mb:sat_street
 * mb:nav
-* mb:nav-night
+* mb:nav_night
 {% endtab %}
 
 {% tab title="Map Design" %}

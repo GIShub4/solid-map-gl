@@ -46,31 +46,22 @@ const Map: Component = () => {
 ```jsx
 import { Component, createSignal } from "solid-js";
 import MapGL, { Viewport, Source, Terrain } from "solid-map-gl";
+import 'mapbox-gl/dist/mapbox-gl.css';
 
-const Map: Component = () => {
+const App: Component = () => {
   const [viewport, setViewport] = createSignal({
-    center: [0, 0],
-    zoom: 6,
+    center: [-123.45, 39.78],
+    zoom: 14,
+    pitch: 80,
   } as Viewport);
 
   return (
     <MapGL
-      options={{
-        accessToken: MAPBOX_ACCESS_TOKEN,
-        style: "mb:light",
-      }}
+      options={{ style: 'mb:sat' }}
       viewport={viewport()}
       onViewportChange={(evt: Viewport) => setViewport(evt)}
     >
-      <Source
-        source={{
-          type: 'raster-dem',
-          url: 'mapbox://mapbox.terrain-rgb',
-          tileSize: 512,
-          maxzoom: 14,
-        }}>
-        <Terrain />
-      </Source>
+      <Terrain />
     </MapGL>
   );
 };
