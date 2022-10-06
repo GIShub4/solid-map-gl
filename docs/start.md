@@ -9,39 +9,26 @@ description: Installation and basic usage
 {% tabs %}
 {% tab title="Existing project" %}
 ```shell
-pnpm add solid-map-gl
-# or
-yarn add solid-map-gl
-# or
-npm i solid-map-gl
+pnpm add mapbox-gl solid-map-gl
+yarn add mapbox-gl solid-map-gl
+npm  i   mapbox-gl solid-map-gl
 ```
 {% endtab %}
 
-{% tab title="New project with Solid Start" %}
+{% tab title="Solid Start" %}
 ```shell
 pnpm create solid && pnpm i
-pnpm add solid-map-gl
+pnpm add mapbox-gl solid-map-gl
 pnpm dev
 ```
 {% endtab %}
 
-{% tab title="New project" %}
-use [`pnpm`](https://pnpm.io/) (preferred)
-
+{% tab title="With MapLibre project" %}
 ```shell
-pnpm dlx degit solidjs/templates/ts my-app && cd my-app
-pnpm i
-pnpm add solid-map-gl
+pnpm create solid && pnpm i
+# Install MapLibre package and placeholder Mapbox package
+pnpm add solid-map-gl maplibre-gl mapbox-gl@npm:empty-npm-package@1.0.0
 pnpm dev
-```
-
-or `npm`
-
-```shell
-npx degit solidjs/templates/ts my-app && cd my-app
-npm i
-npm i solid-map-gl
-npm start
 ```
 {% endtab %}
 {% endtabs %}
