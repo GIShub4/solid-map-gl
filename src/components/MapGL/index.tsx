@@ -116,7 +116,7 @@ export const MapGL: Component<{
         import.meta.env.VITE_MAPBOX_ACCESS_TOKEN,
       interactive: !!props.onViewportChange,
       ...props.options,
-      style: getStyle(props.options.style, props.darkStyle),
+      style: getStyle(props.options?.style, props.darkStyle),
       container: mapRef,
       bounds: props.viewport?.bounds,
       center: props.viewport?.center,
