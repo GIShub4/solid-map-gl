@@ -113,8 +113,7 @@ export const MapGL: Component<{
     const map: MapboxMap = new mapLib.Map({
       accessToken:
         //@ts-ignore
-        import.meta.env.VITE_MAPBOX_ACCESS_TOKEN ||
-        process.env.MAPBOX_ACCESS_TOKEN,
+        import.meta.env.VITE_MAPBOX_ACCESS_TOKEN,
       interactive: !!props.onViewportChange,
       ...props.options,
       style: getStyle(props.options.style, props.darkStyle),

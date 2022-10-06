@@ -99,7 +99,7 @@ npm  i   solid-map-gl maplibre-gl mapbox-gl@npm:empty-npm-package@1.0.0
 import { render } from "solid-js/web";
 import { Component, createSignal } from "solid-js";
 import MapGL, { Viewport } from "solid-map-gl";
-import maplibregl from 'maplibre-gl'
+import * as maplibre from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 
 const App: Component = () => {
@@ -110,7 +110,7 @@ const App: Component = () => {
 
   return (
     <MapGL
-      mapLib={maplibregl} // <- Pass MapLibre package
+      mapLib={maplibre} // <- Pass MapLibre package
       options={{ style: 'https://demotiles.maplibre.org/style.json' }}
       viewport={viewport()}
       onViewportChange={(evt: Viewport) => setViewport(evt)}
