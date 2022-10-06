@@ -6,7 +6,6 @@ import type { Options as FullscreenOptions } from 'mapbox-gl/src/ui/control/full
 import type { Options as GeolocateOptions } from 'mapbox-gl/src/ui/control/geolocate_control'
 import type { Options as NavigationOptions } from 'mapbox-gl/src/ui/control/navigation_control'
 import type { Options as ScaleOptions } from 'mapbox-gl/src/ui/control/scale_control'
-import { getLibrary } from '../../utils'
 
 export const Control: Component<{
   type: 'navigation' | 'scale' | 'attribution' | 'fullscreen' | 'geolocate'
@@ -26,7 +25,7 @@ export const Control: Component<{
 
   // Add Control
   createEffect(async () => {
-    const mapLib = await getLibrary(map().isMapLibre)
+    const mapLib = map().mapLib
 
     const getControl = (type, options) => {
       if (props.custom) return new props.custom(options)
@@ -52,7 +51,7 @@ export const Control: Component<{
     setControl(control)
   })
 
-  onCleanup(() => map().removeControl(control()))
+  onCleanup(() => map()?.removeControl(control()))
 
   return props.children
 }

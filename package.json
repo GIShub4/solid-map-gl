@@ -52,7 +52,6 @@
   "devDependencies": {
     "jsdom": "^20.0.1",
     "mapbox-gl": "^2.10.0",
-    "maplibre-gl": "^2.4.0",
     "rollup": "^2.79.1",
     "rollup-plugin-import-css": "^3.0.3",
     "rollup-plugin-uglify": "^6.0.4",
@@ -65,7 +64,6 @@
     "vitest": "^0.23.4"
   },
   "peerDependencies": {
-    "mapbox-gl": "^2.10.0",
-    "maplibre-gl": "^2.4.0"
+    "mapbox-gl": "^2.10.0"
   }
 }

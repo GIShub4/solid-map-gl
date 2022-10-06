@@ -4,7 +4,7 @@
 
 | Name             | Type      | Description                                                                                  |
 | ---------------- | --------- | -------------------------------------------------------------------------------------------- |
-| asMapLibre       | boolean   | If true use [MapLibre](https://maplibre.org/) instead of Mapbox library                      |
+| mapLib       | module   | Pass [MapLibre](https://maplibre.org/) package to use replace Mapbox library                      |
 | style            | string    | CSS style for map container                                                                  |
 | class            | string    | CSS class for map container                                                                  |
 | classList        | string\[] | SolidJS classList attached to map container                                                  |

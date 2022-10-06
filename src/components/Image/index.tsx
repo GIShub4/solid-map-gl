@@ -19,7 +19,7 @@ export const Image: Component<{
 }> = props => {
   const map: MapboxMap = useMap()
   // Remove Image
-  onCleanup(() => map().hasImage(props.id) && map().removeImage(props.id))
+  onCleanup(() => map()?.hasImage(props.id) && map().removeImage(props.id))
 
   // Update Image
   createEffect(async () => {

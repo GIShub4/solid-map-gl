@@ -13,7 +13,7 @@ export const Atmosphere: Component<{
   createEffect(() => map().setFog(props.style || {}))
 
   // Remove Atmosphere Layer
-  onCleanup(() => map().setFog(null))
+  onCleanup(() => map()?.setFog(null))
 
   // Update Visibility
   createEffect(() => {

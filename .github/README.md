@@ -17,12 +17,14 @@
 ## Installation
 
 ```shell
-pnpm add solid-map-gl   |   yarn add solid-map-gl   |   npm i solid-map-gl
+pnpm add mapbox-gl solid-map-gl
+yarn add mapbox-gl solid-map-gl
+npm  i   mapbox-gl solid-map-gl
 ```
 ### With [Solid Start](https://github.com/solidjs/solid-start)
 ```shell
 pnpm create solid && pnpm i
-pnpm add solid-map-gl
+pnpm add mapbox-gl solid-map-gl
 pnpm dev
 ```
 
@@ -41,12 +43,14 @@ pnpm dev
 | [Control](https://gis-hub.gitbook.io/solid-map-gl/components/control) | Represents the map's control                                                                                           |
 
 ## Usage with [Mapbox](https://docs.mapbox.com/mapbox-gl-js/guides/)
+Pass Mapbox access token via MapGL options object or .env file as: VITE_MAPBOX_ACCESS_TOKEN
 
 
 ```jsx
 import { render } from "solid-js/web";
 import { Component, createSignal } from "solid-js";
 import MapGL, { Viewport, Source, Layer } from "solid-map-gl";
+import 'mapbox-gl/dist/mapbox-gl.css'
 
 const App: Component = () => {
   const [viewport, setViewport] = createSignal({
@@ -56,10 +60,7 @@ const App: Component = () => {
 
   return (
     <MapGL
-      options={{
-        accessToken: MAPBOX_ACCESS_TOKEN,
-        style: "mb:light",
-      }}
+      options={{ style: "mb:light" }}
       viewport={viewport()}
       onViewportChange={(evt: Viewport) => setViewport(evt)}
     >
@@ -87,11 +88,19 @@ render(() => <App />, document.getElementById("app")!);
 ```
 ## Usage with [MapLibre](https://maplibre.org/maplibre-gl-js-docs/api/)
 
+Install MapLibre package and placeholder Mapbox package
+```shell
+pnpm add solid-map-gl maplibre-gl mapbox-gl@npm:empty-npm-package@1.0.0
+yarn add solid-map-gl maplibre-gl mapbox-gl@npm:empty-npm-package@1.0.0
+npm  i   solid-map-gl maplibre-gl mapbox-gl@npm:empty-npm-package@1.0.0
+```
 
 ```jsx
 import { render } from "solid-js/web";
 import { Component, createSignal } from "solid-js";
 import MapGL, { Viewport } from "solid-map-gl";
+import maplibregl from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
 
 const App: Component = () => {
   const [viewport, setViewport] = createSignal({
@@ -101,10 +110,8 @@ const App: Component = () => {
 
   return (
     <MapGL
-      asMapLibre // <- Switch to MapLibre
-      options={{
-        style: 'https://demotiles.maplibre.org/style.json',
-      }}
+      mapLib={maplibregl} // <- Pass MapLibre package
+      options={{ style: 'https://demotiles.maplibre.org/style.json' }}
       viewport={viewport()}
       onViewportChange={(evt: Viewport) => setViewport(evt)}
     />

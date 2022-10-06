@@ -39,7 +39,7 @@ export const Terrain: Component<{
   })
 
   // Remove Terrain Layer
-  onCleanup(() => map().setTerrain(null))
+  onCleanup(() => map()?.setTerrain(null))
 
   // Update Visibility
   createEffect(() => {

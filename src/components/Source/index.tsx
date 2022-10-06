@@ -43,11 +43,11 @@ export const Source: Component<{
   // Remove Source
   onCleanup(() => {
     map()
-      .getStyle()
+      ?.getStyle()
       .layers.forEach(
         layer => layer.source === props.id && map().removeLayer(layer.id)
       )
-    map().getSource(props.id) && map().removeSource(props.id)
+    map()?.getSource(props.id) && map().removeSource(props.id)
   })
 
   // Update

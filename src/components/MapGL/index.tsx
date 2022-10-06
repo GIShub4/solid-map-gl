@@ -9,7 +9,6 @@ import {
   createUniqueId,
   untrack,
 } from 'solid-js'
-import { getLibrary } from '../../utils'
 import { mapEvents } from '../../events'
 import { vectorStyleList } from '../../mapStyles'
 import type { MapboxMap, MapboxOptions } from 'mapbox-gl/src/ui/map'
@@ -70,8 +69,8 @@ export const MapGL: Component<{
   darkStyle?: StyleSpecification | string
   //** Disable automatic map resize */
   disableResize?: boolean
-  //** Enable MapLibre support */
-  asMapLibre?: boolean
+  //** MapLibre library */
+  mapLib?: any
   //** Debug Mode */
   debug?: boolean
   ref?: HTMLDivElement
@@ -108,12 +107,18 @@ export const MapGL: Component<{
   }
 
   onMount(async () => {
-    const mapLib = await getLibrary(props.asMapLibre)
+    let mapLib = props.mapLib || (await import('mapbox-gl'))
+    if (!mapLib.Map) mapLib = window['maplibregl'] || window['mapboxgl']
+
     const map: MapboxMap = new mapLib.Map({
+      accessToken:
+        //@ts-ignore
+        import.meta.env.VITE_MAPBOX_ACCESS_TOKEN ||
+        process.env.MAPBOX_ACCESS_TOKEN,
+      interactive: !!props.onViewportChange,
       ...props.options,
       style: getStyle(props.options.style, props.darkStyle),
       container: mapRef,
-      interactive: !!props.onViewportChange,
       bounds: props.viewport?.bounds,
       center: props.viewport?.center,
       zoom: props.viewport?.zoom || null,
@@ -122,13 +127,13 @@ export const MapGL: Component<{
       fitBoundsOptions: { padding: props.viewport?.padding },
     } as MapboxOptions)
 
-    map.isMapLibre = props.asMapLibre
+    map.mapLib = mapLib
     map.debug = props.debug
     // map.container = containerRef
 
     map.once('load', () => setMapRoot(map))
 
-    // onCleanup(() => map.remove())
+    onCleanup(() => map?.remove())
 
     // Listen to map container size changes
     const resizeObserver = new ResizeObserver(() => map.resize())
@@ -156,12 +161,12 @@ export const MapGL: Component<{
           if (typeof prop === 'function') {
             const callback = e => prop(e)
             map.on(event, callback)
-            onCleanup(() => map.off(event, callback))
+            onCleanup(() => map?.off(event, callback))
           } else {
             Object.keys(prop).forEach(layerId => {
               const callback = e => prop[layerId](e)
               map.on(event, layerId, callback)
-              onCleanup(() => map.off(event, layerId, callback))
+              onCleanup(() => map?.off(event, layerId, callback))
             })
           }
         }
@@ -253,7 +258,7 @@ export const MapGL: Component<{
       }
 
       map.on('move', callMove).on('moveend', callEnd)
-      onCleanup(() => map.off('move', callMove).off('moveend', callEnd))
+      onCleanup(() => map?.off('move', callMove).off('moveend', callEnd))
     })
 
     // Update boundaries

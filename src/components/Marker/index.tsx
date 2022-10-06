@@ -6,7 +6,6 @@ import type {
   PopupSpecification,
 } from 'mapbox-gl/src/style-spec/types.js'
 import type { LngLatLike } from 'mapbox-gl/src/geo/lng_lat.js'
-import { getLibrary } from '../../utils'
 
 export const Marker: Component<{
   options?: MarkerSpecification
@@ -21,7 +20,7 @@ export const Marker: Component<{
   // Add Marker
   createEffect(async () => {
     if (marker) return
-    const mapLib = await getLibrary(map().isMapLibre)
+    const mapLib = map().mapLib
 
     if (props.children)
       popup = new mapLib.Popup(
