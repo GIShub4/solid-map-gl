@@ -45,7 +45,7 @@ add this to your `vite.config.ts` file:
 
 ## Usage
 
-To use any of Mapbox’s tools, APIs, or SDKs, you’ll need a Mapbox [access token](https://www.mapbox.com/help/define-access-token/). Mapbox uses access tokens to associate requests to API resources with your account. You can find all your access tokens, create new ones, or delete existing ones on your [API access tokens page](https://www.mapbox.com/studio/account/tokens/).
+To use any of Mapbox’s tools, APIs, or SDKs, you’ll need a Mapbox [access token](https://www.mapbox.com/help/define-access-token/). Mapbox uses access tokens to associate requests to API resources with your account. You can find all your access tokens, create new ones, or delete existing ones on your [API access tokens page](https://www.mapbox.com/studio/account/tokens/). Then pass the *Mapbox access token* via `<MapGL> options` or `.env` file as `VITE_MAPBOX_ACCESS_TOKEN`
 
 ### **Static Map**
 

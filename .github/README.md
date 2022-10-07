@@ -1,4 +1,4 @@
-![Banner](https://assets.solidjs.com/banner?project=solid-map-gl&background=tiles&type=Mapping%20Plugin)
+[![Banner](https://assets.solidjs.com/banner?project=solid-map-gl&background=tiles&type=Mapping%20Plugin)](https://gis-hub.gitbook.io/solid-map-gl)
 
 # ***Solid Map GL*** for Mapbox & MapLibre
 
@@ -14,14 +14,15 @@
 ### [Documentation & Examples](https://gis-hub.gitbook.io/solid-map-gl)
 [![Gallery](/docs/header.png)](https://gis-hub.gitbook.io/solid-map-gl)
 
-## Installation
+## [Getting Started](https://gis-hub.gitbook.io/solid-map-gl/start)
+### Installation
 
 ```shell
 pnpm add mapbox-gl solid-map-gl
 yarn add mapbox-gl solid-map-gl
 npm  i   mapbox-gl solid-map-gl
 ```
-### With [Solid Start](https://github.com/solidjs/solid-start)
+#### Use with [Solid Start](https://github.com/solidjs/solid-start)
 ```shell
 pnpm create solid && pnpm i
 pnpm add mapbox-gl solid-map-gl
@@ -41,9 +42,10 @@ pnpm dev
 | [Popup](https://gis-hub.gitbook.io/solid-map-gl/components/popup)       | Component for [Mapbox GL JS Popup](https://docs.mapbox.com/mapbox-gl-js/api/#popup)                                    |
 | [Marker](https://gis-hub.gitbook.io/solid-map-gl/components/marker)     | Component for [Mapbox GL JS Marker](https://docs.mapbox.com/mapbox-gl-js/api/#marker)                                  |
 | [Control](https://gis-hub.gitbook.io/solid-map-gl/components/control) | Represents the map's control                                                                                           |
+| [Camera](https://gis-hub.gitbook.io/solid-map-gl/components/camera) | Map's camera view                                                                                           |
 
 ## Usage with [Mapbox](https://docs.mapbox.com/mapbox-gl-js/guides/)
-Pass Mapbox access token via MapGL options object or .env file as: VITE_MAPBOX_ACCESS_TOKEN
+Pass the *Mapbox access token* via `<MapGL> options` or `.env` file as `VITE_MAPBOX_ACCESS_TOKEN`
 
 
 ```jsx

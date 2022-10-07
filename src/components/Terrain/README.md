@@ -15,28 +15,27 @@ _\*required_
 
 ## Example
 
-If no source is defined that the default Mapbox DEM will be used. Both examples bring the same result.
+If no source is defined then the default Mapbox / MapLibre DEM will be used. Both examples bring the same result.
 
 ```jsx
 import { Component, createSignal } from "solid-js";
 import MapGL, { Viewport, Source, Terrain } from "solid-map-gl";
+import 'mapbox-gl/dist/mapbox-gl.css';
 
-const Map: Component = () => {
+const App: Component = () => {
   const [viewport, setViewport] = createSignal({
-    center: [0, 0],
-    zoom: 6,
+    center: [138.74, 35.3],
+    zoom: 11,
+    pitch: 70,
   } as Viewport);
 
   return (
     <MapGL
-      options={{
-        accessToken: MAPBOX_ACCESS_TOKEN,
-        style: "mb:light",
-      }}
+      options={{ style: 'mb:sat' }}
       viewport={viewport()}
       onViewportChange={(evt: Viewport) => setViewport(evt)}
     >
-      <Terrain exaggeration={2}/>
+      <Terrain exaggeration={2} />
     </MapGL>
   );
 };
@@ -50,9 +49,9 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 
 const App: Component = () => {
   const [viewport, setViewport] = createSignal({
-    center: [-123.45, 39.78],
-    zoom: 14,
-    pitch: 80,
+    center: [138.74, 35.3],
+    zoom: 11,
+    pitch: 70,
   } as Viewport);
 
   return (
@@ -61,7 +60,16 @@ const App: Component = () => {
       viewport={viewport()}
       onViewportChange={(evt: Viewport) => setViewport(evt)}
     >
-      <Terrain />
+      <Source
+        source={{
+          type: 'raster-dem',
+          url: 'mapbox://mapbox.terrain-rgb',
+          tileSize: 512,
+          maxzoom: 14,
+        }}
+      >
+        <Terrain exaggeration={2} />
+      </Source>
     </MapGL>
   );
 };

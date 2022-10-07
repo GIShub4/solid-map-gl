@@ -4,7 +4,7 @@
 
 | Name             | Type      | Description                                                                                  |
 | ---------------- | --------- | -------------------------------------------------------------------------------------------- |
-| mapLib       | module   | Pass [MapLibre](https://maplibre.org/) package to use replace Mapbox library                      |
+| mapLib       | module   | Pass [MapLibre](https://maplibre.org/) package to use instead of Mapbox library                      |
 | style            | string    | CSS style for map container                                                                  |
 | class            | string    | CSS class for map container                                                                  |
 | classList        | string\[] | SolidJS classList attached to map container                                                  |
@@ -89,12 +89,12 @@ const App: Component = () => {
     >
       <button onClick={() => setStyle('dark')}>Dark</button>
       <button onClick={() => setStyle('light')}>Light</button>
-      <button onClick={() => setStyle('streets')}>Street</button>
+      <button onClick={() => setStyle('street')}>Street</button>
       <button onClick={() => setStyle('outdoors')}>Outdoor</button>
       <button onClick={() => setStyle('sat')}>Satellite</button>
-      <button onClick={() => setStyle('sat-streets')}>Satellite Streets</button>
-      <button onClick={() => setStyle('nav-day')}>Nav Day</button>
-      <button onClick={() => setStyle('nav-night')}>Nav Night</button>
+      <button onClick={() => setStyle('sat_street')}>Satellite Streets</button>
+      <button onClick={() => setStyle('nav_day')}>Nav Day</button>
+      <button onClick={() => setStyle('nav_night')}>Nav Night</button>
     </MapGL>
   );
 };

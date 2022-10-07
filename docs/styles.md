@@ -10,10 +10,7 @@ Additionally to the default [Mapbox referencing of map styles](https://docs.mapb
 
 ```jsx
   <MapGL
-    options={{
-      accessToken: MAPBOX_ACCESS_TOKEN,
-      style: "mb:basic",
-    }}
+    options={{ style: "mb:basic" }}
   ></MapGL>
 ```
 
@@ -50,14 +47,48 @@ Additionally to the default [Mapbox referencing of map styles](https://docs.mapb
 {% endtab %}
 
 {% tab title="Community" %}
-* mb:swiss-ski
+* mb:swiss_ski
 * mb:vintage
 * mb:whaam
 * mb:neon
 * mb:camoflauge
 * mb:emerald
 * mb:runner
-* mb:x-ray
+* mb:x_ray
+{% endtab %}
+
+{% tab title="Esri" %}
+Please check if you can use [esri maps](https://doc.arcgis.com/en/arcgis-online/reference/terms-of-use.htm) here.
+
+ * esri:blueprint
+ * esri:charted_territory
+ * esri:colored_pencil
+ * esri:community
+ * esri:mid_century
+ * esri:modern_antique
+ * esri:nat_geo
+ * esri:newspaper
+ * esri:open_street_map
+ * esri:light_gray_canvas
+ * esri:dark_gray_canvas
+ * esri:human_geo_light
+ * esri:human_geo_dark
+ * esri:world_navigation
+ * esri:world_street
+ * esri:world_street_night
+ * esri:world_terrain
+ * esri:world_terrain_hybrid
+ * esri:world_topographic
+ * esri:chromium
+ * esri:dreamcatcher
+ * esri:seahaven
+ * esri:sangria
+ * esri:mercurial
+ * esri:imagery
+ * esri:imagery_hybrid
+ * esri:firefly
+ * esri:firefly_hybrid
+ * esri:oceans
 {% endtab %}
 {% endtabs %}
 
@@ -86,6 +117,7 @@ Additionally to the default [Mapbox referencing of raster styles ](https://docs.
 {% tabs %}
 {% tab title="OSM" %}
 * osm:org
+* osm:human
 * osm:cycle
 * open:topo
 {% endtab %}
@@ -98,7 +130,7 @@ Additionally to the default [Mapbox referencing of raster styles ](https://docs.
 
 {% tab title="Stamen" %}
 * stamen:toner
-* stamen:toner-lite
+* stamen:toner_lite
 * stamen:watercolor
 * stamen:terrain
 {% endtab %}
@@ -108,7 +140,7 @@ To use these maps, get an API key from [Thunder Forest ](https://manage.thunderf
 
 * tf:cycle
 * tf:trans
-* tf:trans-dark
+* tf:trans_dark
 * tf:landscape
 * tf:outdoors
 * tf:neighbourhood
