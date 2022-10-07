@@ -4,18 +4,19 @@
 
 | Name             | Type      | Description                                                                                  |
 | ---------------- | --------- | -------------------------------------------------------------------------------------------- |
-| mapLib       | module   | Pass [MapLibre](https://maplibre.org/) package to use instead of Mapbox library                      |
+| mapLib           | module    | Pass [MapLibre](https://maplibre.org/) package to use instead of Mapbox library              |
 | style            | string    | CSS style for map container                                                                  |
 | class            | string    | CSS class for map container                                                                  |
 | classList        | string\[] | SolidJS classList attached to map container                                                  |
 | viewport         | object    | Current viewport of the map, contains: `latitude, longitude, zoom, ...`                      |
-| onViewportChange | Viewport     | Set the map viewport                                                                         |
+| onViewportChange | Viewport  | Set the map viewport                                                                         |
 | options          | object    | [Mapbox map parameter](https://docs.mapbox.com/mapbox-gl-js/api/map/#map-parameters)         |
 | transitionType   | string    | flyTo^, easeTo, jumpTo                                                                       |
 | on\[Event]       | Event     | Any [Map Event](https://docs.mapbox.com/mapbox-gl-js/api/map/#map-events) - eg.: onMouseMove |
 | cursorStyle      | string    | Map cursor                                                                                   |
 | darkStyle        | object \| string    | Map style when application or browser is in dark mode                              |
-| debug            | boolean    | Enable debug messages                                                                       |
+| debug            | boolea    | Enable debug messages                                                                        |
+| apikey           | string    | apikey for vectortile services                                                          |
 
 _\*required_\
 _^default_

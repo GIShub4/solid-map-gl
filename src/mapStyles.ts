@@ -1,6 +1,7 @@
 const mapBase = 'mapbox://styles/mapbox'
 const gitBase = 'https://raw.githubusercontent.com/'
 const gishub = 'https://raw.githubusercontent.com/GIShub4/map-styles/main/'
+const hereBase = 'https://assets.vector.hereapi.com/styles/'
 
 export const vectorStyleList: object = {
   mb: {
@@ -35,6 +36,11 @@ export const vectorStyleList: object = {
     emerald: `${gitBase}jingsam/mapbox-gl-styles/master/Emerald.json`,
     runner: `${gitBase}jingsam/mapbox-gl-styles/master/Runner.json`,
     x_ray: `${gitBase}jingsam/mapbox-gl-styles/master/X-ray.json`,
+  },
+  here: {
+    base: `${hereBase}berlin/base/mapbox/tilezen?apikey={apikey}`,
+    day: `${hereBase}berlin/day/mapbox/tilezen?apikey={apikey}`,
+    night: `${hereBase}berlin/night/mapbox/tilezen?apikey={apikey}`,
   },
   esri: {
     blueprint: `${gishub}esri:blueprint.json`,

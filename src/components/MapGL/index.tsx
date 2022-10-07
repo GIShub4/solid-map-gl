@@ -71,6 +71,8 @@ export const MapGL: Component<{
   disableResize?: boolean
   //** MapLibre library */
   mapLib?: any
+  //** APIkey for vector service */
+  apikey?: string
   //** Debug Mode */
   debug?: boolean
   ref?: HTMLDivElement
@@ -102,13 +104,22 @@ export const MapGL: Component<{
   const getStyle = (light, dark) => {
     const style = darkMode() ? dark || light : light
     return typeof style === 'string' || style instanceof String
-      ? style?.split(':').reduce((p, c) => p && p[c], vectorStyleList) || style
+      ? style
+          ?.split(':')
+          .reduce((p, c) => p && p[c], vectorStyleList)
+          ?.replace(
+            '{apikey}',
+            //@ts-ignore
+            props.apikey || import.meta.env.VITE_VECTOR_API_KEY
+          ) || style
       : style || { version: 8, sources: {}, layers: [] }
   }
 
   onMount(async () => {
     let mapLib = props.mapLib || (await import('mapbox-gl'))
     if (!mapLib.Map) mapLib = window['maplibregl'] || window['mapboxgl']
+
+    console.log(getStyle(props.options?.style, props.darkStyle))
 
     const map: MapboxMap = new mapLib.Map({
       accessToken:

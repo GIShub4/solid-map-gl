@@ -57,6 +57,12 @@ Additionally to the default [Mapbox referencing of map styles](https://docs.mapb
 * mb:x_ray
 {% endtab %}
 
+{% tab title="HERE Maps" %}
+* here:base
+* here:day
+* here:night
+{% endtab %}
+
 {% tab title="Esri" %}
 Please check if you can use [esri maps](https://doc.arcgis.com/en/arcgis-online/reference/terms-of-use.htm) here.
 

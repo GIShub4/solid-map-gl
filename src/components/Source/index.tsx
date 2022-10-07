@@ -32,7 +32,11 @@ export const Source: Component<{
           url: '',
           tiles: [
             source
-              .replace('{apikey}', props.source.apikey)
+              .replace(
+                '{apikey}',
+                //@ts-ignore
+                props.source.apikey || import.meta.env.VITE_RASTER_API_KEY
+              )
               .replace('{r}', window.devicePixelRatio > 1 ? '@2x' : ''),
           ],
           attribution: rasterStyleList[url.split(':')[0]]._copy,
