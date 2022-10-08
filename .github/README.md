@@ -11,7 +11,7 @@
 
 [SolidJS](https://www.solidjs.com/) Component Library for [Mapbox GL JS](https://github.com/mapbox/mapbox-gl-js) and [MapLibre GL.](https://maplibre.org/projects/maplibre-gl-js/) Both libraries render interactive maps from vector tiles and Map styles using WebGL. This project is intended to be as close as possible to the [Mapbox GL JS API.](https://docs.mapbox.com/mapbox-gl-js/api/)
 
-### [Documentation & Examples](https://gis-hub.gitbook.io/solid-map-gl)
+## [Documentation & Examples](https://gis-hub.gitbook.io/solid-map-gl)
 [![Gallery](/docs/header.png)](https://gis-hub.gitbook.io/solid-map-gl)
 
 ## [Getting Started](https://gis-hub.gitbook.io/solid-map-gl/start)
@@ -29,7 +29,7 @@ pnpm add mapbox-gl solid-map-gl
 pnpm dev
 ```
 
-## Components
+## [Components](https://gis-hub.gitbook.io/solid-map-gl/components) 
 
 | Component                            | Description                                                                                                            |
 | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
@@ -112,7 +112,7 @@ const App: Component = () => {
 
   return (
     <MapGL
-      mapLib={maplibre} // <- Pass MapLibre package
+      mapLib={maplibre} // <- Pass MapLibre package here
       options={{ style: 'https://demotiles.maplibre.org/style.json' }}
       viewport={viewport()}
       onViewportChange={(evt: Viewport) => setViewport(evt)}
