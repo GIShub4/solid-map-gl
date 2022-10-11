@@ -14,6 +14,7 @@
 * [Popup](src/components/Popup/README.md)
 * [Terrain](src/components/Terrain/README.md)
 * [Atmosphere](src/components/Atmosphere/README.md)
+* [Light](src/components/Light/README.md)
 * [Camera](src/components/Camera/README.md)
 
 ***

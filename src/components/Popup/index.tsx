@@ -1,36 +1,47 @@
-import { onCleanup, createEffect, Component } from 'solid-js'
+import { onCleanup, createEffect, Component, untrack } from 'solid-js'
 import { useMap } from '../MapGL'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
-import type { PopupSpecification } from 'mapbox-gl/src/style-spec/types.js'
+import type {
+  Popup as PopupType,
+  PopupOptions,
+} from 'mapbox-gl/src/ui/popup.js'
 import type { LngLatLike } from 'mapbox-gl/src/geo/lng_lat.js'
 
 export const Popup: Component<{
-  options?: PopupSpecification
+  options?: PopupOptions
+  trackPointer?: boolean
   lngLat: LngLatLike
+  onClose?: Function
   children?: any
 }> = props => {
-  const map: MapboxMap = useMap()
-  let popup = null
-
-  // Add Popup
-  createEffect(async () => {
-    if (popup) return
-
-    const mapLib = map().mapLib
-    popup = new mapLib.Popup(props.options)
-      .setLngLat(props.lngLat)
-      .setDOMContent(<div>{props.children}</div>)
-      .addTo(map())
-  })
+  const map: MapboxMap = useMap()()
+  let popup: PopupType = null
 
   // Remove Popup
   onCleanup(() => popup?.remove())
 
+  // Add/Update Popup
+  createEffect(() => {
+    if (!props.trackPointer && !props.lngLat)
+      throw new Error('Popup - lngLat is required')
+    popup?.remove()
+    popup = new map.mapLib.Popup(
+      props.trackPointer
+        ? { closeOnClick: false, closeButton: false, ...props.options }
+        : props.options
+    )
+      .setHTML(untrack(() => props.children))
+      .addTo(map)
+      .on('close', props.onClose)
+  })
+
   // Update Position
-  createEffect(() => popup?.setLngLat(props.lngLat))
+  createEffect(() =>
+    props.trackPointer ? popup.trackPointer() : popup.setLngLat(props.lngLat)
+  )
 
   // Update Content
-  createEffect(() => popup?.setDOMContent(<div>{props.children}</div>))
+  createEffect(() => popup.setHTML(props.children))
 
-  return <></>
+  return null
 }

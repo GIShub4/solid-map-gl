@@ -6,12 +6,11 @@ description: Image Component
 
 ## Props
 
-| Name    | Type                                                                           | Description                                                                       |
-| ------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
-| id\*    | string                                                                         | Id to reference image in layer style                                              |
-| url     | string                                                                         | [Loadable Image URL](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#loadimage) |
-| image   | [HTMLImageElement](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#addimage) | ImageBitmap                                                                       |
-| options | object                                                                         | [Add image options](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#addimage)   |
+| Name    | Type                                                                                     | Description                                                                                      |
+| ------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| id\*    | string                                                                                   | ID to reference image in layer style                                                             |
+| image\* | [HTMLImageElement](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#addimage) \| string | ImageBitmap or [Loadable Image URL](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#loadimage) |
+| options | object                                                                                   | [Add image options](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#addimage)                  |
 
 _\*required_
 
@@ -36,7 +35,7 @@ const App: Component = () => {
     >
       <Image
         id="cat"
-        url="https://docs.mapbox.com/mapbox-gl-js/assets/cat.png"
+        image="https://docs.mapbox.com/mapbox-gl-js/assets/cat.png"
       />
       <Source
         source={{

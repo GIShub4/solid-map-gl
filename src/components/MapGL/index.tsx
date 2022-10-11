@@ -119,8 +119,6 @@ export const MapGL: Component<{
     let mapLib = props.mapLib || (await import('mapbox-gl'))
     if (!mapLib.Map) mapLib = window['maplibregl'] || window['mapboxgl']
 
-    console.log(getStyle(props.options?.style, props.darkStyle))
-
     const map: MapboxMap = new mapLib.Map({
       accessToken:
         //@ts-ignore

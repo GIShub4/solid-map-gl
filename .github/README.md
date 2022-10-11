@@ -37,6 +37,7 @@ pnpm dev
 | [Source](https://gis-hub.gitbook.io/solid-map-gl/components/source)     | [Sources](https://docs.mapbox.com/mapbox-gl-js/api/#sources) specify the geographic features to be rendered on the map |
 | [Layer](https://gis-hub.gitbook.io/solid-map-gl/components/layer)       | [Layers](https://docs.mapbox.com/mapbox-gl-js/style-spec/#layers) specify the `Sources` style                          |                                                                                                 |
 | [Atmosphere](https://gis-hub.gitbook.io/solid-map-gl/components/atmosphere)           | Specify the Atmosphere                                                                                                  |
+| [Light](https://gis-hub.gitbook.io/solid-map-gl/components/light)           | Specify the Light Source                                                                                                 |
 | [Terrain](https://gis-hub.gitbook.io/solid-map-gl/components/terrain)   | Specify the Terrain                                                                                              |
 | [Image](https://gis-hub.gitbook.io/solid-map-gl/components/image)       | Adds an image to the map style                                                                                         |
 | [Popup](https://gis-hub.gitbook.io/solid-map-gl/components/popup)       | Component for [Mapbox GL JS Popup](https://docs.mapbox.com/mapbox-gl-js/api/#popup)                                    |

@@ -50,7 +50,9 @@ export const Layer: Component<{
   props.id = props.id || createUniqueId()
 
   //Remove Layer
-  onCleanup(() => map()?.getLayer(props.id) && map().removeLayer(props.id))
+  onCleanup(
+    () => map() && map().getLayer(props.id) && map().removeLayer(props.id)
+  )
 
   // Hook up events
   createEffect(() =>

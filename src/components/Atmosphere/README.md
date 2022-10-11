@@ -9,7 +9,6 @@ description: Atmosphere Layer Component
 | Name    | Type    | Default | Description                                                             |
 | ------- | ------- | ------- | --------------------------------------------------------------- |
 | style | object  | {} | [Fog style specs](https://docs.mapbox.com/mapbox-gl-js/style-spec/fog/) |
-| visible | boolean | true | Show / Hide Layer                                                       |
 
 _\*required_
 

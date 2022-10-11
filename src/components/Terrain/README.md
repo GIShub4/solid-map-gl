@@ -6,16 +6,16 @@ description: Terrain Layer Component
 
 ## Props
 
-| Name    | Type    | Default | Description                                                           |
-| ------- | ------- | ------- | --------------------------------------------------------------------- |
-| exaggeration | number | 1 | [Terrain style specs](https://docs.mapbox.com/mapbox-gl-js/style-spec/terrain/) |
-| visible | boolean | true | Show / Hide Layer                                                               |
+| Name         | Type    | Default | Description                                                                     |
+| ------------ | ------- | ------- | ------------------------------------------------------------------------------- |
+| exaggeration | number  | 1       | [Terrain style specs](https://docs.mapbox.com/mapbox-gl-js/style-spec/terrain/) |
+| visible      | boolean | true    | Show / Hide Layer                                                               |
 
 _\*required_
 
 ## Example
 
-If no source is defined then the default Mapbox / MapLibre DEM will be used. Both examples bring the same result.
+If no source is defined then the default Mapbox / MapLibre DEM will be used. Both examples give the same result.
 
 ```jsx
 import { Component, createSignal } from "solid-js";
@@ -40,6 +40,7 @@ const App: Component = () => {
   );
 };
 ```
+
 ### OR
 
 ```jsx

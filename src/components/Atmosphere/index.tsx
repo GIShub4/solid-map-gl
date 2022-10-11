@@ -1,25 +1,18 @@
-import { onCleanup, createEffect, Component } from 'solid-js'
+import { onCleanup, createEffect, VoidComponent } from 'solid-js'
 import { useMap } from '../MapGL'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type { FogSpecification } from 'mapbox-gl/src/style-spec/types.js'
 
-export const Atmosphere: Component<{
-  style?: FogSpecification
-  visible?: boolean
-  children?: any
+export const Atmosphere: VoidComponent<{
+  style: FogSpecification
 }> = props => {
-  const map: MapboxMap = useMap()
-  // Add Atmosphere Layer
-  createEffect(() => map().setFog(props.style || {}))
+  const map: MapboxMap = useMap()()
 
   // Remove Atmosphere Layer
-  onCleanup(() => map()?.setFog(null))
+  onCleanup(() => map?.setFog(null))
 
-  // Update Visibility
-  createEffect(() => {
-    props.visible !== undefined &&
-      map().setFog(props.visible ? props.style || {} : null)
-  })
+  // Add Atmosphere Layer
+  createEffect(() => map.setFog(props.style || {}))
 
-  return props.children
+  return null
 }

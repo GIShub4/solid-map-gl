@@ -1,24 +1,35 @@
-import { onCleanup, createEffect, Component, createUniqueId } from 'solid-js'
+import {
+  onCleanup,
+  createEffect,
+  VoidComponent,
+  createUniqueId,
+} from 'solid-js'
 import { useMap } from '../MapGL'
 import { useSourceId } from '../Source'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
-import type { SourceSpecification } from 'mapbox-gl/src/style-spec/types.js'
+import type {
+  SourceSpecification,
+  TerrainSpecification,
+} from 'mapbox-gl/src/style-spec/types.js'
 
-export const Terrain: Component<{
+export const Terrain: VoidComponent<{
   exaggeration?: number
+  source?: TerrainSpecification
   visible?: boolean
-  children?: any
 }> = props => {
-  const map: MapboxMap = useMap()
+  const map: MapboxMap = useMap()()
   let sourceId: SourceSpecification = useSourceId()
+
+  // Remove Terrain Layer
+  onCleanup(() => map?.setTerrain(null))
 
   // Add Terrain Layer
   createEffect(() => {
-    if (!sourceId) {
+    if (sourceId) {
       sourceId = createUniqueId()
-      map().addSource(
+      map.addSource(
         sourceId,
-        map().isMapLibre
+        map.isMapLibre
           ? {
               type: 'raster-dem',
               url: 'https://demotiles.maplibre.org/terrain-tiles/tiles.json',
@@ -32,24 +43,21 @@ export const Terrain: Component<{
             }
       )
     }
-    map().setTerrain({
+    map.setTerrain({
       exaggeration: props.exaggeration || 1,
       source: sourceId,
     })
   })
 
-  // Remove Terrain Layer
-  onCleanup(() => map()?.setTerrain(null))
-
   // Update Visibility
   createEffect(() => {
     props.visible !== undefined &&
-      map().setTerrain(
+      map.setTerrain(
         props.visible
           ? { exaggeration: props.exaggeration || 1, source: sourceId }
           : null
       )
   })
 
-  return props.children
+  return null
 }
