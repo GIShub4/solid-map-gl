@@ -1,4 +1,10 @@
-import { onCleanup, createSignal, createEffect, VoidComponent } from 'solid-js'
+import {
+  onCleanup,
+  createSignal,
+  createEffect,
+  VoidComponent,
+  untrack,
+} from 'solid-js'
 import { useMap } from '../MapGL'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type {
@@ -6,32 +12,27 @@ import type {
   StyleImageMetadata,
 } from 'mapbox-gl/src/style/style_image'
 
-const patternList = {
-  diagonal_left: { size: 30, path: 'M8 0H22L30 8V22ZM0 8 22 30H8L0 22Z' },
-  diagonal_right: { size: 30, path: 'M8 0H22L0 22V8ZM30 8V22L22 30H8Z' },
-  horizontal: { size: 30, path: 'M0 0H30V7.5H0ZM0 15H30V22.5H0Z' },
-  vertical: { size: 30, path: 'M0 0H7.5V30H0ZM15 0H22.5V30H15Z' },
-  square: { size: 30, path: 'M0 0H15V30H30V15H0Z' },
+const PATTERN = {
+  diagonal_l: { size: 20, path: 'M20 0 0 20M-10 10 10-10M10 30 30 10' },
+  diagonal_r: { size: 20, path: 'M0 0 20 20M30 10 10-10M10 30-10 10' },
+  horizontal: { size: 14, path: 'M7 0V20' },
+  vertical: { size: 14, path: 'M0 7H20' },
+  cross: { size: 18, path: 'M9 0V18M0 9H18' },
+  hash: { size: 30, path: 'M15 0 30 15 15 30 0 15Z' },
+  chevron_h: { size: 20, path: 'M-5 5 0 10 10 0 20 10 25 5M0 30 10 20 20 30' },
+  chevron_v: { size: 20, path: 'M5-5 10 0 0 10 10 20 5 25M25 15 20 10 25 5' },
+  square: { size: 20, path: 'M8 8H12V12H8Z', fill: true },
+  hex: { size: 50, path: 'M0 0V50L50 25ZM50 0V50L0 25ZM25 0V50' },
   circle: {
-    size: 30,
-    path: 'M8 0A1 1 0 008 16 1 1 0 008 0M22 14A1 1 0 0022 30 1 1 0 0022 14Z',
+    size: 25,
+    path: 'M8 10A2.5 2.5 0 118.01 10M18 15A2.5 2.5 0 1018.01 15',
+    fill: true,
   },
-  hash: {
-    size: 30,
-    path: 'M9 0H21L30 9V21L21 30H9L0 21V9ZM15 6.5 6.5 15 15 23.5 23.5 15Z',
-  },
-  cross: { size: 30, path: 'M9 0H21V9H30V21H21V30H9V21H0V9H9Z' },
-  triangle: { size: 30, path: 'M15 0 30 15H0ZM0 15V30H14ZM30 15V30H14Z' },
-  star: {
-    size: 30,
-    path: 'M15 0 18 12 30 12 20 19 23 30 15 22 7 30 10 19 0 12 12 12Z',
-  },
-  hexagon: { size: 30, path: 'M12 5 5 12V18L12 25H18L25 18V12L18 5Z' },
 }
 
-export const patterns = Object.keys(patternList)
+export const patternList = Object.keys(PATTERN)
 
-type Color =
+export type Color =
   | `#${string}`
   | `rgb(${number}, ${number}, ${number})`
   | `hsl(${number}, ${number}%, ${number}%)`
@@ -46,7 +47,12 @@ export const Image: VoidComponent<{
     | StyleImageInterface
     | string
   options?: StyleImageMetadata
-  pattern?: { type: string; color: Color; opacity: number; bgColor: Color }
+  pattern?: {
+    type: string
+    color: Color
+    background: Color
+    lineWith: number
+  }
 }> = props => {
   const map: MapboxMap = useMap()()
   const [size, setSize] = createSignal({ width: 0, height: 0 })
@@ -60,26 +66,22 @@ export const Image: VoidComponent<{
     if (!props.image && !props.pattern)
       throw new Error('Image - Image or Pattern is required')
 
-    const image = props.pattern ? _createPattern(props.pattern) : props.image
+    const ops = props.pattern
+      ? { pixelRatio: 2, ...props.options }
+      : props.options
 
-    _loadImage(image, data => {
+    _loadImage(props.image || _createPattern(props.pattern), data => {
       const { width, height } = data
-      if (!map.hasImage(props.id))
-        map.addImage(
-          props.id,
-          data,
-          props.pattern ? { pixelRatio: 2, ...props.options } : props.options
-        )
-      if (width === size().width && height === size().height) {
+      if (!map.hasImage(props.id)) map.addImage(props.id, data, ops)
+      if (
+        !props.pattern &&
+        untrack(() => width === size().width && height === size().height)
+      ) {
         map.updateImage(props.id, data)
         map.triggerRepaint()
       } else {
         map.removeImage(props.id)
-        map.addImage(
-          props.id,
-          data,
-          props.pattern ? { pixelRatio: 2, ...props.options } : props.options
-        )
+        map.addImage(props.id, data, ops)
       }
       setSize({ width, height })
     })
@@ -94,25 +96,29 @@ export const Image: VoidComponent<{
     })
   }
 
-  const _createPattern = pattern => ({
-    width: patternList[pattern.type].size,
-    height: patternList[pattern.type].size,
-    data: new Uint8Array(Math.pow(patternList[pattern.type].size, 2) * 4),
-    onAdd: function () {
-      var canvas = document.createElement('canvas')
-      canvas.width = canvas.height = patternList[pattern.type].size
-      this.ctx = canvas.getContext('2d')
-    },
-    render: function () {
-      this.ctx.fillStyle = pattern.bgColor || 'transparent'
-      this.ctx.fillRect(0, 0, size, size)
-      this.ctx.fillStyle = pattern.color
-      this.ctx.fillOpacity = pattern.opacity
-      this.ctx.fill(new Path2D(patternList[pattern.type].path))
-      this.data = this.ctx.getImageData(0, 0, this.width, this.height).data
-      return true
-    },
-  })
+  const _createPattern = pattern => {
+    const p = PATTERN[pattern.type]
+    return {
+      width: p.size,
+      height: p.size,
+      data: new Uint8Array(p.size * p.size * 4),
+      onAdd: function () {
+        let canvas = document.createElement('canvas')
+        canvas.width = canvas.height = p.size
+        this.ctx = canvas.getContext('2d', { willReadFrequently: true })
+      },
+      render: function () {
+        this.ctx.fillStyle = pattern.background || 'transparent'
+        this.ctx.fillRect(0, 0, this.width, this.height)
+        this.ctx.strokeStyle = this.ctx.fillStyle = pattern.color || 'black'
+        this.ctx.lineWidth = pattern.lineWith || 1
+        this.ctx.stroke(new Path2D(p.path))
+        if (p.fill) this.ctx.fill(new Path2D(p.path))
+        this.data = this.ctx.getImageData(0, 0, this.width, this.height).data
+        return true
+      },
+    }
+  }
 
   return null
 }

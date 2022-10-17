@@ -97,7 +97,11 @@ export const MapGL: Component<{
       id={props.id}
       class={props?.class}
       classList={props?.classList}
-      style={{ position: 'absolute', inset: 0, ...props.style }}
+      style={
+        props?.style || props?.class || props?.classList
+          ? props.style
+          : { position: 'absolute', inset: 0, ...props.style }
+      }
     />
   )
 
@@ -301,11 +305,7 @@ export const MapGL: Component<{
 
   return (
     <MapContext.Provider value={mapRoot}>
-      {mapRoot() && (
-        <div style={{ position: 'absolute', 'z-index': 10 }}>
-          {props.children}
-        </div>
-      )}
+      {mapRoot() && props.children}
       {mapRef}
     </MapContext.Provider>
   )
