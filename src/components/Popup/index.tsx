@@ -27,12 +27,13 @@ export const Popup: Component<{
     popup?.remove()
     popup = new map.mapLib.Popup(
       props.trackPointer
-        ? { closeOnClick: false, closeButton: false, ...props.options }
-        : props.options
+        ? { ...props.options, closeOnClick: false, closeButton: false }
+        : { focusAfterOpen: false, ...props.options }
     )
       .setHTML(untrack(() => props.children))
+      .setLngLat(untrack(() => props.lngLat))
+      .on('close', () => props.onClose?.())
       .addTo(map)
-      .on('close', props.onClose)
   })
 
   // Update Position

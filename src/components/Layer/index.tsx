@@ -2,6 +2,7 @@ import { onCleanup, createEffect, Component, createUniqueId } from 'solid-js'
 import { useMap } from '../MapGL'
 import { useSourceId } from '../Source'
 import { layerEvents } from '../../events'
+import type { layerEventTypes } from '../../events'
 import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type {
   FilterSpecification,
@@ -23,28 +24,30 @@ const diff = (
   }, [])
 }
 
-export const Layer: Component<{
-  id?: string
-  style?: StyleSpecification
-  customLayer?: CustomLayerInterface
-  filter?: FilterSpecification
-  visible?: boolean
-  sourceId?: string
-  beforeType?:
-    | 'background'
-    | 'fill'
-    | 'line'
-    | 'symbol'
-    | 'raster'
-    | 'circle'
-    | 'fill-extrusion'
-    | 'heatmap'
-    | 'hillshade'
-    | 'sky'
-  beforeId?: string
-  featureState?: { id: number | string; state: object }
-  children?: any
-}> = props => {
+export const Layer: Component<
+  {
+    id?: string
+    style?: StyleSpecification
+    customLayer?: CustomLayerInterface
+    filter?: FilterSpecification
+    visible?: boolean
+    sourceId?: string
+    beforeType?:
+      | 'background'
+      | 'fill'
+      | 'line'
+      | 'symbol'
+      | 'raster'
+      | 'circle'
+      | 'fill-extrusion'
+      | 'heatmap'
+      | 'hillshade'
+      | 'sky'
+    beforeId?: string
+    featureState?: { id: number | string; state: object }
+    children?: any
+  } & layerEventTypes
+> = props => {
   const map: MapboxMap = useMap()
   const sourceId: string = useSourceId()
   props.id = props.id || createUniqueId()

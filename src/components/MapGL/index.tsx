@@ -11,6 +11,7 @@ import {
 } from 'solid-js'
 import { mapEvents } from '../../events'
 import { vectorStyleList } from '../../mapStyles'
+import type { mapEventTypes } from '../../events'
 import type { MapboxMap, MapboxOptions } from 'mapbox-gl/src/ui/map'
 import type { LngLatLike } from 'mapbox-gl/src/geo/lng_lat.js'
 import type { LngLatBounds } from 'mapbox-gl/src/geo/lng_lat_bounds.js'
@@ -33,52 +34,54 @@ const MapContext = createContext<MapboxMap>()
 export const useMap = (): MapboxMap => useContext(MapContext)
 
 /** Creates a new Map Container */
-export const MapGL: Component<{
-  id?: string
-  /** Map Container CSS Style */
-  style?: JSX.CSSProperties
-  /** Map Container CSS Class */
-  class?: string
-  /** SolidJS Class List for Map Container */
-  classList?: {
-    [k: string]: boolean | undefined
-  }
-  /** Current Map View */
-  viewport?: Viewport
-  /** Mapbox Options
-   * @see https://docs.mapbox.com/mapbox-gl-js/api/map/#map-parameters
-   */
-  options?: MapboxOptions
-  /** Type for pan, move and zoom transitions */
-  transitionType?: 'flyTo' | 'easeTo' | 'jumpTo'
-  /** Event listener for Viewport updates */
-  onViewportChange?: (viewport: Viewport) => void
-  /** Displays Map Tile Borders */
-  showTileBoundaries?: boolean
-  /** Displays Wireframe if Terrain is visible */
-  showTerrainWireframe?: boolean
-  /** Displays Borders if Padding is set */
-  showPadding?: boolean
-  /** Displays Label Collision Boxes */
-  showCollisionBoxes?: boolean
-  /** Displays all feature outlines even if normally not drawn by style rules */
-  showOverdrawInspector?: boolean
-  /** Mouse Cursor Style */
-  cursorStyle?: string
-  //** Dark Map Style */
-  darkStyle?: StyleSpecification | string
-  //** Disable automatic map resize */
-  disableResize?: boolean
-  //** MapLibre library */
-  mapLib?: any
-  //** APIkey for vector service */
-  apikey?: string
-  //** Debug Mode */
-  debug?: boolean
-  ref?: HTMLDivElement
-  /** Children within the Map Container */
-  children?: any
-}> = props => {
+export const MapGL: Component<
+  {
+    id?: string
+    /** Map Container CSS Style */
+    style?: JSX.CSSProperties
+    /** Map Container CSS Class */
+    class?: string
+    /** SolidJS Class List for Map Container */
+    classList?: {
+      [k: string]: boolean | undefined
+    }
+    /** Current Map View */
+    viewport?: Viewport
+    /** Mapbox Options
+     * @see https://docs.mapbox.com/mapbox-gl-js/api/map/#map-parameters
+     */
+    options?: MapboxOptions
+    /** Type for pan, move and zoom transitions */
+    transitionType?: 'flyTo' | 'easeTo' | 'jumpTo'
+    /** Event listener for Viewport updates */
+    onViewportChange?: (viewport: Viewport) => void
+    /** Displays Map Tile Borders */
+    showTileBoundaries?: boolean
+    /** Displays Wireframe if Terrain is visible */
+    showTerrainWireframe?: boolean
+    /** Displays Borders if Padding is set */
+    showPadding?: boolean
+    /** Displays Label Collision Boxes */
+    showCollisionBoxes?: boolean
+    /** Displays all feature outlines even if normally not drawn by style rules */
+    showOverdrawInspector?: boolean
+    /** Mouse Cursor Style */
+    cursorStyle?: string
+    //** Dark Map Style */
+    darkStyle?: StyleSpecification | string
+    //** Disable automatic map resize */
+    disableResize?: boolean
+    //** MapLibre library */
+    mapLib?: any
+    //** APIkey for vector service */
+    apikey?: string
+    //** Debug Mode */
+    debug?: boolean
+    ref?: HTMLDivElement
+    /** Children within the Map Container */
+    children?: any
+  } & mapEventTypes
+> = props => {
   props.id = props.id || createUniqueId()
 
   const [mapRoot, setMapRoot] = createSignal<MapboxMap>()

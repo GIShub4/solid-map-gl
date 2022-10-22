@@ -35,14 +35,15 @@ description: List of example links run in SolidJS playground
 {% tab title="Layer" %}
 * [Add Heatmap](https://stackblitz.com/edit/solid-map-gl-heatmap?embed=1&file=src%2Findex.tsx)
 * [Add Custom Layer](https://stackblitz.com/edit/solid-map-gl-custom-layer?embed=1&file=src%2Findex.tsx)
+* [Dynamic Pattern](https://stackblitz.com/edit/solid-map-gl-pattern?embed=1&file=src%2Findex.tsx)
 {% endtab %}
 
 {% tab title="Overlay" %}
 * [Add Default Controls](https://stackblitz.com/edit/solid-map-gl-controls?embed=1&file=src%2Findex.tsx)
 * [Add Custom Control (Traffic)](https://stackblitz.com/edit/solid-map-gl-traffic?embed=1&file=src%2Findex.tsx)
 * [Add Custom Control (Geolocation)](https://stackblitz.com/edit/solid-map-gl-geolocate?embed=1&file=src%2Findex.tsx)
-* [Add Marker](https://stackblitz.com/edit/solid-map-gl-marker?embed=1&file=src%2Findex.tsx)
-* [Add Popup](https://stackblitz.com/edit/solid-map-gl-popup?embed=1&file=src%2Findex.tsx)
+* [Dynamic Marker](https://stackblitz.com/edit/solid-map-gl-marker?embed=1&file=src%2Findex.tsx)
+* [Dynamic Popup](https://stackblitz.com/edit/solid-map-gl-popup?embed=1&file=src%2Findex.tsx)
 {% endtab %}
 
 {% tab title="3D" %}

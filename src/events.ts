@@ -1,3 +1,55 @@
+type mapEventTypes = {
+  onMouseDown?: Function
+  onMouseUp?: Function
+  onMouseOver?: Function
+  onMouseOut?: Function
+  onMouseMove?: Function
+  onMouseEnter?: Function
+  onMouseLeave?: Function
+  onPreClick?: Function
+  onClick?: Function
+  onDblClick?: Function
+  onContextMenu?: Function
+  onTouchStart?: Function
+  onTouchEnd?: Function
+  onTouchCancel?: Function
+  onWheel?: Function
+  onResize?: Function
+  onRemove?: Function
+  onTouchMove?: Function
+  onMoveStart?: Function
+  onMove?: Function
+  onMoveEnd?: Function
+  onDragStart?: Function
+  onDrag?: Function
+  onDragEnd?: Function
+  onZoomStart?: Function
+  onZoom?: Function
+  onZoomEnd?: Function
+  onRotateStart?: Function
+  onRotate?: Function
+  onRotatEnd?: Function
+  onPitchStart?: Function
+  onPitch?: Function
+  onPitchEnd?: Function
+  onBoxZoomStart?: Function
+  onBoxZoomEnd?: Function
+  onBoxZoomCancel?: Function
+  onWebglContextLost?: Function
+  onWebglContextRestored?: Function
+  onLoad?: Function
+  onRender?: Function
+  onIdle?: Function
+  onError?: Function
+  onData?: Function
+  onStyleData?: Function
+  onSourceData?: Function
+  onDataLoading?: Function
+  onStyleDataLoading?: Function
+  onSourceDataLoading?: Function
+  onStyleImageMissing?: Function
+}
+
 const mapEvents: string[] = [
   'onMouseDown',
   'onMouseUp',
@@ -50,7 +102,23 @@ const mapEvents: string[] = [
   'onStyleImageMissing',
 ]
 
-const layerEvents: string[] = [
+type layerEventTypes = {
+  onMouseDown?: Function
+  onMouseUp?: Function
+  onMouseOver?: Function
+  onMouseOut?: Function
+  onMouseMove?: Function
+  onMouseEnter?: Function
+  onMouseLeave?: Function
+  onClick?: Function
+  onDblClick?: Function
+  onContextMenu?: Function
+  onTouchStart?: Function
+  onTouchEnd?: Function
+  onTouchCancel?: Function
+}
+
+const layerEvents: any[] = [
   'onMouseDown',
   'onMouseUp',
   'onMouseOver',
@@ -67,3 +135,4 @@ const layerEvents: string[] = [
 ]
 
 export { mapEvents, layerEvents }
+export type { mapEventTypes, layerEventTypes }
