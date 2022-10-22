@@ -5,7 +5,7 @@
 
 ## Components
 
-* [Map](src/components/MapGL/README.md)
+* [MapGL](src/components/MapGL/README.md)
 * [Source](src/components/Source/README.md)
 * [Layer](src/components/Layer/README.md)
 * [Control](src/components/Control/README.md)

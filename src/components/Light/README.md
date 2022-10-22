@@ -6,9 +6,9 @@ description: Light Layer Component
 
 ## Props
 
-| Name  | Type   | Default | Description                                                                 |
-| ----- | ------ | ------- | --------------------------------------------------------------------------- |
-| style | object | {}      | [Light style specs](https://docs.mapbox.com/mapbox-gl-js/style-spec/light/) |
+| Name  | Type   | Description                                                                 |
+| ----- | ------ | --------------------------------------------------------------------------- |
+| style | object | [Light style specs](https://docs.mapbox.com/mapbox-gl-js/style-spec/light/) |
 
 _\*required_
 

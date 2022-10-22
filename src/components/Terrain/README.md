@@ -6,10 +6,10 @@ description: Terrain Layer Component
 
 ## Props
 
-| Name         | Type    | Default | Description                                                                     |
-| ------------ | ------- | ------- | ------------------------------------------------------------------------------- |
-| exaggeration | number  | 1       | [Terrain style specs](https://docs.mapbox.com/mapbox-gl-js/style-spec/terrain/) |
-| visible      | boolean | true    | Show / Hide Layer                                                               |
+| Name         | Type    | Description                                                                     |
+| ------------ | ------- | ------------------------------------------------------------------------------- |
+| exaggeration | number  | [Terrain style specs](https://docs.mapbox.com/mapbox-gl-js/style-spec/terrain/) |
+| visible      | boolean | Show / Hide Layer                                                               |
 
 _\*required_
 
