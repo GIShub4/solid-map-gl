@@ -50,18 +50,18 @@
     "not ie 11"
   ],
   "devDependencies": {
-    "jsdom": "^20.0.1",
+    "jsdom": "^20.0.2",
     "mapbox-gl": "^2.10.0",
-    "rollup": "^2.79.1",
-    "rollup-plugin-import-css": "^3.0.3",
+    "rollup": "^3.3.0",
+    "rollup-plugin-import-css": "^3.1.0",
     "rollup-plugin-terser": "^7.0.2",
     "rollup-preset-solid": "^1.4.0",
-    "solid-js": "^1.5.7",
-    "solid-testing-library": "^0.3.0",
+    "solid-js": "^1.6.2",
+    "solid-testing-library": "^0.5.0",
     "typescript": "^4.8.4",
-    "vite": "^3.1.8",
-    "vite-plugin-solid": "^2.3.9",
-    "vitest": "^0.24.3"
+    "vite": "^3.2.3",
+    "vite-plugin-solid": "^2.4.0",
+    "vitest": "^0.25.1"
   },
   "peerDependencies": {
     "mapbox-gl": "^0.x || ^1.x || ^2.x"
