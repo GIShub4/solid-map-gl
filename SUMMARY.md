@@ -1,6 +1,5 @@
 # Table of contents
 
-[TT](README.md)
 * [Introduction](docs/intro.md)
 * [🚀 Getting Started](docs/start.md)
 
