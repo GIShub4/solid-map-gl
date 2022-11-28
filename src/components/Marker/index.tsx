@@ -49,12 +49,14 @@ export const Marker: Component<{
       .on('drag', () => props.onLngLatChange?.(marker.getLngLat().toArray()))
     untrack(() => {
       marker.setDraggable(props.draggable).setLngLat(props.lngLat).addTo(map)
-      props.openPopup !== popup.isOpen() && marker.togglePopup()
+      popup && props.openPopup !== popup.isOpen() && marker.togglePopup()
     })
   })
 
   // Toggle Popup
-  createEffect(() => props.openPopup !== popup.isOpen() && marker.togglePopup())
+  createEffect(
+    () => popup && props.openPopup !== popup.isOpen() && marker.togglePopup()
+  )
 
   // Update Position
   createEffect(() => marker.setLngLat(props.lngLat))

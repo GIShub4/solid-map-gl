@@ -25,15 +25,15 @@ export const Source: Component<{
   props.id = props.id || createUniqueId()
 
   const lookup = url => {
-    const source = url?.split(':').reduce((p, c) => p && p[c], rasterStyleList)
+    const s = url?.split(':').reduce((p, c) => p && p[c], rasterStyleList)
+    const source = s
       ? {
           ...props.source,
           url: '',
           tiles: [
-            source
+            s
               .replace(
-                '{apikey}',
-                //@ts-ignore
+                '{apikey}', //@ts-ignore
                 props.source.apikey || import.meta.env.VITE_RASTER_API_KEY
               )
               .replace('{r}', window.devicePixelRatio > 1 ? '@2x' : ''),
