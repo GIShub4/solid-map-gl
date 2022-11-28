@@ -54,7 +54,7 @@ export const Layer: Component<
 
   //Remove Layer
   onCleanup(
-    () => map() && map().getLayer(props.id) && map().removeLayer(props.id)
+    () => map && map().getLayer(props.id) && map().removeLayer(props.id)
   )
 
   // Hook up events
