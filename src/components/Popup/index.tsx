@@ -23,14 +23,15 @@ export const Popup: Component<{
   // Add or Update Popup
   createEffect(() => {
     const ops = { ...props.options }
+    if (!map()) return
+    const mapboxgl = map().mapLib
     untrack(() => {
       popup?.remove()
-      popup = new map().mapLib
-        .Popup(
-          props.trackPointer
-            ? { ...ops, closeOnClick: false, closeButton: false }
-            : { focusAfterOpen: false, ...ops }
-        )
+      popup = new mapboxgl.Popup(
+        props.trackPointer
+          ? { ...ops, closeOnClick: false, closeButton: false }
+          : { focusAfterOpen: false, ...ops }
+      )
         .setHTML(props.children || '')
         .setLngLat(props.lngLat)
         .on('close', () => props.onClose?.())

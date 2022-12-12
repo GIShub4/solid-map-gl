@@ -32,18 +32,18 @@ export const Marker: Component<{
   createEffect(() => {
     const ops = { ...props.options }
     const pops = { ...props.options?.popup }
+    if (!map()) return
+    const mapboxgl = map().mapLib
     untrack(() => {
       popup?.remove()
       popup = props.children
-        ? new map().mapLib
-            .Popup(pops)
+        ? new mapboxgl.Popup(pops)
             .setHTML(props.children)
             .on('close', () => props.onClose?.())
         : null
 
       marker?.remove()
-      marker = new map().mapLib
-        .Marker(ops)
+      marker = new mapboxgl.Marker(ops)
         .setPopup(popup)
         .on('dragstart', () => props.onDragStart?.())
         .on('dragend', () => props.onDragEnd?.())

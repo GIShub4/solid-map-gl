@@ -228,8 +228,8 @@ export const MapGL: Component<
       padding: props.viewport?.padding || 0,
     }
     if (!map || props.id === props.viewport?.id || userInteraction()) return
-    map?.stop()[props.transitionType](viewport)
-    debug(`Update Viewport (${props.transitionType}):`, viewport)
+    map?.stop()[props.transitionType || 'flyTo'](viewport)
+    debug(`Update Viewport (${props.transitionType || 'flyTo'}):`, viewport)
   })
 
   // Update boundaries

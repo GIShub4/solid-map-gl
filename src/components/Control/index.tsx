@@ -40,13 +40,12 @@ export const Control: VoidComponent<{
 }> = props => {
   if (!useMap()) return
   const [map] = useMap()
-  const mapLib = map().mapLib
   let control = null
 
   // Add or Update Control
   createEffect(() => {
     control && map().hasControl(control) && map().removeControl(control)
-    control = getControl(mapLib, props.type, props.options, props.custom)
+    control = getControl(map().mapLib, props.type, props.options, props.custom)
     map().addControl(control, props.position)
   })
 
