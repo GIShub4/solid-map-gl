@@ -1,6 +1,6 @@
 import withSolid from 'rollup-preset-solid'
 import css from 'rollup-plugin-import-css'
-import { terser } from 'rollup-plugin-terser'
+import terser from '@rollup/plugin-terser'
 
 export default withSolid({
   input: 'src/index.tsx',

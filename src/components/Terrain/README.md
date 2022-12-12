@@ -9,7 +9,6 @@ description: Terrain Layer Component
 | Name         | Type    | Description                                                                     |
 | ------------ | ------- | ------------------------------------------------------------------------------- |
 | exaggeration | number  | [Terrain style specs](https://docs.mapbox.com/mapbox-gl-js/style-spec/terrain/) |
-| visible      | boolean | Show / Hide Layer                                                               |
 
 _\*required_
 

@@ -7,7 +7,6 @@ import {
   createUniqueId,
 } from 'solid-js'
 import { useMap } from '../MapGL'
-import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type { SourceSpecification } from 'mapbox-gl/src/style-spec/types.js'
 import { rasterStyleList } from '../../mapStyles'
 
@@ -21,8 +20,14 @@ export const Source: Component<{
   source: SourceSpecification
   children?: any
 }> = props => {
-  const map: MapboxMap = useMap()
+  if (!useMap()) return
+  const [map] = useMap()
   props.id = props.id || createUniqueId()
+
+  const debug = (text, value?) => {
+    map().debug &&
+      console.debug('%c[MapGL]', 'color: #ec4899', text, value || '')
+  }
 
   const lookup = url => {
     const s = url?.split(':').reduce((p, c) => p && p[c], rasterStyleList)
@@ -50,64 +55,67 @@ export const Source: Component<{
     return source
   }
 
+  // Add Source
+  map().addSource(props.id, lookup(props.source.url))
+  map().sourceIdList.push(props.id)
+  debug('Add Source:', props.id)
+
+  // Update Data
+  const source = map().getSource(props.id)
+  switch (props.source.type) {
+    case 'geojson':
+      createEffect(() => {
+        const data = props.source.data
+        if (!map().isSourceLoaded(props.id)) return
+        source.setData(data || {})
+        debug('Update GeoJSON Data:', props.id)
+      })
+      break
+    case 'image':
+      createEffect(() => {
+        const url = props.source.url
+        const coords = props.source.coordinates
+        if (!map().isSourceLoaded(props.id)) return
+        source.updateImage(url, coords)
+        debug('Update Image Data:', props.id)
+      })
+      break
+    case 'vector':
+      createEffect(() => {
+        const url = props.source.url
+        const tiles = props.source.tiles
+        if (!map().isSourceLoaded(props.id)) return
+        url ? source.setUrl(url) : source.setTiles(tiles)
+        debug('Update Vector Data:', props.id)
+      })
+      break
+    case 'raster':
+      createEffect(() => {
+        const url = props.source.url
+        if (!map().isSourceLoaded(props.id)) return
+        const src = lookup(url)
+        src.tiles &&
+          (src.tiles = ['a', 'b', 'c'].map(i => src.tiles[0].replace('{s}', i)))
+        source._tileJSONRequest?.cancel()
+        source.url = src.url
+        source.scheme = src.scheme
+        source._options = { ...source._options, ...src }
+        map().style._sourceCaches[`other:${props.id}`]?.clearTiles()
+        source.load()
+        debug('Update Raster Data:', props.id)
+      })
+      break
+  }
+
   // Remove Source
   onCleanup(() => {
-    map &&
-      map()
-        .getStyle()
-        .layers.forEach(
-          layer => layer.source === props.id && map().removeLayer(layer.id)
-        )
+    map()
+      ?.getStyle()
+      .layers.forEach(
+        layer => layer.source === props.id && map().removeLayer(layer.id)
+      )
     map().removeSource(props.id)
-  })
-
-  // Update
-  createEffect(() => {
-    // Add Source
-    if (!map().getSource(props.id)) {
-      map().addSource(props.id, lookup(props.source.url))
-      return
-    }
-
-    // Update GeoJSON Data
-    if (props.source.type === 'geojson' && props.source.data)
-      map().getSource(props.id)?.setData(props.source.data)
-
-    // Update Image URL
-    if (
-      props.source.type === 'image' &&
-      (props.source.url || props.source.coordinates)
-    )
-      map()
-        .getSource(props.id)
-        ?.updateImage(props.source.url, props.source.coordinates)
-
-    // Update Vector URL or Tiles
-    if (
-      props.source.type === 'vector' &&
-      (props.source.url || props.source.tiles)
-    )
-      props.source.url
-        ? map().getSource(props.id)?.setUrl(props.source.url)
-        : map().getSource(props.id)?.setTiles(props.source.tiles)
-
-    // Update Raster URL or Tiles
-    if (
-      props.source.type === 'raster' &&
-      (props.source.url || props.source.tiles)
-    ) {
-      let source = map().getSource(props.id)
-      if (!source) return
-      const src = lookup(props.source.url)
-      src.tiles &&
-        (src.tiles = ['a', 'b', 'c'].map(i => src.tiles[0].replace('{s}', i)))
-      source._tileJSONRequest?.cancel()
-      source.url = src.url
-      source.scheme = src.scheme
-      source._options = { ...source._options, ...src }
-      map().style._sourceCaches[`other:${props.id}`]?.clearTiles()
-      source.load()
-    }
+    debug('Remove Source:', props.id)
   })
 
   return (

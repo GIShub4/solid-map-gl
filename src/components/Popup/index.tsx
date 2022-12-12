@@ -1,6 +1,5 @@
 import { onCleanup, createEffect, Component, untrack } from 'solid-js'
 import { useMap } from '../MapGL'
-import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type {
   Popup as PopupType,
   PopupOptions,
@@ -14,26 +13,29 @@ export const Popup: Component<{
   onClose?: Function
   children?: any
 }> = props => {
-  const map: MapboxMap = useMap()()
+  if (!useMap()) return
+  const [map] = useMap()
   let popup: PopupType = null
 
-  // Remove Popup
-  onCleanup(() => popup?.remove())
+  if (!props.trackPointer && !props.lngLat)
+    throw new Error('Popup - lngLat or trackPointer is required')
 
-  // Add/Update Popup
+  // Add or Update Popup
   createEffect(() => {
-    if (!props.trackPointer && !props.lngLat)
-      throw new Error('Popup - lngLat is required')
-    popup?.remove()
-    popup = new map.mapLib.Popup(
-      props.trackPointer
-        ? { ...props.options, closeOnClick: false, closeButton: false }
-        : { focusAfterOpen: false, ...props.options }
-    )
-      .setHTML(untrack(() => props.children))
-      .setLngLat(untrack(() => props.lngLat))
-      .on('close', () => props.onClose?.())
-      .addTo(map)
+    const ops = { ...props.options }
+    untrack(() => {
+      popup?.remove()
+      popup = new map().mapLib
+        .Popup(
+          props.trackPointer
+            ? { ...ops, closeOnClick: false, closeButton: false }
+            : { focusAfterOpen: false, ...ops }
+        )
+        .setHTML(props.children || '')
+        .setLngLat(props.lngLat)
+        .on('close', () => props.onClose?.())
+        .addTo(map())
+    })
   })
 
   // Update Position
@@ -42,7 +44,10 @@ export const Popup: Component<{
   )
 
   // Update Content
-  createEffect(() => popup.setHTML(props.children))
+  createEffect(() => popup.setHTML(props.children || ''))
+
+  // Remove Popup
+  onCleanup(() => popup?.remove())
 
   return null
 }

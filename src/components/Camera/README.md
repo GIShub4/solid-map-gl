@@ -8,7 +8,9 @@ description: Represents the map's camera
 
 | Name     | Type   | Description                                                                          |
 | -------- | ------ | ------------------------------------------------------------------------------------ |
-# TODO
+|rotateGlobe| object| rotate map when in globe view |
+|rotateViewport| object| rotate map arounf center|
+| translate| object| translate viewport in 3D space
 
 _\*required_\
 _^default_

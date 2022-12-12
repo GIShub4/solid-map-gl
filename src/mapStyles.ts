@@ -5,12 +5,12 @@ const hereBase = 'https://assets.vector.hereapi.com/styles/'
 
 export const vectorStyleList: object = {
   mb: {
-    light: `${mapBase}/light-v10`,
-    dark: `${mapBase}/dark-v10`,
-    street: `${mapBase}/streets-v11`,
-    outdoor: `${mapBase}/outdoors-v11`,
+    light: `${mapBase}/light-v11`,
+    dark: `${mapBase}/dark-v11`,
+    street: `${mapBase}/streets-v12`,
+    outdoor: `${mapBase}/outdoors-v12`,
     sat: `${mapBase}/satellite-v9`,
-    sat_street: `${mapBase}/satellite-streets-v11`,
+    sat_street: `${mapBase}/satellite-streets-v12`,
     nav: `${mapBase}/navigation-guidance-day-v4`,
     nav_night: `${mapBase}/navigation-guidance-night-v4`,
     basic: `${mapBase}/cjf4m44iw0uza2spb3q0a7s41`,

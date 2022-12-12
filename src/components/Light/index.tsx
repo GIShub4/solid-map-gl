@@ -1,18 +1,18 @@
 import { onCleanup, createEffect, VoidComponent } from 'solid-js'
 import { useMap } from '../MapGL'
-import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type { LightSpecification } from 'mapbox-gl/src/style-spec/types.js'
 
 export const Light: VoidComponent<{
   style: LightSpecification
 }> = props => {
-  const map: MapboxMap = useMap()()
+  if (!useMap()) return
+  const [map] = useMap()
+
+  // Add or Update Light Layer
+  createEffect(() => map().setLight(props.style || {}))
 
   // Remove Light Layer
-  onCleanup(() => map?.setLight(null))
-
-  // Add Light Layer
-  createEffect(() => map.setLight(props.style || {}))
+  onCleanup(() => map()?.setLight(null))
 
   return null
 }

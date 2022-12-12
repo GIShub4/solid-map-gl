@@ -3,7 +3,6 @@ import { useMap } from '../MapGL'
 import { useSourceId } from '../Source'
 import { layerEvents } from '../../events'
 import type { layerEventTypes } from '../../events'
-import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type {
   FilterSpecification,
   StyleSpecification,
@@ -48,72 +47,76 @@ export const Layer: Component<
     children?: any
   } & layerEventTypes
 > = props => {
-  const map: MapboxMap = useMap()
-  const sourceId: string = useSourceId()
+  if (!useMap()) return
+  const [map] = useMap()
+  const sourceId: string = props.style.source || useSourceId()
   props.id = props.id || createUniqueId()
 
-  //Remove Layer
-  onCleanup(
-    () => map && map().getLayer(props.id) && map().removeLayer(props.id)
+  const debug = (text, value?) => {
+    map().debug &&
+      console.debug('%c[MapGL]', 'color: #10b981', text, value || '')
+  }
+
+  // Add Layer
+  // if (!map().getLayer(props.id)) {
+  map().addLayer(
+    props.customLayer || {
+      ...props.style,
+      id: props.id,
+      source: sourceId,
+      metadata: {
+        smg: { beforeType: props.beforeType, beforeId: props.beforeId },
+      },
+    },
+    props.beforeType
+      ? map()
+          .getStyle()
+          .layers.find(l => l.type === props.beforeType)?.id
+      : props.beforeId
   )
+  map().layerIdList.push(props.id)
+  debug('Add Layer:', props.id)
 
   // Hook up events
-  createEffect(() =>
-    layerEvents.forEach(item => {
-      if (props[item]) {
-        const event = item.slice(2).toLowerCase()
-        const callback = e => props[item](e)
-        map()?.on(event, props.id, callback)
-        onCleanup(() => map()?.off(event, props.id, callback))
-      }
-    })
-  )
+  layerEvents.forEach(item => {
+    if (props[item]) {
+      const event = item.slice(2).toLowerCase()
+      map().on(event, props.id, evt => {
+        props[item](evt)
+        debug(`Layer '${event}' event on '${props.id}':`, evt)
+      })
+    }
+  })
+  // }
 
   // Update Style
   createEffect((prev: StyleSpecification) => {
-    if (
-      !props.style ||
-      !map().style ||
-      !map().getSource(sourceId) ||
-      !map().getLayer(props.id)
-    )
-      return
+    const style = props.style
+    if (style === prev || !map().isStyleLoaded()) return
 
-    if (props.style.layout !== prev?.layout)
-      diff(props.style.layout, prev?.layout).forEach(([key, value]) =>
+    if (style.layout !== prev?.layout)
+      diff(style.layout, prev?.layout).forEach(([key, value]) =>
         map().setLayoutProperty(props.id, key, value, { validate: false })
       )
 
-    if (props.style.paint !== prev?.paint)
-      diff(props.style.paint, prev?.paint).forEach(([key, value]) =>
+    if (style.paint !== prev?.paint)
+      diff(style.paint, prev?.paint).forEach(([key, value]) =>
         map().setPaintProperty(props.id, key, value, { validate: false })
       )
 
-    if (
-      props.style.minzoom !== prev?.minzoom ||
-      props.style.maxzoom !== prev?.maxzoom
-    )
-      map().setLayerZoomRange(
-        props.id,
-        props.style.minzoom,
-        props.style.maxzoom
-      )
+    if (style.minzoom !== prev?.minzoom || style.maxzoom !== prev?.maxzoom)
+      map().setLayerZoomRange(props.id, style.minzoom, style.maxzoom)
 
-    if (props.style.filter !== prev?.filter)
-      map().setFilter(props.id, props.style.filter, { validate: false })
+    if (style.filter !== prev?.filter)
+      map().setFilter(props.id, style.filter, { validate: false })
 
-    return props.style
+    debug('Update Layer Style:', props.id)
+    return style
   }, props.style)
 
   // Update Visibility
   createEffect((prev: boolean) => {
-    if (
-      props.visible === undefined ||
-      props.visible === prev ||
-      !map().getSource(sourceId) ||
-      !map().getLayer(props.id)
-    )
-      return
+    if (props.visible === prev) return
 
     map().setLayoutProperty(
       props.id,
@@ -121,6 +124,7 @@ export const Layer: Component<
       props.visible ? 'visible' : 'none',
       { validate: false }
     )
+    debug(`Update Visibility (${props.id}):`, props.visible)
     return props.visible
   }, props.visible)
 
@@ -130,6 +134,7 @@ export const Layer: Component<
 
     !map().isStyleLoaded() && (await map().once('styledata'))
     map().setFilter(props.id, props.filter)
+    debug(`Update Filter (${props.id}):`, props.filter)
   })
 
   // Update Feature State
@@ -152,25 +157,8 @@ export const Layer: Component<
     )
   })
 
-  // Add Layer
-  createEffect(() => {
-    !map().getLayer(props.id) &&
-      map().addLayer(
-        props.customLayer || {
-          ...props.style,
-          id: props.id,
-          source: sourceId,
-          metadata: {
-            smg: { beforeType: props.beforeType, beforeId: props.beforeId },
-          },
-        },
-        props.beforeType
-          ? map()
-              ?.getStyle()
-              .layers.find(l => l.type === props.beforeType)?.id
-          : props.beforeId
-      )
-  })
+  //Remove Layer
+  onCleanup(() => map()?.getLayer(props.id) && map()?.removeLayer(props.id))
 
   return props.children
 }

@@ -1,6 +1,5 @@
 import { onCleanup, createEffect, Component, untrack } from 'solid-js'
 import { useMap } from '../MapGL'
-import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type {
   Popup as PopupType,
   PopupOptions,
@@ -22,50 +21,54 @@ export const Marker: Component<{
   onDragEnd?: Function
   children?: any
 }> = props => {
-  const map: MapboxMap = useMap?.()()
+  if (!useMap()) return
+  const [map] = useMap()
   let marker: MarkerType = null
   let popup: PopupType = null
 
-  // Remove Marker
-  onCleanup(() => marker?.remove())
+  if (!props.lngLat) throw new Error('Marker - lngLat is required')
 
-  // Add/Update Marker
+  // Add or Update Marker
   createEffect(() => {
-    if (untrack(() => !props.openPopup && !props.lngLat))
-      throw new Error('Marker - lngLat is required')
-
-    popup?.remove()
-    popup = untrack(() => props.children)
-      ? new map.mapLib.Popup(props.options.popup)
-          .setHTML(untrack(() => props.children))
-          .on('close', () => props.onClose?.())
-      : null
-
-    marker?.remove()
-    marker = new map.mapLib.Marker(props.options)
-      .setPopup(popup)
-      .on('dragstart', () => props.onDragStart?.())
-      .on('dragend', () => props.onDragEnd?.())
-      .on('drag', () => props.onLngLatChange?.(marker.getLngLat().toArray()))
+    const ops = { ...props.options }
+    const pops = { ...props.options?.popup }
     untrack(() => {
-      marker.setDraggable(props.draggable).setLngLat(props.lngLat).addTo(map)
-      popup && props.openPopup !== popup.isOpen() && marker.togglePopup()
+      popup?.remove()
+      popup = props.children
+        ? new map().mapLib
+            .Popup(pops)
+            .setHTML(props.children)
+            .on('close', () => props.onClose?.())
+        : null
+
+      marker?.remove()
+      marker = new map().mapLib
+        .Marker(ops)
+        .setPopup(popup)
+        .on('dragstart', () => props.onDragStart?.())
+        .on('dragend', () => props.onDragEnd?.())
+        .on('drag', () => props.onLngLatChange?.(marker.getLngLat().toArray()))
+      marker.setDraggable(props.draggable).setLngLat(props.lngLat).addTo(map())
+      props.openPopup !== popup?.isOpen() && marker.togglePopup()
     })
   })
 
   // Toggle Popup
   createEffect(
-    () => popup && props.openPopup !== popup.isOpen() && marker.togglePopup()
+    () => props.openPopup !== popup?.isOpen() && marker.togglePopup()
   )
 
   // Update Position
   createEffect(() => marker.setLngLat(props.lngLat))
 
   // Update Popup Content
-  createEffect(() => popup.setHTML(props.children))
+  createEffect(() => popup?.setHTML(props.children))
 
   // Update Draggable
   createEffect(() => marker.setDraggable(props.draggable))
+
+  // Remove Marker
+  onCleanup(() => marker?.remove())
 
   return null
 }

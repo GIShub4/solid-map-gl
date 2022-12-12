@@ -6,7 +6,6 @@ import {
   untrack,
 } from 'solid-js'
 import { useMap } from '../MapGL'
-import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type {
   StyleImageInterface,
   StyleImageMetadata,
@@ -54,11 +53,12 @@ export const Image: VoidComponent<{
     lineWith: number
   }
 }> = props => {
-  const map: MapboxMap = useMap()()
+  if (!useMap()) return
+  const [map] = useMap()
   const [size, setSize] = createSignal({ width: 0, height: 0 })
 
   // Remove Image
-  onCleanup(() => map && map.hasImage(props.id) && map.removeImage(props.id))
+  onCleanup(() => map()?.hasImage(props.id) && map()?.removeImage(props.id))
 
   // Add or Update Image
   createEffect(() => {
@@ -72,16 +72,16 @@ export const Image: VoidComponent<{
 
     _loadImage(props.image || _createPattern(props.pattern), data => {
       const { width, height } = data
-      if (!map.hasImage(props.id)) map.addImage(props.id, data, ops)
+      if (!map().hasImage(props.id)) map().addImage(props.id, data, ops)
       if (
         !props.pattern &&
         untrack(() => width === size().width && height === size().height)
       ) {
-        map.updateImage(props.id, data)
-        map.triggerRepaint()
+        map().updateImage(props.id, data)
+        map().triggerRepaint()
       } else {
-        map.removeImage(props.id)
-        map.addImage(props.id, data, ops)
+        map().removeImage(props.id)
+        map().addImage(props.id, data, ops)
       }
       setSize({ width, height })
     })
@@ -90,7 +90,7 @@ export const Image: VoidComponent<{
   // Load Image from URL
   const _loadImage = (image, callback) => {
     if (typeof image !== 'string') return callback(image)
-    map.loadImage(image, (error, imageData) => {
+    map().loadImage(image, (error, imageData) => {
       if (error) throw error
       return callback(imageData)
     })

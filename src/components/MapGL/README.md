@@ -13,10 +13,11 @@
 | options          | object    | [Mapbox map parameter](https://docs.mapbox.com/mapbox-gl-js/api/map/#map-parameters)         |
 | transitionType   | string    | flyTo^, easeTo, jumpTo                                                                       |
 | on\[Event]       | Event     | Any [Map Event](https://docs.mapbox.com/mapbox-gl-js/api/map/#map-events) - eg.: onMouseMove |
+| onUserInteraction| boolean   | Event Listeners for user interactions with the map                                           |
 | cursorStyle      | string    | Map cursor                                                                                   |
 | darkStyle        | object \| string    | Map style when application or browser is in dark mode                              |
-| debug            | boolea    | Enable debug messages                                                                        |
-| apikey           | string    | apikey for vectortile services                                                          |
+| debug            | boolean    | Enable debug messages                                                                        |
+| apikey           | string    | apikey for vectortile services                                                               |
 
 _\*required_\
 _^default_

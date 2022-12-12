@@ -7,7 +7,6 @@ import {
   useContext,
   Component,
   createUniqueId,
-  untrack,
 } from 'solid-js'
 import { mapEvents } from '../../events'
 import { vectorStyleList } from '../../mapStyles'
@@ -21,6 +20,7 @@ import type { JSX } from 'solid-js'
 
 export type Viewport = {
   id?: string
+  point?: { x: number; y: number }
   center?: LngLatLike
   bounds?: LngLatBounds
   zoom?: number
@@ -29,7 +29,7 @@ export type Viewport = {
   padding?: PaddingOptions
 }
 
-const MapContext = createContext<MapboxMap>()
+const MapContext = createContext()
 /** Provides the Mapbox Map Object */
 export const useMap = (): MapboxMap => useContext(MapContext)
 
@@ -55,6 +55,8 @@ export const MapGL: Component<
     transitionType?: 'flyTo' | 'easeTo' | 'jumpTo'
     /** Event listener for Viewport updates */
     onViewportChange?: (viewport: Viewport) => void
+    /** Event listener for User Interaction */
+    onUserInteraction?: (user: boolean) => void
     /** Displays Map Tile Borders */
     showTileBoundaries?: boolean
     /** Displays Wireframe if Terrain is visible */
@@ -75,7 +77,7 @@ export const MapGL: Component<
     mapLib?: any
     //** APIkey for vector service */
     apikey?: string
-    //** Debug Mode */
+    //** Debug Message Mode */
     debug?: boolean
     ref?: HTMLDivElement
     /** Children within the Map Container */
@@ -84,16 +86,19 @@ export const MapGL: Component<
 > = props => {
   props.id = props.id || createUniqueId()
 
-  const [mapRoot, setMapRoot] = createSignal<MapboxMap>()
-  const [transitionType, setTransitionType] = createSignal('flyTo')
-  const [darkMode, setDarkMode] = createSignal(
-    typeof window !== 'undefined' &&
-      (window.matchMedia('(prefers-color-scheme: dark)').matches ||
-        document.body.classList.contains('dark'))
-  )
+  let map: MapboxMap
+  let resizeObserver: ResizeObserver
 
-  const debug = (text, value) =>
-    props.debug && console.debug(`${text}: %c${value}`, 'color: #00F')
+  const [mapRoot, setMapRoot] = createSignal<MapboxMap>()
+  const [darkMode, setDarkMode] = createSignal(false)
+  const [userInteraction, setUserInteraction] = createSignal(false)
+  // debounce user interactions
+  createEffect(() => props.onUserInteraction?.(userInteraction()))
+
+  const debug = (text, value?) => {
+    props.debug &&
+      console.debug('%c[MapGL]', 'color: #0ea5e9', text, value || '')
+  }
 
   const mapRef = (
     <div
@@ -126,188 +131,205 @@ export const MapGL: Component<
     let mapLib = props.mapLib || (await import('mapbox-gl'))
     if (!mapLib.Map) mapLib = window['maplibregl'] || window['mapboxgl']
 
-    const map: MapboxMap = new mapLib.Map({
+    if (!mapLib.supported()) throw new Error('Mapbox GL not supported')
+
+    debug(`Map (v${mapLib.version}) loading...`)
+    map = new mapLib.Map({
       accessToken:
         //@ts-ignore
-        import.meta.env.VITE_MAPBOX_ACCESS_TOKEN,
-      interactive: !!props.onViewportChange,
+        props.options.accessToken || import.meta.env.VITE_MAPBOX_ACCESS_TOKEN,
+      interactive: props.options.interactive || !!props.onViewportChange,
       ...props.options,
-      style: getStyle(props.options?.style, props.darkStyle),
+      ...props.viewport,
       container: mapRef,
-      bounds: props.viewport?.bounds,
-      center: props.viewport?.center,
-      zoom: props.viewport?.zoom || null,
-      pitch: props.viewport?.pitch || null,
-      bearing: props.viewport?.bearing || null,
+      style: getStyle(props.options?.style, props.darkStyle),
       fitBoundsOptions: { padding: props.viewport?.padding },
     } as MapboxOptions)
 
     map.mapLib = mapLib
     map.debug = props.debug
-    // map.container = containerRef
+    map.sourceIdList = []
+    map.layerIdList = []
 
-    map.once('load', () => setMapRoot(map))
+    map.once('load', () => {
+      setMapRoot(map)
+      debug('Map loaded')
+    })
 
-    onCleanup(() => map?.remove())
-
-    // Listen to map container size changes
-    const resizeObserver = new ResizeObserver(() => map.resize())
-    createEffect(() =>
-      props.disableResize
-        ? resizeObserver.disconnect()
-        : resizeObserver.observe(mapRef as Element)
+    // Handle User Interaction
+    ;['mousedown', 'touchstart', 'wheel'].forEach(event =>
+      map.on(event, () => setUserInteraction(true))
     )
+    map.on('moveend', evt => !evt.rotate && setUserInteraction(false))
 
     // Listen to dark theme changes
-    const darkTheme = window.matchMedia('(prefers-color-scheme: dark)')
-    darkTheme.addEventListener('change', () => setDarkMode(darkTheme.matches))
+    const darkTheme =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-color-scheme: dark)')
+    darkTheme?.addEventListener('change', () => {
+      setDarkMode(darkTheme.matches)
+      debug('Set dark theme to:', darkTheme.matches?.toString())
+    })
+    new MutationObserver(() => {
+      const darkTheme = document.body.classList.contains('dark')
+      setDarkMode(darkTheme)
+      debug('Set dark theme to:', darkTheme)
+    }).observe(document.body, { attributes: true })
 
-    const bodyClassObserver = new MutationObserver(() =>
-      setDarkMode(document.body.classList.contains('dark'))
-    )
-    bodyClassObserver.observe(document.body, { attributes: true })
+    // Listen to map container size changes
+    // !props.disableResize &&
+    //   new ResizeObserver(() => {
+    //     map?.resize()
+    //     debug('Map resized')
+    //   }).observe(mapRef as Element)
 
     // Hook up events
-    createEffect(() =>
-      mapEvents.forEach(item => {
-        const prop = props[item]
-        if (prop) {
-          const event = item.slice(2).toLowerCase()
-          if (typeof prop === 'function') {
-            const callback = e => prop(e)
-            map.on(event, callback)
-            onCleanup(() => map?.off(event, callback))
-          } else {
-            Object.keys(prop).forEach(layerId => {
-              const callback = e => prop[layerId](e)
-              map.on(event, layerId, callback)
-              onCleanup(() => map?.off(event, layerId, callback))
+    mapEvents.forEach(item => {
+      const prop = props[item]
+      if (prop) {
+        const event = item.slice(2).toLowerCase()
+        if (typeof prop === 'function') {
+          map.on(event, e => {
+            prop(e)
+            debug(`Map '${event}' event:`, e)
+          })
+        } else {
+          Object.keys(prop).forEach(layerId => {
+            map.on(event, layerId, e => {
+              prop[layerId](e)
+              debug(`Map '${event}' event on '${layerId}':`, e)
             })
-          }
+          })
         }
-      })
-    )
-
-    // Update debug features
-    createEffect(() => {
-      map.showTileBoundaries = props.showTileBoundaries
-      map.showTerrainWireframe = props.showTerrainWireframe
-      map.showPadding = props.showPadding
-      map.showCollisionBoxes = props.showCollisionBoxes
-      map.showOverdrawInspector = props.showOverdrawInspector
-    })
-
-    // Update cursor
-    createEffect(prev => {
-      if (props.cursorStyle === prev) return
-      debug('Update Cursor to', props.cursorStyle)
-      map.getCanvas().style.cursor = props.cursorStyle
-      return props.cursorStyle
-    })
-
-    //Update transition type
-    createEffect(prev => {
-      if (props.transitionType === prev) return
-      debug('Update Transition to', props.transitionType)
-      setTransitionType(props.transitionType)
-      return props.transitionType
-    })
-
-    // Update projection
-    createEffect(prev => {
-      if (props.options?.projection === prev) return
-      debug('Update Projection to', props.options?.projection.name)
-      map.setProjection(props.options?.projection)
-      return props.options?.projection
-    })
-
-    // Update map style
-    createEffect(prev => {
-      const style = getStyle(props.options?.style, props.darkStyle)
-      if (style === prev) return
-      let oldLayers = []
-      let oldSources = {}
-      debug('Update Mapstyle to', style)
-      if (map.isStyleLoaded()) {
-        const oldStyle = map.getStyle()
-        oldLayers = oldStyle.layers.filter(l => l.id.startsWith('cl-'))
-        oldSources = Object.keys(oldStyle.sources)
-          .filter(s => s.startsWith('cl-'))
-          .reduce((obj, key) => ({ ...obj, [key]: oldStyle.sources[key] }), {})
       }
+    })
+
+    // Hook up viewport events
+    map.on('move', event => {
+      const viewport: Viewport = {
+        ...props.viewport,
+        id: props.id,
+        point: { x: event.originalEvent?.x, y: event.originalEvent?.y },
+        center: props.viewport.center.lat
+          ? map.getCenter()
+          : [map.getCenter().lng, map.getCenter().lat],
+        zoom: map.getZoom(),
+        pitch: map.getPitch(),
+        bearing: map.getBearing(),
+      }
+      props.onViewportChange && props.onViewportChange(viewport)
+    })
+  })
+
+  // Update Viewport
+  createEffect(() => {
+    const viewport = {
+      ...props.viewport,
+      padding: props.viewport?.padding || 0,
+    }
+    if (!map || props.id === props.viewport?.id || userInteraction()) return
+    map?.stop()[props.transitionType](viewport)
+    debug(`Update Viewport (${props.transitionType}):`, viewport)
+  })
+
+  // Update boundaries
+  createEffect(prev => {
+    const bounds = props.viewport?.bounds
+    if (map && bounds && prev !== bounds && !userInteraction()) {
+      props.onViewportChange({
+        ...props.viewport,
+        ...map?.cameraForBounds(bounds, {
+          padding: props.viewport?.padding,
+        }),
+      })
+      debug(`Update Viewport Boundaries:`, bounds)
+    }
+    return bounds
+  }, props.viewport?.bounds)
+
+  // Update Projection
+  createEffect(prev => {
+    const proj = props.options?.projection
+    if (prev !== proj) {
+      map.setProjection(proj)
+      debug('Set Projection to:', proj)
+    }
+    return proj
+  }, props.options?.projection)
+
+  // Update cursor
+  createEffect(() => {
+    if (!props.cursorStyle || !map) return
+    map.getCanvas().style.cursor = props.cursorStyle
+    debug('Set Cursor to:', props.cursorStyle)
+  })
+
+  const insertLayers = (list, layers) => {
+    layers.forEach(layer => {
+      const index = list.findIndex(i =>
+        layer.metadata.smg.beforeType
+          ? i.type === layer.metadata.smg.beforeType
+          : i.id === layer.metadata.smg.beforeId
+      )
+      list =
+        index === -1
+          ? [...list, layer]
+          : [...list.slice(0, index), layer, ...list.slice(index + 1)]
+    })
+    return list
+  }
+
+  // Update map style
+  createEffect(prev => {
+    const style = getStyle(props.options?.style, props.darkStyle)
+    if (map?.isStyleLoaded() && prev !== style) {
+      const oldStyle = map.getStyle()
+      const oldLayers = oldStyle.layers.filter(l =>
+        map.layerIdList.includes(l.id)
+      )
+      const oldSources = Object.keys(oldStyle.sources)
+        .filter(s => map.sourceIdList.includes(s))
+        .reduce((obj, key) => ({ ...obj, [key]: oldStyle.sources[key] }), {})
+
       map.setStyle(style)
       map.once('styledata', () => {
+        if (!oldLayers) return
         const newStyle = map.getStyle()
         map.setStyle({
           ...newStyle,
           sources: { ...newStyle.sources, ...oldSources },
-          layers: [...newStyle.layers, ...oldLayers],
+          layers: insertLayers(newStyle.layers, oldLayers),
         })
       })
-      return style
-    }, props.options?.style)
+      debug('Set Mapstyle to:', style)
+    }
+    return style
+  }, props.options?.style)
 
-    // Hook up viewport events
+  // Update debug features
+  ;[
+    'showTileBoundaries',
+    'showTerrainWireframe',
+    'showCollisionBoxes',
+    'showPadding',
+    'showOverdrawInspector',
+  ].forEach(item => {
     createEffect(() => {
-      const viewport = {
-        id: null,
-        center: map.getCenter(),
-        zoom: map.getZoom(),
-        pitch: map.getPitch(),
-        bearing: map.getBearing(),
-        padding: props.viewport?.padding,
-        bounds: props.viewport?.bounds,
-      }
-
-      const callMove = event => {
-        if (event.originalEvent)
-          props.onViewportChange &&
-            props.onViewportChange({ ...viewport, id: props.id })
-        setTransitionType('jumpTo')
-      }
-
-      const callEnd = event => {
-        if (event.originalEvent)
-          props.onViewportChange && props.onViewportChange(viewport)
-        setTransitionType(props.transitionType)
-      }
-
-      map.on('move', callMove).on('moveend', callEnd)
-      onCleanup(() => map?.off('move', callMove).off('moveend', callEnd))
-    })
-
-    // Update boundaries
-    createEffect(prev => {
-      if (props.viewport?.bounds != prev)
-        props.onViewportChange({
-          ...props.viewport,
-          ...map.cameraForBounds(props.viewport?.bounds, {
-            padding: props.viewport?.padding,
-          }),
-        })
-      return props.viewport?.bounds
-    }, props.viewport?.bounds)
-
-    // Update Viewport
-    createEffect(() => {
-      if (props.id === props.viewport?.id) return
-      const viewport = {
-        ...props.viewport,
-        padding: props.viewport?.padding || 0,
-      }
-      switch (untrack(transitionType)) {
-        case 'easeTo':
-          map.stop().easeTo(viewport)
-        case 'jumpTo':
-          map.stop().jumpTo(viewport)
-        default:
-          map.stop().flyTo(viewport)
-      }
+      const prop = props[item]
+      if (!map) return
+      map[item] = prop
+      debug(`Set ${item} to:`, prop)
     })
   })
 
+  onCleanup(() => {
+    resizeObserver?.disconnect()
+    map?.remove()
+    debug('Map removed')
+  })
+
   return (
-    <MapContext.Provider value={mapRoot}>
+    <MapContext.Provider value={[mapRoot, userInteraction, debug]}>
       {mapRoot() && props.children}
       {mapRef}
     </MapContext.Provider>

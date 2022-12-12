@@ -1,13 +1,31 @@
-import { createEffect, onCleanup, createSignal, Component } from 'solid-js'
+import { createEffect, onCleanup, VoidComponent } from 'solid-js'
 import { useMap } from '../MapGL'
-import type MapboxMap from 'mapbox-gl/src/ui/map'
 import type { Options as AttributionOptions } from 'mapbox-gl/src/ui/control/attribution_control'
 import type { Options as FullscreenOptions } from 'mapbox-gl/src/ui/control/fullscreen_control'
 import type { Options as GeolocateOptions } from 'mapbox-gl/src/ui/control/geolocate_control'
 import type { Options as NavigationOptions } from 'mapbox-gl/src/ui/control/navigation_control'
 import type { Options as ScaleOptions } from 'mapbox-gl/src/ui/control/scale_control'
 
-export const Control: Component<{
+const getControl = (lib, type, options, custom?) => {
+  if (custom) return new custom(options)
+  switch (type) {
+    case 'navigation':
+      return new lib.NavigationControl(options)
+    case 'scale':
+      return new lib.ScaleControl(options)
+    case 'attribution':
+      return new lib.AttributionControl(options)
+    case 'geolocate':
+      return new lib.GeolocateControl(options)
+    case 'fullscreen':
+      return new lib.FullscreenControl()
+    // options || { container: map().container }
+    default:
+      throw new Error(`Unknown control type: ${type}`)
+  }
+}
+
+export const Control: VoidComponent<{
   type: 'navigation' | 'scale' | 'attribution' | 'fullscreen' | 'geolocate'
   options?:
     | NavigationOptions
@@ -20,38 +38,20 @@ export const Control: Component<{
   position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
   children?: any
 }> = props => {
-  const map: MapboxMap = useMap()
-  const [control, setControl] = createSignal(null)
+  if (!useMap()) return
+  const [map] = useMap()
+  const mapLib = map().mapLib
+  let control = null
 
-  // Add Control
-  createEffect(async () => {
-    const mapLib = map().mapLib
-
-    const getControl = (type, options) => {
-      if (props.custom) return new props.custom(options)
-      switch (type) {
-        case 'navigation':
-          return new mapLib.NavigationControl(options)
-        case 'scale':
-          return new mapLib.ScaleControl(options)
-        case 'attribution':
-          return new mapLib.AttributionControl(options)
-        case 'geolocate':
-          return new mapLib.GeolocateControl(options)
-        case 'fullscreen':
-          return new mapLib.FullscreenControl()
-        // options || { container: map().container }
-        default:
-          throw new Error(`Unknown control type: ${type}`)
-      }
-    }
-
-    const control = getControl(props.type, props.options)
-    control && map()?.addControl(control, props.position)
-    setControl(control)
+  // Add or Update Control
+  createEffect(() => {
+    control && map().hasControl(control) && map().removeControl(control)
+    control = getControl(mapLib, props.type, props.options, props.custom)
+    map().addControl(control, props.position)
   })
 
-  onCleanup(() => map()?.removeControl(control()))
+  // Remove Control
+  onCleanup(() => map()?.removeControl(control))
 
-  return props.children
+  return null
 }
