@@ -3,7 +3,7 @@ import { useMap } from '../MapGL'
 import type { FogSpecification } from 'mapbox-gl/src/style-spec/types.js'
 
 export const Atmosphere: VoidComponent<{
-  style: FogSpecification
+  style?: FogSpecification
 }> = props => {
   if (!useMap()) return
   const [map] = useMap()

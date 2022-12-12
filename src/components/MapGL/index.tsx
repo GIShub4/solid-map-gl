@@ -141,6 +141,7 @@ export const MapGL: Component<
       interactive: props.options.interactive || !!props.onViewportChange,
       ...props.options,
       ...props.viewport,
+      projection: props.options.projection || 'mercator',
       container: mapRef,
       style: getStyle(props.options?.style, props.darkStyle),
       fitBoundsOptions: { padding: props.viewport?.padding },
@@ -250,10 +251,9 @@ export const MapGL: Component<
   // Update Projection
   createEffect(prev => {
     const proj = props.options?.projection
-    if (prev !== proj) {
-      map.setProjection(proj)
-      debug('Set Projection to:', proj)
-    }
+    if (!map || prev === proj) return
+    map.setProjection(proj)
+    debug('Set Projection to:', proj)
     return proj
   }, props.options?.projection)
 
