@@ -49,7 +49,7 @@ export const Layer: Component<
 > = props => {
   if (!useMap()) return
   const [map] = useMap()
-  const sourceId: string = props.style.source || useSourceId()
+  const sourceId: string = props.style?.source || useSourceId()
   props.id = props.id || createUniqueId()
 
   const debug = (text, value?) => {
