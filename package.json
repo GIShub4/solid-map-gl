@@ -50,7 +50,7 @@
     "not ie 11"
   ],
   "devDependencies": {
-    "@rollup/plugin-terser": "^0.1.0",
+    "@rollup/plugin-terser": "^0.2.0",
     "jsdom": "^20.0.3",
     "mapbox-gl": "^2.11.1",
     "rollup": "^3.7.3",
