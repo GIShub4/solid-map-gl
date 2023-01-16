@@ -36,8 +36,9 @@ export type Color =
   | `rgb(${number}, ${number}, ${number})`
   | `hsl(${number}, ${number}%, ${number}%)`
 
-export const Image: VoidComponent<{
+type Props = {
   id: string
+  /** The unique identifier for the image. */
   image?:
     | HTMLImageElement
     | ImageBitmap
@@ -45,14 +46,19 @@ export const Image: VoidComponent<{
     | { width: number; height: number; data: Uint8Array | Uint8ClampedArray }
     | StyleImageInterface
     | string
+  /** The image to be used for the image component. */
   options?: StyleImageMetadata
+  /**  The options for the image */
   pattern?: {
     type: string
     color: Color
     background: Color
     lineWith: number
   }
-}> = props => {
+  /** The pattern to be used for the image component. */
+}
+
+export const Image: VoidComponent<Props> = props => {
   if (!useMap()) return
   const [map] = useMap()
   const [size, setSize] = createSignal({ width: 0, height: 0 })

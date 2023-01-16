@@ -11,10 +11,14 @@ import type {
   TerrainSpecification,
 } from 'mapbox-gl/src/style-spec/types.js'
 
-export const Terrain: VoidComponent<{
+type Props = {
+  /** Height exaggeration factor */
   exaggeration?: number
+  /** Terrain Source object */
   source?: TerrainSpecification
-}> = props => {
+}
+
+export const Terrain: VoidComponent<Props> = props => {
   if (!useMap()) return
   const [map] = useMap()
   let sourceId: SourceSpecification = useSourceId()

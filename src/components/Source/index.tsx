@@ -13,16 +13,19 @@ import { rasterStyleList } from '../../mapStyles'
 const SourceContext = createContext<string>()
 export const useSourceId = (): string => useContext(SourceContext)
 
-export const Source: Component<{
+type Props = {
   /** @optional Source ID for referencing non nexted Layers */
   id?: string
   /** @see https://docs.mapbox.com/mapbox-gl-js/style-spec/sources/ */
   source: SourceSpecification
+  /** The map layers associated with this source */
   children?: any
-}> = props => {
+}
+
+export const Source: Component<Props> = props => {
   if (!useMap()) return
   const [map] = useMap()
-  props.id = props.id || createUniqueId()
+  props.id ??= createUniqueId()
 
   const debug = (text, value?) => {
     map().debug &&

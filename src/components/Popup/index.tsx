@@ -6,13 +6,20 @@ import type {
 } from 'mapbox-gl/src/ui/popup.js'
 import type { LngLatLike } from 'mapbox-gl/src/geo/lng_lat.js'
 
-export const Popup: Component<{
+type Props = {
+  /** Options for configuring the popup */
   options?: PopupOptions
+  /** Flag for tracking the mouse pointer */
   trackPointer?: boolean
-  lngLat: LngLatLike
-  onClose?: Function
+  /** Longitude and latitude for the popup */
+  lngLat?: LngLatLike
+  /** Callback for when the popup is closed */
+  onClose?: () => void
+  /** Children to display within the popup */
   children?: any
-}> = props => {
+}
+
+export const Popup: Component<Props> = props => {
   if (!useMap()) return
   const [map] = useMap()
   let popup: PopupType = null

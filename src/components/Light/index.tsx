@@ -2,9 +2,11 @@ import { onCleanup, createEffect, VoidComponent } from 'solid-js'
 import { useMap } from '../MapGL'
 import type { LightSpecification } from 'mapbox-gl/src/style-spec/types.js'
 
-export const Light: VoidComponent<{
+type Props = {
+  /** Light Specifications */
   style: LightSpecification
-}> = props => {
+}
+export const Light: VoidComponent<Props> = props => {
   if (!useMap()) return
   const [map] = useMap()
 

@@ -135,5 +135,5 @@ render(() => <App />, document.getElementById("app")!);
 * [x] Include event handling
 * [x] Sync Maps
 * [x] Add MapLibre support
+* [x] Add debug functionality
 * [ ] Add draw functionality
-* [ ] Add debug functionality

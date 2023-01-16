@@ -25,8 +25,9 @@ const getControl = (lib, type, options, custom?) => {
   }
 }
 
-export const Control: VoidComponent<{
+type Props = {
   type: 'navigation' | 'scale' | 'attribution' | 'fullscreen' | 'geolocate'
+  /** a string that specifies the type of control to be displayed. It can be one of 'navigation', 'scale', 'attribution', 'fullscreen', or 'geolocate' */
   options?:
     | NavigationOptions
     | ScaleOptions
@@ -34,10 +35,14 @@ export const Control: VoidComponent<{
     | FullscreenOptions
     | GeolocateOptions
     | object
+  /** an optional object that contains options specific to the control type */
   custom?: any
+  /**  an optional field that allows passing a custom control element. */
   position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
-  children?: any
-}> = props => {
+  /** a string that specifies the position of the control on the map. It can be one of 'top-left', 'top-right', 'bottom-left', or 'bottom-right' */
+}
+
+export const Control: VoidComponent<Props> = props => {
   if (!useMap()) return
   const [map] = useMap()
   let control = null

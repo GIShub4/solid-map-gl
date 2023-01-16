@@ -12,7 +12,7 @@ import type { CustomLayerInterface } from 'mapbox-gl/src/style/style_layer/custo
 const diff = (
   newProps: StyleSpecification = {},
   prevProps: StyleSpecification = {}
-) => {
+): [string, any][] => {
   const keys = new Set([...Object.keys(newProps), ...Object.keys(prevProps)])
   return [...keys].reduce((acc, key: string) => {
     const value = newProps[key]
@@ -23,34 +23,44 @@ const diff = (
   }, [])
 }
 
-export const Layer: Component<
-  {
-    id?: string
-    style?: StyleSpecification
-    customLayer?: CustomLayerInterface
-    filter?: FilterSpecification
-    visible?: boolean
-    sourceId?: string
-    beforeType?:
-      | 'background'
-      | 'fill'
-      | 'line'
-      | 'symbol'
-      | 'raster'
-      | 'circle'
-      | 'fill-extrusion'
-      | 'heatmap'
-      | 'hillshade'
-      | 'sky'
-    beforeId?: string
-    featureState?: { id: number | string; state: object }
-    children?: any
-  } & layerEventTypes
-> = props => {
+type Props = {
+  id?: string
+  /** A string that uniquely identifies the layer. If not provided, a unique ID will be generated. */
+  style?: StyleSpecification
+  /** A Mapbox Style Specification object that defines the visual appearance of the layer. */
+  customLayer?: CustomLayerInterface
+  /** An object that implements the `CustomLayerInterface` interface, which allows you to create custom layers using WebGL. */
+  filter?: FilterSpecification
+  /** A Mapbox filter specification that defines which features of the layer to include or exclude from the layer. */
+  visible?: boolean
+  /** A boolean that determines whether the layer is visible or not. */
+  sourceId?: string
+  /** A string that specifies the ID of the source that the layer uses for its data. */
+  beforeType?:
+    | 'background'
+    | 'fill'
+    | 'line'
+    | 'symbol'
+    | 'raster'
+    | 'circle'
+    | 'fill-extrusion'
+    | 'heatmap'
+    | 'hillshade'
+    | 'sky'
+  /** A string that specifies the type of layer before which the current layer should be inserted. */
+  beforeId?: string
+  /** A string that specifies the ID of the layer before which the current layer should be inserted. */
+  featureState?: { id: number | string; state: object }
+  /** An object that specifies the state of a feature in the layer. The object consists of an ID (either a number or a string) and an object containing the state. */
+  children?: any
+  /** Any content that should be rendered within the layer. */
+} & layerEventTypes
+
+export const Layer: Component<Props> = props => {
   if (!useMap()) return
   const [map] = useMap()
   const sourceId: string = props.style?.source || useSourceId()
-  props.id = props.id || createUniqueId()
+  props.id ??= createUniqueId()
 
   const debug = (text, value?) => {
     map().debug &&

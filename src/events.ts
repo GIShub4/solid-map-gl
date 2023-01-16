@@ -1,53 +1,53 @@
 type mapEventTypes = {
-  onMouseDown?: Function
-  onMouseUp?: Function
-  onMouseOver?: Function
-  onMouseOut?: Function
-  onMouseMove?: Function
-  onMouseEnter?: Function
-  onMouseLeave?: Function
-  onPreClick?: Function
-  onClick?: Function
-  onDblClick?: Function
-  onContextMenu?: Function
-  onTouchStart?: Function
-  onTouchEnd?: Function
-  onTouchCancel?: Function
-  onWheel?: Function
-  onResize?: Function
-  onRemove?: Function
-  onTouchMove?: Function
-  onMoveStart?: Function
-  onMove?: Function
-  onMoveEnd?: Function
-  onDragStart?: Function
-  onDrag?: Function
-  onDragEnd?: Function
-  onZoomStart?: Function
-  onZoom?: Function
-  onZoomEnd?: Function
-  onRotateStart?: Function
-  onRotate?: Function
-  onRotatEnd?: Function
-  onPitchStart?: Function
-  onPitch?: Function
-  onPitchEnd?: Function
-  onBoxZoomStart?: Function
-  onBoxZoomEnd?: Function
-  onBoxZoomCancel?: Function
-  onWebglContextLost?: Function
-  onWebglContextRestored?: Function
-  onLoad?: Function
-  onRender?: Function
-  onIdle?: Function
-  onError?: Function
-  onData?: Function
-  onStyleData?: Function
-  onSourceData?: Function
-  onDataLoading?: Function
-  onStyleDataLoading?: Function
-  onSourceDataLoading?: Function
-  onStyleImageMissing?: Function
+  onMouseDown?: () => void
+  onMouseUp?: () => void
+  onMouseOver?: () => void
+  onMouseOut?: () => void
+  onMouseMove?: () => void
+  onMouseEnter?: () => void
+  onMouseLeave?: () => void
+  onPreClick?: () => void
+  onClick?: () => void
+  onDblClick?: () => void
+  onContextMenu?: () => void
+  onTouchStart?: () => void
+  onTouchEnd?: () => void
+  onTouchCancel?: () => void
+  onWheel?: () => void
+  onResize?: () => void
+  onRemove?: () => void
+  onTouchMove?: () => void
+  onMoveStart?: () => void
+  onMove?: () => void
+  onMoveEnd?: () => void
+  onDragStart?: () => void
+  onDrag?: () => void
+  onDragEnd?: () => void
+  onZoomStart?: () => void
+  onZoom?: () => void
+  onZoomEnd?: () => void
+  onRotateStart?: () => void
+  onRotate?: () => void
+  onRotatEnd?: () => void
+  onPitchStart?: () => void
+  onPitch?: () => void
+  onPitchEnd?: () => void
+  onBoxZoomStart?: () => void
+  onBoxZoomEnd?: () => void
+  onBoxZoomCancel?: () => void
+  onWebglContextLost?: () => void
+  onWebglContextRestored?: () => void
+  onLoad?: () => void
+  onRender?: () => void
+  onIdle?: () => void
+  onError?: () => void
+  onData?: () => void
+  onStyleData?: () => void
+  onSourceData?: () => void
+  onDataLoading?: () => void
+  onStyleDataLoading?: () => void
+  onSourceDataLoading?: () => void
+  onStyleImageMissing?: () => void
 }
 
 const mapEvents: string[] = [
@@ -103,19 +103,32 @@ const mapEvents: string[] = [
 ]
 
 type layerEventTypes = {
-  onMouseDown?: Function
-  onMouseUp?: Function
-  onMouseOver?: Function
-  onMouseOut?: Function
-  onMouseMove?: Function
-  onMouseEnter?: Function
-  onMouseLeave?: Function
-  onClick?: Function
-  onDblClick?: Function
-  onContextMenu?: Function
-  onTouchStart?: Function
-  onTouchEnd?: Function
-  onTouchCancel?: Function
+  onMouseDown?: () => void
+  /** called when the mouse button is pressed down on the layer */
+  onMouseUp?: () => void
+  /** called when the mouse button is released after a mouse down event on the layer */
+  onMouseOver?: () => void
+  /** called when the mouse enters the layer */
+  onMouseOut?: () => void
+  /** called when the mouse leaves the layer */
+  onMouseMove?: () => void
+  /** called when the mouse is moved over the layer */
+  onMouseEnter?: () => void
+  /** called when the mouse enters the layer */
+  onMouseLeave?: () => void
+  /** called when the mouse leaves the layer */
+  onClick?: () => void
+  /** called when the layer is clicked */
+  onDblClick?: () => void
+  /** called when the layer is double-clicked */
+  onContextMenu?: () => void
+  /** called when the context menu is triggered on the layer */
+  onTouchStart?: () => void
+  /** called when a touch event is started on the layer */
+  onTouchEnd?: () => void
+  /** called when a touch event is ended on the layer */
+  onTouchCancel?: () => void
+  /** called when a touch event is cancelled on the layer */
 }
 
 const layerEvents: any[] = [

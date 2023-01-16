@@ -7,16 +7,27 @@ const lerp = (a, b, t) => a.map((_, idx) => (1.0 - t) * a[idx] + t * b[idx])
 
 // sphericaly interpolate between two positions [x,y,z] based on time
 const slerp = (a, b, t) => {
-  const omega = 0.075
-  // TODO: Proper Calculation
-  // a.map((_, idx) => a[idx] * b[idx]).reduce((m, n) => m + n)
+  const dotProduct = a.map((_, idx) => a[idx] * b[idx]).reduce((m, n) => m + n)
+  const theta = Math.acos(dotProduct)
 
   return a.map(
     (_, idx) =>
-      (Math.sin((1 - t) * omega) / Math.sin(omega)) * a[idx] +
-      (Math.sin(t * omega) / Math.sin(omega)) * b[idx]
+      (Math.sin((1 - t) * theta) / Math.sin(theta)) * a[idx] +
+      (Math.sin(t * theta) / Math.sin(theta)) * b[idx]
   )
 }
+
+// const slerp = (a, b, t) => {
+//   const omega = 0.075
+//   // TODO: Proper Calculation
+//   // a.map((_, idx) => a[idx] * b[idx]).reduce((m, n) => m + n)
+
+//   return a.map(
+//     (_, idx) =>
+//       (Math.sin((1 - t) * omega) / Math.sin(omega)) * a[idx] +
+//       (Math.sin(t * omega) / Math.sin(omega)) * b[idx]
+//   )
+// }
 
 // calculations from: https://easings.net
 const easeQuad = {
@@ -34,7 +45,7 @@ interface RotateOptions {
   around?: LngLatLike
 }
 
-export const Camera: Component<{
+type Props = {
   rotateGlobe?: boolean | RotateOptions
   rotateViewport?: boolean | RotateOptions
   translate?: {
@@ -48,7 +59,9 @@ export const Camera: Component<{
     duration: number
   }
   children?: any
-}> = props => {
+}
+
+export const Camera: Component<Props> = props => {
   if (!useMap()) return
   const [map, userInteraction] = useMap()
   let animationTime = 0.1
@@ -92,43 +105,30 @@ export const Camera: Component<{
     const maxSpinZoom = (props.rotateGlobe as RotateOptions).maxZoom || 5
     const slowSpinZoom = (props.rotateGlobe as RotateOptions).slowZoom || 3
     const zoom = map().getZoom()
+    if (!props.rotateGlobe || userInteraction() || zoom > maxSpinZoom) return
 
-    if (props.rotateGlobe && !userInteraction() && zoom < maxSpinZoom) {
-      let distancePerSecond = 360 / secPerRev
-      if (zoom > slowSpinZoom) {
-        const zoomDif = (maxSpinZoom - zoom) / (maxSpinZoom - slowSpinZoom)
-        distancePerSecond *= zoomDif
-      }
-      const center = map().getCenter()
-      center.lng -= distancePerSecond
-      map().easeTo({ center, duration: 1000, easing: n => n }, { rotate: true })
-    }
+    let distancePerSecond = 360 / secPerRev
+    if (zoom > slowSpinZoom)
+      distancePerSecond *= (maxSpinZoom - zoom) / (maxSpinZoom - slowSpinZoom)
+    const center = map().getCenter()
+    center.lng -= distancePerSecond
+    map().easeTo({ center, duration: 1000, easing: n => n }, { rotate: true })
   }
 
   const rotateViewport = () => {
+    if (!props.rotateViewport || userInteraction()) return
     const secPerRev = (props.rotateViewport as RotateOptions)?.secPerRev || 60
-    // const maxSpinZoom = (props.rotateViewport as RotateOptions)?.maxZoom || 5
-    // const slowSpinZoom = (props.rotateViewport as RotateOptions)?.slowZoom || 3
-    // const zoom = map().getZoom()
-
-    if (props.rotateViewport && !userInteraction()) {
-      let distancePerSecond = 360 / secPerRev
-      // if (zoom > slowSpinZoom) {
-      //   const zoomDif = (maxSpinZoom - zoom) / (maxSpinZoom - slowSpinZoom)
-      //   distancePerSecond *= zoomDif
-      // }
-      const bearing = map().getBearing() - distancePerSecond
-      map().easeTo(
-        {
-          bearing,
-          pitch: (props.rotateViewport as RotateOptions)?.pitch || 80,
-          duration: 1000,
-          around: (props.rotateViewport as RotateOptions)?.around,
-          easing: n => n,
-        },
-        { rotate: true }
-      )
-    }
+    const bearing = map().getBearing() - 360 / secPerRev
+    map().easeTo(
+      {
+        bearing,
+        pitch: (props.rotateViewport as RotateOptions)?.pitch || 60,
+        duration: 1000,
+        around: (props.rotateViewport as RotateOptions)?.around,
+        easing: n => n,
+      },
+      { rotate: true }
+    )
   }
 
   map().on('moveend', evt =>
