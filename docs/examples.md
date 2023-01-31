@@ -39,11 +39,8 @@ description: List of example links run in SolidJS playground
 {% endtab %}
 
 {% tab title="Overlay" %}
-* [Add Default Controls](https://stackblitz.com/edit/solid-map-gl-controls?embed=1&file=src%2Findex.tsx)
-* [Add Custom Control (Traffic)](https://stackblitz.com/edit/solid-map-gl-traffic?embed=1&file=src%2Findex.tsx)
-* [Add Custom Control (Geolocation)](https://stackblitz.com/edit/solid-map-gl-geolocate?embed=1&file=src%2Findex.tsx)
-* [Dynamic Marker](https://stackblitz.com/edit/solid-map-gl-marker?embed=1&file=src%2Findex.tsx)
-* [Dynamic Popup](https://stackblitz.com/edit/solid-map-gl-popup?embed=1&file=src%2Findex.tsx)
+* [Dynamic Controls / Traffic / Geocoder](https://stackblitz.com/edit/solid-map-gl-controls?embed=1&file=src%2Findex.tsx)
+* [Dynamic Marker / Popup](https://stackblitz.com/edit/solid-map-gl-marker-popup?embed=1&file=src/index.tsx)
 {% endtab %}
 
 {% tab title="3D" %}

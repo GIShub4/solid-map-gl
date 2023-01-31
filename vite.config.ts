@@ -6,6 +6,8 @@ import solid from 'vite-plugin-solid'
 
 export default defineConfig({
   test: {
+    globals: true,
+    setupFiles: ['./vitest.setup.ts'],
     environment: 'jsdom',
     transformMode: {
       web: [/\.[jt]sx?$/],

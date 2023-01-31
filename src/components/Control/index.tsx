@@ -26,7 +26,7 @@ const getControl = (lib, type, options, custom?) => {
 }
 
 type Props = {
-  type: 'navigation' | 'scale' | 'attribution' | 'fullscreen' | 'geolocate'
+  type?: 'navigation' | 'scale' | 'attribution' | 'fullscreen' | 'geolocate'
   /** a string that specifies the type of control to be displayed. It can be one of 'navigation', 'scale', 'attribution', 'fullscreen', or 'geolocate' */
   options?:
     | NavigationOptions
