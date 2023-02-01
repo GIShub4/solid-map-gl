@@ -8,8 +8,7 @@ description: List of example links run in SolidJS playground
 {% tab title="Map" %}
 * [Static Map](https://stackblitz.com/edit/solid-map-gl-static?embed=1&file=src%2Findex.tsx)
 * [Interactive Map](https://stackblitz.com/edit/solid-map-gl-interactive?embed=1&file=src%2Findex.tsx)
-* [Change Base Map (Mapbox)](https://stackblitz.com/edit/solid-map-gl-change-mb?embed=1&file=src%2Findex.tsx)
-* [Change Base Map (Esri)](https://stackblitz.com/edit/solid-map-gl-change-esri?embed=1&file=src%2Findex.tsx)
+* [Change Vector 'Base Map'](https://stackblitz.com/edit/solid-map-gl-vector-base?embed=1&file=src%2Findex.tsx)
 * [Toggle Dark Theme Map](https://stackblitz.com/edit/solid-map-gl-dark-theme?embed=1&file=src%2Findex.tsx)
 * [Change Projection](https://stackblitz.com/edit/solid-map-gl-projection?embed=1&file=src%2Findex.tsx)
 * [Display Mouse Coordinates](https://stackblitz.com/edit/solid-map-gl-mouse?embed=1&file=src%2Findex.tsx)
@@ -26,7 +25,7 @@ description: List of example links run in SolidJS playground
 * [Updating GeoJSON Source](https://stackblitz.com/edit/solid-map-gl-update?embed=1&file=src%2Findex.tsx)
 * [Add Vector Source](https://stackblitz.com/edit/solid-map-gl-vector?embed=1&file=src%2Findex.tsx)
 * [Add Raster Source](https://stackblitz.com/edit/solid-map-gl-raster?embed=1&file=src%2Findex.tsx)
-* [Toggle Raster Sources](https://stackblitz.com/edit/solid-map-gl-toggle-raster?embed=1&file=src%2Findex.tsx)
+* [Change Raster 'Base Map'](https://stackblitz.com/edit/solid-map-gl-toggle-raster?embed=1&file=src%2Findex.tsx)
 * [Add Image Source](https://stackblitz.com/edit/solid-map-gl-image-source?embed=1&file=src%2Findex.tsx)
 * [Add Image](https://stackblitz.com/edit/solid-map-gl-image?embed=1&file=src%2Findex.tsx)
 * [Add Video](https://stackblitz.com/edit/solid-map-gl-video?embed=1&file=src%2Findex.tsx)
@@ -44,9 +43,8 @@ description: List of example links run in SolidJS playground
 {% endtab %}
 
 {% tab title="3D" %}
+* [3D Overlays](https://stackblitz.com/edit/solid-map-gl-3d-overlay?embed=1&file=src%2Findex.tsx)
 * [Add Hillshade](https://stackblitz.com/edit/solid-map-gl-hillshade?embed=1&file=src%2Findex.tsx)
-* [Add Terrain](https://stackblitz.com/edit/solid-map-gl-terrain?embed=1&file=src%2Findex.tsx)
-* [Add Atmosphere](https://stackblitz.com/edit/solid-map-gl-atmosphere?embed=1&file=src%2Findex.tsx)
 * [Add Globe](https://stackblitz.com/edit/solid-map-gl-globe?embed=1&file=src%2Findex.tsx)
 * [Query Elevation](https://stackblitz.com/edit/solid-map-gl-query-elevation?embed=1&file=src%2Findex.tsx)
 * ~~Camera Transition~~
