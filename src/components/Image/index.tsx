@@ -110,7 +110,9 @@ export const MGL_Image: VoidComponent<Props> = props => {
           ctx.drawImage(img, 0, 0)
           return callback(ctx.getImageData(0, 0, img.width, img.height))
         }
-        img.src = image
+        img.src = image.trimStart().startsWith('<svg')
+          ? 'data:image/svg+xml;charset=utf-8,' + image
+          : image
       } else {
         return callback(imageData)
       }
