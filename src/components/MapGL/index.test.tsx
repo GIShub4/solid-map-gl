@@ -1,5 +1,5 @@
 import { describe, it } from 'vitest'
-import { render } from 'solid-testing-library'
+import { render } from '@solidjs/testing-library'
 import MapGL from '../..'
 import 'mapbox-gl/dist/mapbox-gl.css'
 

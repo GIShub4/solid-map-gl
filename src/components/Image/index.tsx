@@ -43,6 +43,7 @@ type Props = {
     | HTMLImageElement
     | ImageBitmap
     | ImageData
+    | SVGElement
     | { width: number; height: number; data: Uint8Array | Uint8ClampedArray }
     | StyleImageInterface
     | string
@@ -58,7 +59,7 @@ type Props = {
   /** The pattern to be used for the image component. */
 }
 
-export const Image: VoidComponent<Props> = props => {
+export const MGL_Image: VoidComponent<Props> = props => {
   if (!useMap()) return
   const [map] = useMap()
   const [size, setSize] = createSignal({ width: 0, height: 0 })
@@ -93,12 +94,26 @@ export const Image: VoidComponent<Props> = props => {
     })
   })
 
-  // Load Image from URL
+  // Load Image / SVG from URL
   const _loadImage = (image, callback) => {
     if (typeof image !== 'string') return callback(image)
     map().loadImage(image, (error, imageData) => {
-      if (error) throw error
-      return callback(imageData)
+      if (error) {
+        const img = new Image()
+        img.crossOrigin = 'Anonymous'
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          canvas.width = img.width
+          canvas.height = img.height
+          const ctx = canvas.getContext('2d')
+          ctx.imageSmoothingEnabled = true
+          ctx.drawImage(img, 0, 0)
+          return callback(ctx.getImageData(0, 0, img.width, img.height))
+        }
+        img.src = image
+      } else {
+        return callback(imageData)
+      }
     })
   }
 

@@ -9,7 +9,7 @@ description: Image Component
 | Name    | Type                                                                                     | Description                                                                                      |
 | ------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | id\*    | string                                                                                   | ID to reference image in layer style                                                             |
-| image\* | [HTMLImageElement](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#addimage) \| string | ImageBitmap or [Loadable Image URL](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#loadimage) |
+| image\* | [HTMLImageElement, SVGElement, ImageBitmap, ImageData](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#addimage) \| string | ImageBitmap or [Loadable Image URL](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#loadimage) |
 | options | object                                                                                   | [Add image options](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#addimage)                  |
 
 _\*required_
