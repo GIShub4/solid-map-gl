@@ -34,12 +34,14 @@ export const patternList = Object.keys(PATTERN)
 export type Color =
   | `#${string}`
   | `rgb(${number}, ${number}, ${number})`
+  | `rgba(${number}, ${number}, ${number}, ${number})`
   | `hsl(${number}, ${number}%, ${number}%)`
+  | `hsla(${number}, ${number}%, ${number}%, ${number})`
 
 type Props = {
   id: string
   /** The unique identifier for the image. */
-  image?:
+  source?:
     | HTMLImageElement
     | ImageBitmap
     | ImageData
@@ -48,7 +50,7 @@ type Props = {
     | StyleImageInterface
     | string
   /** The image to be used for the image component. */
-  options?: StyleImageMetadata
+  options?: StyleImageMetadata & { fill?: Color; stroke?: Color }
   /**  The options for the image */
   pattern?: {
     type: string
@@ -70,14 +72,14 @@ export const MGL_Image: VoidComponent<Props> = props => {
   // Add or Update Image
   createEffect(() => {
     if (!props.id) throw new Error('Image - ID is required')
-    if (!props.image && !props.pattern)
+    if (!props.source && !props.pattern)
       throw new Error('Image - Image or Pattern is required')
 
     const ops = props.pattern
       ? { pixelRatio: 2, ...props.options }
       : props.options
 
-    _loadImage(props.image || _createPattern(props.pattern), data => {
+    _loadImage(props.source || _createPattern(props.pattern), data => {
       const { width, height } = data
       if (!map().hasImage(props.id)) map().addImage(props.id, data, ops)
       if (
@@ -94,11 +96,30 @@ export const MGL_Image: VoidComponent<Props> = props => {
     })
   })
 
-  // Load Image / SVG from URL
+  // Load Image / SVG
   const _loadImage = (image, callback) => {
+    if (typeof image == 'string' && image?.trimStart().startsWith('<svg')) {
+      image = new DOMParser().parseFromString(image, 'image/svg+xml')
+        .childNodes[0]
+    }
+    if (image instanceof SVGElement) {
+      props.options?.fill && image.setAttribute('fill', props.options.fill)
+      props.options?.stroke &&
+        image.setAttribute('stroke', props.options.stroke)
+      image = new XMLSerializer().serializeToString(image)
+    }
     if (typeof image !== 'string') return callback(image)
-    map().loadImage(image, (error, imageData) => {
+    map().loadImage(image, async (error, imageData) => {
       if (error) {
+        if (typeof image == 'string' && image?.trimEnd().endsWith('.svg')) {
+          image = await (await fetch(image)).text()
+          image = new DOMParser().parseFromString(image, 'image/svg+xml')
+            .childNodes[0]
+          props.options?.fill && image.setAttribute('fill', props.options.fill)
+          props.options?.stroke &&
+            image.setAttribute('stroke', props.options.stroke)
+          image = new XMLSerializer().serializeToString(image)
+        }
         const img = new Image()
         img.crossOrigin = 'Anonymous'
         img.onload = () => {
