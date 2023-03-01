@@ -48,6 +48,8 @@ interface RotateOptions {
 type Props = {
   rotateGlobe?: boolean | RotateOptions
   rotateViewport?: boolean | RotateOptions
+  reverse: boolean
+  resetWhenStopped?: boolean
   translate?: {
     type?: 'line' | 'sphere'
     start: [number, number, number]
@@ -111,14 +113,18 @@ export const Camera: Component<Props> = props => {
     if (zoom > slowSpinZoom)
       distancePerSecond *= (maxSpinZoom - zoom) / (maxSpinZoom - slowSpinZoom)
     const center = map().getCenter()
-    center.lng -= distancePerSecond
+    center.lng = props.reverse
+      ? center.lng + distancePerSecond
+      : center.lng - distancePerSecond
     map().easeTo({ center, duration: 1000, easing: n => n }, { rotate: true })
   }
 
   const rotateViewport = () => {
     if (!props.rotateViewport || userInteraction()) return
     const secPerRev = (props.rotateViewport as RotateOptions)?.secPerRev || 60
-    const bearing = map().getBearing() - 360 / secPerRev
+    const bearing = props.reverse
+      ? map().getBearing() + 360 / secPerRev
+      : map().getBearing() - 360 / secPerRev
     map().easeTo(
       {
         bearing,
@@ -131,19 +137,32 @@ export const Camera: Component<Props> = props => {
     )
   }
 
-  map().on('moveend', evt =>
+  map().on('moveend', evt => {
     evt.rotate && props.rotateGlobe ? rotateGlobe() : rotateViewport()
+  })
+  map().on('dragend', evt =>
+    props.rotateGlobe ? rotateGlobe() : rotateViewport()
   )
 
-  createEffect(() =>
-    props.rotateGlobe ? !userInteraction() && rotateGlobe() : map().stop()
-  )
+  let originalCenter
+  createEffect(() => {
+    if (props.rotateGlobe == undefined) return
+    if (props.rotateGlobe) {
+      originalCenter = map().getCenter()
+      rotateGlobe()
+    } else {
+      map().stop().easeTo({ center: originalCenter })
+    }
+  })
 
-  createEffect(() =>
+  createEffect(() => {
+    if (props.rotateViewport == undefined) return
     props.rotateViewport
-      ? !userInteraction() && rotateViewport()
-      : map().stop().resetNorthPitch()
-  )
+      ? rotateViewport()
+      : props.resetWhenStopped
+      ? map().stop().resetNorthPitch()
+      : map().stop()
+  })
 
   return props.children
 }

@@ -8,9 +8,11 @@ description: Represents the map's camera
 
 | Name     | Type   | Description                                                                          |
 | -------- | ------ | ------------------------------------------------------------------------------------ |
-|rotateGlobe| object| rotate map when in globe view |
+|rotateGlobe| object| rotate map when in globe view|
 |rotateViewport| object| rotate map arounf center|
-| translate| object| translate viewport in 3D space
+|reverse| boolean| reverses the rotation direction|
+|resetWhenStopped| boolean| returns to origin when rotation stopped|
+|translate| object| translate viewport in 3D space|
 
 _\*required_\
 _^default_

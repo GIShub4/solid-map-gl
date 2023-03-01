@@ -10,7 +10,7 @@ description: Image Component
 | ------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | id\*    | string                                                                                   | ID to reference image in layer style                                                             |
 | image\* | [HTMLImageElement, SVGElement, ImageBitmap, ImageData](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#addimage) \| string | ImageBitmap or [Loadable Image URL](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#loadimage) |
-| options | object                                                                                   | [Add image options](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#addimage)                  |
+| options  | object or { stroke \| fill \| transform }                                                                                | [Add image options](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#addimage) or overwrite SVG properties                |
 
 _\*required_
 

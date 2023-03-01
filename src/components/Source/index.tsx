@@ -94,17 +94,9 @@ export const Source: Component<Props> = props => {
       break
     case 'raster':
       createEffect(() => {
-        const url = props.source.url
+        const src = lookup(props.source.url)
         if (!map().isSourceLoaded(props.id)) return
-        const src = lookup(url)
-        src.tiles &&
-          (src.tiles = ['a', 'b', 'c'].map(i => src.tiles[0].replace('{s}', i)))
-        source._tileJSONRequest?.cancel()
-        source.url = src.url
-        source.scheme = src.scheme
-        source._options = { ...source._options, ...src }
-        map().style._sourceCaches[`other:${props.id}`]?.clearTiles()
-        source.load()
+        src.url ? source.setUrl(src.url) : source.setTiles(src.tiles)
         debug('Update Raster Data:', props.id)
       })
       break
@@ -117,7 +109,7 @@ export const Source: Component<Props> = props => {
       .layers.forEach(
         layer => layer.source === props.id && map().removeLayer(layer.id)
       )
-    map().removeSource(props.id)
+    map().getSource(props.id) && map().removeSource(props.id)
     debug('Remove Source:', props.id)
   })
 

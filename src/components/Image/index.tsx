@@ -50,7 +50,11 @@ type Props = {
     | StyleImageInterface
     | string
   /** The image to be used for the image component. */
-  options?: StyleImageMetadata & { fill?: Color; stroke?: Color }
+  options?: StyleImageMetadata & {
+    fill?: Color
+    stroke?: Color
+    transform?: string
+  }
   /**  The options for the image */
   pattern?: {
     type: string
@@ -115,21 +119,21 @@ export const MGL_Image: VoidComponent<Props> = props => {
           image = await (await fetch(image)).text()
           image = new DOMParser().parseFromString(image, 'image/svg+xml')
             .childNodes[0]
-          props.options?.fill && image.setAttribute('fill', props.options.fill)
-          props.options?.stroke &&
-            image.setAttribute('stroke', props.options.stroke)
+          image.setAttribute('fill', props.options.fill)
+          image.setAttribute('stroke', props.options.stroke)
+          image.setAttribute('transform', props.options.transform)
           image = new XMLSerializer().serializeToString(image)
         }
         const img = new Image()
         img.crossOrigin = 'Anonymous'
         img.onload = () => {
           const canvas = document.createElement('canvas')
-          canvas.width = img.width
-          canvas.height = img.height
+          canvas.width = Math.max(img.width, 50)
+          canvas.height = Math.max(img.height, 50)
           const ctx = canvas.getContext('2d')
           ctx.imageSmoothingEnabled = true
-          ctx.drawImage(img, 0, 0)
-          return callback(ctx.getImageData(0, 0, img.width, img.height))
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+          return callback(ctx.getImageData(0, 0, canvas.width, canvas.height))
         }
         img.src = image.trimStart().startsWith('<svg')
           ? 'data:image/svg+xml;charset=utf-8,' + image
