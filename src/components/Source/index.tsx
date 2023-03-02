@@ -109,7 +109,7 @@ export const Source: Component<Props> = props => {
       .layers.forEach(
         layer => layer.source === props.id && map().removeLayer(layer.id)
       )
-    map().getSource(props.id) && map().removeSource(props.id)
+    map()?.getSource(props.id) && map()?.removeSource(props.id)
     debug('Remove Source:', props.id)
   })
 

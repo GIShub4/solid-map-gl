@@ -1,4 +1,4 @@
-import { createEffect, Component } from 'solid-js'
+import { createEffect, Component, onCleanup } from 'solid-js'
 import { useMap } from '../MapGL'
 import type LngLatLike from 'mapbox-gl/src/geo/lng_lat.js'
 
@@ -37,18 +37,22 @@ const easeQuad = {
     x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2,
 }
 
-interface RotateOptions {
+interface RotateGlobeOptions {
   secPerRev?: number
   maxZoom?: number
   slowZoom?: number
+}
+
+interface RotateViewportOptions {
+  secPerRev?: number
   pitch?: number
   around?: LngLatLike
 }
 
 type Props = {
-  rotateGlobe?: boolean | RotateOptions
-  rotateViewport?: boolean | RotateOptions
-  reverse: boolean
+  rotateGlobe?: boolean | RotateGlobeOptions
+  rotateViewport?: boolean | RotateViewportOptions
+  reverse?: boolean
   resetWhenStopped?: boolean
   translate?: {
     type?: 'line' | 'sphere'
@@ -103,9 +107,9 @@ export const Camera: Component<Props> = props => {
   })
 
   const rotateGlobe = () => {
-    const secPerRev = (props.rotateGlobe as RotateOptions).secPerRev || 120
-    const maxSpinZoom = (props.rotateGlobe as RotateOptions).maxZoom || 5
-    const slowSpinZoom = (props.rotateGlobe as RotateOptions).slowZoom || 3
+    const secPerRev = (props.rotateGlobe as RotateGlobeOptions).secPerRev || 120
+    const maxSpinZoom = (props.rotateGlobe as RotateGlobeOptions).maxZoom || 5
+    const slowSpinZoom = (props.rotateGlobe as RotateGlobeOptions).slowZoom || 3
     const zoom = map().getZoom()
     if (!props.rotateGlobe || userInteraction() || zoom > maxSpinZoom) return
 
@@ -121,28 +125,29 @@ export const Camera: Component<Props> = props => {
 
   const rotateViewport = () => {
     if (!props.rotateViewport || userInteraction()) return
-    const secPerRev = (props.rotateViewport as RotateOptions)?.secPerRev || 60
+    const secPerRev =
+      (props.rotateViewport as RotateViewportOptions)?.secPerRev || 60
     const bearing = props.reverse
       ? map().getBearing() + 360 / secPerRev
       : map().getBearing() - 360 / secPerRev
     map().easeTo(
       {
         bearing,
-        pitch: (props.rotateViewport as RotateOptions)?.pitch || 60,
+        pitch: (props.rotateViewport as RotateViewportOptions)?.pitch || 60,
         duration: 1000,
-        around: (props.rotateViewport as RotateOptions)?.around,
+        around: (props.rotateViewport as RotateViewportOptions)?.around,
         easing: n => n,
       },
       { rotate: true }
     )
   }
 
-  map().on('moveend', evt => {
+  const onMoveEnd = evt => {
     evt.rotate && props.rotateGlobe ? rotateGlobe() : rotateViewport()
-  })
-  map().on('dragend', evt =>
-    props.rotateGlobe ? rotateGlobe() : rotateViewport()
-  )
+  }
+  const onDragEnd = () => (props.rotateGlobe ? rotateGlobe() : rotateViewport())
+
+  map().on('moveend', onMoveEnd).on('dragend', onDragEnd)
 
   let originalCenter
   createEffect(() => {
@@ -151,7 +156,9 @@ export const Camera: Component<Props> = props => {
       originalCenter = map().getCenter()
       rotateGlobe()
     } else {
-      map().stop().easeTo({ center: originalCenter })
+      props.resetWhenStopped
+        ? map().stop().easeTo({ center: originalCenter })
+        : map().stop()
     }
   })
 
@@ -163,6 +170,8 @@ export const Camera: Component<Props> = props => {
       ? map().stop().resetNorthPitch()
       : map().stop()
   })
+
+  onCleanup(() => map().off('moveend', onMoveEnd).off('dragend', onDragEnd))
 
   return props.children
 }

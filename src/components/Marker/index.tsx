@@ -62,8 +62,7 @@ export const Marker: Component<Props> = props => {
         .on('dragstart', () => props.onDragStart?.())
         .on('dragend', () => props.onDragEnd?.())
         .on('drag', () => props.onLngLatChange?.(marker.getLngLat().toArray()))
-      marker
-        .setDraggable(props.draggable || props.options.draggable)
+        .setDraggable(props.draggable || props.options?.draggable)
         .setLngLat(props.lngLat)
         .addTo(map())
       props.openPopup !== popup?.isOpen() && marker.togglePopup()

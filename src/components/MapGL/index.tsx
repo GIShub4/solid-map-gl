@@ -262,9 +262,12 @@ export const MapGL: Component<Props> = props => {
   createEffect(prev => {
     const style = getStyle(props.options?.style, props.darkStyle)
     if (map?.isStyleLoaded() && prev !== style) {
+      // map.once('idle', () => {
       map.setStyle(style)
       map.once('styledata', () => setMapChanged(c => ++c))
       debug('Set Mapstyle to:', style)
+      // })
+      // map.isMoving() && map.stop()
     }
     return style
   }, props.options?.style)
