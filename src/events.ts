@@ -155,5 +155,38 @@ const layerEvents: any[] = [
   'onTouchCancel',
 ]
 
-export { mapEvents, layerEvents }
-export type { mapEventTypes, layerEventTypes }
+const drawEvents: any[] = [
+  'onCreate',
+  'onDelete',
+  'onCombine',
+  'onUncombine',
+  'onUpdate',
+  'onSelectionchange',
+  'onModechange',
+  'onRender',
+  'onActionable',
+]
+
+type drawEventTypes = {
+  onCreate?: (event: Object) => void
+  /** called when a feature is created */
+  onDelete?: (event: Object) => void
+  /** called when a feature is deleted */
+  onCombine?: (event: Object) => void
+  /** called when features are combined */
+  onUncombine?: (event: Object) => void
+  /** called when features are uncombined */
+  onUpdate?: (event: Object) => void
+  /** called when a feature is updated */
+  onSelectionchange?: (event: Object) => void
+  /** called when the selected features change */
+  onModechange?: (event: Object) => void
+  /** called when the draw mode changes */
+  onRender?: (event: Object) => void
+  /** called when the draw canvas is re-rendered */
+  onActionable?: (event: Object) => void
+  /** called when the state of the draw controls changes */
+}
+
+export { mapEvents, layerEvents, drawEvents }
+export type { mapEventTypes, layerEventTypes, drawEventTypes }

@@ -134,7 +134,7 @@ export const MapGL: Component<Props> = props => {
       ...props.viewport,
       projection: props.options?.projection || 'mercator',
       container: mapRef,
-      style: getStyle(props.options?.style || 'mb:light', props.darkStyle),
+      style: getStyle(props.options?.style, props.darkStyle),
       fitBoundsOptions: { padding: props.viewport?.padding },
     } as MapboxOptions)
 

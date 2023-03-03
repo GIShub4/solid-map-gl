@@ -68,7 +68,6 @@ export const Layer: Component<Props> = props => {
   }
 
   // Add Layer
-  // if (!map().getLayer(props.id)) {
   map().addLayer(
     props.customLayer || {
       ...props.style,
@@ -97,7 +96,6 @@ export const Layer: Component<Props> = props => {
       })
     }
   })
-  // }
 
   // Update Style
   createEffect((prev: StyleSpecification) => {
