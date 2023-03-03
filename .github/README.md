@@ -44,6 +44,7 @@ pnpm dev
 | [Marker](https://gis-hub.gitbook.io/solid-map-gl/components/marker)     | Component for [Mapbox GL JS Marker](https://docs.mapbox.com/mapbox-gl-js/api/#marker)                                  |
 | [Control](https://gis-hub.gitbook.io/solid-map-gl/components/control) | Represents the map's control                                                                                           |
 | [Camera](https://gis-hub.gitbook.io/solid-map-gl/components/camera) | Map's camera view                                                                                           |
+| [Draw](https://gis-hub.gitbook.io/solid-map-gl/components/draw) | Draw Control view                                                                                           |
 
 ## Usage with [Mapbox](https://docs.mapbox.com/mapbox-gl-js/guides/)
 Pass the *Mapbox access token* via `<MapGL> options` or `.env` file as `VITE_MAPBOX_ACCESS_TOKEN`
@@ -136,4 +137,4 @@ render(() => <App />, document.getElementById("app")!);
 * [x] Sync Maps
 * [x] Add MapLibre support
 * [x] Add debug functionality
-* [ ] Add draw functionality
+* [x] Add draw functionality
