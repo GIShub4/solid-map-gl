@@ -70,8 +70,16 @@ export const MGL_Image: VoidComponent<Props> = props => {
   const [map] = useMap()
   const [size, setSize] = createSignal({ width: 0, height: 0 })
 
+  const debug = (text, value?) => {
+    map().debug &&
+      console.debug('%c[MapGL]', 'color: #10b981', text, value || '')
+  }
+
   // Remove Image
-  onCleanup(() => map()?.hasImage(props.id) && map()?.removeImage(props.id))
+  onCleanup(() => {
+    map()?.hasImage(props.id) && map()?.removeImage(props.id)
+    debug('Remove Image:', props.id)
+  })
 
   // Add or Update Image
   createEffect(() => {
@@ -97,6 +105,12 @@ export const MGL_Image: VoidComponent<Props> = props => {
         map().addImage(props.id, data, ops)
       }
       setSize({ width, height })
+      debug('Add Image:', props.id)
+      map().on('styledata', () => {
+        if (map().hasImage(props.id)) return
+        map().addImage(props.id, data, ops)
+        debug('Re-Add Image:', props.id)
+      })
     })
   })
 

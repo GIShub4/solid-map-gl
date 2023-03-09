@@ -11,7 +11,7 @@ type Props = {
   /** Draw Control Position */
   position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
   /** Draw Control Instance */
-  getInstance: (object) => void
+  getInstance?: (object) => void
 } & drawEventTypes
 
 export const Draw: VoidComponent<Props> = props => {
@@ -20,22 +20,25 @@ export const Draw: VoidComponent<Props> = props => {
 
   // Add Draw Control
   const draw = new props.lib(props.options)
-  //   console.log('a')
   map().addControl(draw, props.position || 'top-right')
-  //   console.log('b')
-  props.getInstance(draw)
-  //   console.log('c')
+  props.getInstance && props.getInstance(draw)
 
   // Hook up events
+  const eventList = {}
   drawEvents.forEach(item => {
     if (props[item]) {
       const event = `draw.${item.slice(2).toLowerCase()}`
-      map().on(event, evt => props[item](evt))
+      const fn = evt => props[item](evt)
+      eventList[event] = fn
+      map().on(event, fn)
     }
   })
 
   // Remove Draw Control
   onCleanup(() => {
+    // Remove Events
+    Object.keys(eventList).forEach(event => map().off(event, eventList[event]))
+    // Remove Control
     map()?.removeControl(draw)
   })
 

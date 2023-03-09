@@ -41,6 +41,7 @@ export const Terrain: VoidComponent<Props> = props => {
             maxzoom: 14,
           }
     )
+    map().sourceIdList.push(sourceId)
   }
 
   createEffect(() => {

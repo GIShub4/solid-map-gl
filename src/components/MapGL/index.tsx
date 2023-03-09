@@ -7,7 +7,6 @@ import {
   useContext,
   Component,
   createUniqueId,
-  Show,
 } from 'solid-js'
 import { mapEvents } from '../../events'
 import { vectorStyleList } from '../../mapStyles'
@@ -91,10 +90,16 @@ export const MapGL: Component<Props> = props => {
   let map: MapboxMap
   let mapRef: HTMLDivElement
   let resizeObserver: ResizeObserver
+  let mutationObserver: MutationObserver
 
-  const [mapChanged, setMapChanged] = createSignal(null)
+  const [mapLoaded, setMapLoaded] = createSignal(false)
   const [mapRoot, setMapRoot] = createSignal<MapboxMap>()
-  const [darkMode, setDarkMode] = createSignal(false)
+  const [darkMode, setDarkMode] = createSignal(
+    (typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches) ||
+      (typeof document !== 'undefined' &&
+        document.body.classList.contains('dark'))
+  )
   const [userInteraction, setUserInteraction] = createSignal(false)
   // debounce user interactions
   createEffect(() => props.onUserInteraction?.(userInteraction()))
@@ -132,7 +137,7 @@ export const MapGL: Component<Props> = props => {
       interactive: props.options?.interactive || !!props.onViewportChange,
       ...props.options,
       ...props.viewport,
-      projection: props.options?.projection || 'mercator',
+      projection: props.options?.projection,
       container: mapRef,
       style: getStyle(props.options?.style, props.darkStyle),
       fitBoundsOptions: { padding: props.viewport?.padding },
@@ -145,74 +150,77 @@ export const MapGL: Component<Props> = props => {
 
     map.once('load', () => {
       setMapRoot(map)
-      setMapChanged(1)
+      setMapLoaded(true)
       debug('Map loaded')
-    })
 
-    // Handle User Interaction
-    ;['mousedown', 'touchstart', 'wheel'].forEach(event =>
-      map.on(event, evt => !evt.rotate && setUserInteraction(true))
-    )
-    ;['moveend', 'mouseup', 'touchend'].forEach(event =>
-      map.on(event, evt => !evt.rotate && setUserInteraction(false))
-    )
+      // Handle User Interaction
+      ;['mousedown', 'touchstart', 'wheel'].forEach(event =>
+        map.on(event, evt => !evt.rotate && setUserInteraction(true))
+      )
+      ;['moveend', 'mouseup', 'touchend'].forEach(event =>
+        map.on(event, evt => !evt.rotate && setUserInteraction(false))
+      )
 
-    // Listen to dark theme changes
-    const darkTheme =
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-color-scheme: dark)')
-    darkTheme?.addEventListener('change', () => {
-      setDarkMode(darkTheme.matches)
-      debug('Set dark theme to:', darkTheme.matches?.toString())
-    })
-    new MutationObserver(() => {
-      const darkTheme = document.body.classList.contains('dark')
-      setDarkMode(darkTheme)
-      debug('Set dark theme to:', darkTheme)
-    }).observe(document.body, { attributes: true })
+      // Listen to dark theme changes
+      const darkTheme =
+        typeof window !== 'undefined' &&
+        window?.matchMedia('(prefers-color-scheme: dark)')
+      darkTheme?.addEventListener('change', () => {
+        setDarkMode(darkTheme.matches)
+        debug('Set dark theme to:', darkTheme.matches?.toString())
+      })
+      mutationObserver = new MutationObserver(() => {
+        const darkTheme = document.body.classList.contains('dark')
+        setDarkMode(darkTheme)
+        debug('Set dark theme to:', darkTheme)
+      })
+      mutationObserver.observe(document.body, { attributes: true })
 
-    // Listen to map container size changes
-    // !props.disableResize &&
-    //   new ResizeObserver(() => {
-    //     map?.resize()
-    //     debug('Map resized')
-    //   }).observe(mapRef as Element)
+      // Listen to map container size changes
+      if (!props.disableResize) {
+        resizeObserver = new ResizeObserver(() => {
+          map?.resize()
+          debug('Map resized')
+        })
+        resizeObserver.observe(mapRef as Element)
+      }
 
-    // Hook up events
-    mapEvents.forEach(item => {
-      const prop = props[item]
-      if (prop) {
-        const event = item.slice(2).toLowerCase()
-        if (typeof prop === 'function') {
-          map.on(event, e => {
-            prop(e)
-            debug(`Map '${event}' event:`, e)
-          })
-        } else {
-          Object.keys(prop).forEach(layerId => {
-            map.on(event, layerId, e => {
-              prop[layerId](e)
-              debug(`Map '${event}' event on '${layerId}':`, e)
+      // Hook up events
+      mapEvents.forEach(item => {
+        const prop = props[item]
+        if (prop) {
+          const event = item.slice(2).toLowerCase()
+          if (typeof prop === 'function') {
+            map.on(event, e => {
+              prop(e)
+              debug(`Map '${event}' event:`, e)
             })
-          })
+          } else {
+            Object.keys(prop).forEach(layerId => {
+              map.on(event, layerId, e => {
+                prop[layerId](e)
+                debug(`Map '${event}' event on '${layerId}':`, e)
+              })
+            })
+          }
         }
-      }
-    })
+      })
 
-    // Hook up viewport events
-    map.on('move', event => {
-      const viewport: Viewport = {
-        ...props.viewport,
-        id: props.id,
-        point: { x: event.originalEvent?.x, y: event.originalEvent?.y },
-        center: props.viewport?.center.lat
-          ? map.getCenter()
-          : [map.getCenter().lng, map.getCenter().lat],
-        zoom: map.getZoom(),
-        pitch: map.getPitch(),
-        bearing: map.getBearing(),
-      }
-      props.onViewportChange && props.onViewportChange(viewport)
+      // Hook up viewport events
+      map.on('move', event => {
+        const viewport: Viewport = {
+          ...props.viewport,
+          id: props.id,
+          point: { x: event.originalEvent?.x, y: event.originalEvent?.y },
+          center: props.viewport?.center?.lat
+            ? map.getCenter()
+            : [map.getCenter().lng, map.getCenter().lat],
+          zoom: map.getZoom(),
+          pitch: map.getPitch(),
+          bearing: map.getBearing(),
+        }
+        props.onViewportChange?.(viewport)
+      })
     })
   })
 
@@ -243,31 +251,61 @@ export const MapGL: Component<Props> = props => {
   }, props.viewport?.bounds)
 
   // Update Projection
-  createEffect(prev => {
+  createEffect(() => {
     const proj = props.options?.projection
-    if (!map || prev === proj) return
+    if (!map || !proj) return
     map.setProjection(proj)
     debug('Set Projection to:', proj)
-    return proj
-  }, props.options?.projection)
-
-  // Update cursor
-  createEffect(() => {
-    if (!props.cursorStyle || !map) return
-    map.getCanvas().style.cursor = props.cursorStyle
-    debug('Set Cursor to:', props.cursorStyle)
   })
+
+  // Update Cursor
+  createEffect(() => {
+    const cur = props.cursorStyle
+    if (!map || !cur) return
+    map.getCanvas().style.cursor = cur
+    debug('Set Cursor to:', cur)
+  })
+
+  const insertLayers = (list, layers) => {
+    layers.forEach(layer => {
+      const index = list.findIndex(i =>
+        layer.metadata.smg.beforeType
+          ? i.type === layer.metadata.smg.beforeType
+          : i.id === layer.metadata.smg.beforeId
+      )
+      list =
+        index === -1
+          ? [...list, layer]
+          : [...list.slice(0, index), layer, ...list.slice(index + 1)]
+    })
+    return list
+  }
 
   // Update map style
   createEffect(prev => {
     const style = getStyle(props.options?.style, props.darkStyle)
     if (map?.isStyleLoaded() && prev !== style) {
-      // map.once('idle', () => {
+      const oldStyle = map.getStyle()
+      const oldLayers = oldStyle.layers.filter(l =>
+        map.layerIdList.includes(l.id)
+      )
+      const oldSources = Object.keys(oldStyle.sources)
+        .filter(s => map.sourceIdList.includes(s))
+        .reduce((obj, key) => ({ ...obj, [key]: oldStyle.sources[key] }), {})
+
       map.setStyle(style)
-      map.once('styledata', () => setMapChanged(c => ++c))
-      debug('Set Mapstyle to:', style)
-      // })
-      // map.isMoving() && map.stop()
+      map.once('styledata', () => {
+        if (!oldLayers) return
+        const newStyle = map.getStyle()
+        map.setStyle({
+          ...newStyle,
+          sources: { ...newStyle.sources, ...oldSources },
+          layers: insertLayers(newStyle.layers, oldLayers),
+          fog: oldStyle.fog,
+          terrain: oldStyle.terrain,
+        })
+        debug('Set Mapstyle to:', style)
+      })
     }
     return style
   }, props.options?.style)
@@ -282,7 +320,7 @@ export const MapGL: Component<Props> = props => {
   ].forEach(item => {
     createEffect(() => {
       const prop = props[item]
-      if (!map) return
+      if (!map || !prop) return
       map[item] = prop
       debug(`Set ${item} to:`, prop)
     })
@@ -290,6 +328,7 @@ export const MapGL: Component<Props> = props => {
 
   onCleanup(() => {
     resizeObserver?.disconnect()
+    mutationObserver?.disconnect()
     map?.remove()
     debug('Map removed')
   })
@@ -311,9 +350,7 @@ export const MapGL: Component<Props> = props => {
               }
         }
       />
-      <Show when={mapChanged()} keyed>
-        {props.children}
-      </Show>
+      {mapLoaded() && props.children}
     </MapContext.Provider>
   )
 }
