@@ -52,7 +52,7 @@ export const Terrain: VoidComponent<Props> = props => {
   })
 
   // Remove Terrain Layer
-  onCleanup(() => map().setTerrain(null))
+  // onCleanup(() => map().setTerrain(null))
 
   return null
 }

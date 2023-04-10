@@ -7,6 +7,7 @@ import {
   useContext,
   Component,
   createUniqueId,
+  on,
 } from 'solid-js'
 import { mapEvents } from '../../events'
 import { vectorStyleList } from '../../mapStyles'
@@ -27,6 +28,7 @@ export type Viewport = {
   pitch?: number
   bearing?: number
   padding?: PaddingOptions
+  inTransit?: boolean
 }
 
 type Props = {
@@ -101,6 +103,7 @@ export const MapGL: Component<Props> = props => {
         document.body.classList.contains('dark'))
   )
   const [userInteraction, setUserInteraction] = createSignal(false)
+  const [internal, setInternal] = createSignal(false)
   // debounce user interactions
   createEffect(() => props.onUserInteraction?.(userInteraction()))
 
@@ -110,7 +113,7 @@ export const MapGL: Component<Props> = props => {
   }
 
   const getStyle = (light, dark) => {
-    const style = darkMode() ? dark || light : light
+    const style = darkMode() && dark ? dark : light
     return typeof style === 'string' || style instanceof String
       ? style
           ?.split(':')
@@ -172,41 +175,45 @@ export const MapGL: Component<Props> = props => {
       mutationObserver = new MutationObserver(() => {
         const darkTheme = document.body.classList.contains('dark')
         setDarkMode(darkTheme)
-        debug('Set dark theme to:', darkTheme)
+        debug('Set theme to:', darkTheme)
       })
       mutationObserver.observe(document.body, { attributes: true })
 
       // Listen to map container size changes
-      if (!props.disableResize) {
-        resizeObserver = new ResizeObserver(() => {
-          map?.resize()
-          debug('Map resized')
-        })
-        resizeObserver.observe(mapRef as Element)
-      }
+      // if (!props.disableResize) {
+      //   resizeObserver = new ResizeObserver(() => {
+      //     map?.resize()
+      //     debug('Map resized')
+      //   })
+      //   resizeObserver.observe(mapRef as Element)
+      // }
 
       // Hook up events
       mapEvents.forEach(item => {
         const prop = props[item]
+        let isFirstMessage = true
         if (prop) {
           const event = item.slice(2).toLowerCase()
           if (typeof prop === 'function') {
             map.on(event, e => {
               prop(e)
-              debug(`Map '${event}' event:`, e)
+              isFirstMessage && debug(`Map '${event}' event:`, e)
+              isFirstMessage = false
             })
           } else {
             Object.keys(prop).forEach(layerId => {
               map.on(event, layerId, e => {
                 prop[layerId](e)
-                debug(`Map '${event}' event on '${layerId}':`, e)
+                isFirstMessage &&
+                  debug(`Map '${event}' event on '${layerId}':`, e)
+                isFirstMessage = false
               })
             })
           }
         }
       })
 
-      // Hook up viewport events
+      // Update Viewport
       map.on('move', event => {
         const viewport: Viewport = {
           ...props.viewport,
@@ -218,37 +225,40 @@ export const MapGL: Component<Props> = props => {
           zoom: map.getZoom(),
           pitch: map.getPitch(),
           bearing: map.getBearing(),
+          inTransit: true,
         }
-        props.onViewportChange?.(viewport)
+        setInternal(true)
+        !event.viewport && props.onViewportChange?.(viewport)
+      })
+
+      map.on('moveend', event => {
+        !event.rotate &&
+          props.onViewportChange?.({ ...props.viewport, inTransit: false })
+        setInternal(false)
       })
     })
   })
 
-  // Update Viewport
-  createEffect(() => {
-    const viewport = {
-      ...props.viewport,
-      padding: props.viewport?.padding || 0,
-    }
-    if (!map || props.id === props.viewport?.id || userInteraction()) return
-    map?.stop()[props.transitionType || 'flyTo'](viewport, { viewport: true })
-    debug(`Update Viewport (${props.transitionType || 'flyTo'}):`, viewport)
-  })
-
-  // Update boundaries
-  createEffect(prev => {
-    const bounds = props.viewport?.bounds
-    if (map && bounds && prev !== bounds && !userInteraction()) {
-      props.onViewportChange({
-        ...props.viewport,
-        ...map?.cameraForBounds(bounds, {
-          padding: props.viewport?.padding,
-        }),
-      })
-      debug(`Update Viewport Boundaries:`, bounds)
-    }
-    return bounds
-  }, props.viewport?.bounds)
+  // Hook up viewport event
+  createEffect(
+    on(
+      () => props.viewport,
+      vp => {
+        if (props.id !== vp?.id || internal()) return
+        const viewport = {
+          ...vp,
+          ...(vp.bounds
+            ? map.cameraForBounds(vp.bounds, {
+                padding: vp?.padding,
+              })
+            : null),
+        }
+        map.stop()[props.transitionType || 'flyTo'](viewport)
+        debug(`Update Viewport (${props.transitionType || 'flyTo'}):`, viewport)
+      },
+      { defer: true }
+    )
+  )
 
   // Update Projection
   createEffect(() => {
@@ -341,9 +351,9 @@ export const MapGL: Component<Props> = props => {
         class={props?.class}
         classList={props?.classList}
         style={
-          props?.style || props?.class || props?.classList
-            ? props.style
-            : {
+          props?.class || props?.classList
+            ? null
+            : props.style || {
                 position: 'absolute',
                 inset: 0,
                 'z-index': -1,

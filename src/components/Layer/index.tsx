@@ -100,7 +100,7 @@ export const Layer: Component<Props> = props => {
   // Update Style
   createEffect((prev: StyleSpecification) => {
     const style = props.style
-    if (style === prev || !map().isStyleLoaded()) return
+    if (style === prev) return
 
     if (style.layout !== prev?.layout)
       diff(style.layout, prev?.layout).forEach(([key, value]) =>

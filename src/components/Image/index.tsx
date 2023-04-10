@@ -93,7 +93,8 @@ export const MGL_Image: VoidComponent<Props> = props => {
 
     _loadImage(props.source || _createPattern(props.pattern), data => {
       const { width, height } = data
-      if (!map().hasImage(props.id)) map().addImage(props.id, data, ops)
+      if (map() && !map().hasImage(props.id))
+        map().addImage(props.id, data, ops)
       if (
         !props.pattern &&
         untrack(() => width === size().width && height === size().height)
@@ -106,7 +107,7 @@ export const MGL_Image: VoidComponent<Props> = props => {
       }
       setSize({ width, height })
       debug('Add Image:', props.id)
-      map().on('styledata', () => {
+      map().on('style.load', () => {
         if (map().hasImage(props.id)) return
         map().addImage(props.id, data, ops)
         debug('Re-Add Image:', props.id)

@@ -39,8 +39,8 @@ const easeQuad = {
 
 interface RotateGlobeOptions {
   secPerRev?: number
-  maxZoom?: number
-  slowZoom?: number
+  maxSpinZoom?: number
+  slowSpinZoom?: number
 }
 
 interface RotateViewportOptions {
@@ -106,13 +106,18 @@ export const Camera: Component<Props> = props => {
     props.translate && window.requestAnimationFrame(frame)
   })
 
-  const rotateGlobe = () => {
-    const secPerRev = (props.rotateGlobe as RotateGlobeOptions).secPerRev || 120
-    const maxSpinZoom = (props.rotateGlobe as RotateGlobeOptions).maxZoom || 5
-    const slowSpinZoom = (props.rotateGlobe as RotateGlobeOptions).slowZoom || 3
-    const zoom = map().getZoom()
-    if (!props.rotateGlobe || userInteraction() || zoom > maxSpinZoom) return
+  const options = { duration: 1000, easing: n => n }
 
+  const rotateGlobe = () => {
+    if (userInteraction()) return
+    const {
+      secPerRev = 120,
+      maxSpinZoom = 5,
+      slowSpinZoom = 3,
+    } = props.rotateGlobe as RotateGlobeOptions
+
+    const zoom = map().getZoom()
+    if (zoom > maxSpinZoom) return
     let distancePerSecond = 360 / secPerRev
     if (zoom > slowSpinZoom)
       distancePerSecond *= (maxSpinZoom - zoom) / (maxSpinZoom - slowSpinZoom)
@@ -120,34 +125,23 @@ export const Camera: Component<Props> = props => {
     center.lng = props.reverse
       ? center.lng + distancePerSecond
       : center.lng - distancePerSecond
-    map().easeTo({ center, duration: 1000, easing: n => n }, { rotate: true })
+    map().easeTo({ center, ...options }, { rotate: true })
   }
 
   const rotateViewport = () => {
     if (!props.rotateViewport || userInteraction()) return
-    const secPerRev =
-      (props.rotateViewport as RotateViewportOptions)?.secPerRev || 60
+    const rotateViewport = props.rotateViewport as RotateViewportOptions
+    const secPerRev = rotateViewport?.secPerRev || 60
     const bearing = props.reverse
       ? map().getBearing() + 360 / secPerRev
       : map().getBearing() - 360 / secPerRev
-    map().easeTo(
-      {
-        bearing,
-        pitch: (props.rotateViewport as RotateViewportOptions)?.pitch || 60,
-        duration: 1000,
-        around: (props.rotateViewport as RotateViewportOptions)?.around,
-        easing: n => n,
-      },
-      { rotate: true }
-    )
+    const pitch = rotateViewport?.pitch || 60
+    const around = rotateViewport?.around
+    map().easeTo({ bearing, pitch, around, ...options }, { rotate: true })
   }
 
-  const onMoveEnd = evt => {
-    evt.rotate && props.rotateGlobe ? rotateGlobe() : rotateViewport()
-  }
-  const onDragEnd = () => (props.rotateGlobe ? rotateGlobe() : rotateViewport())
-
-  map().on('moveend', onMoveEnd).on('dragend', onDragEnd)
+  const onEnd = () => (props.rotateGlobe ? rotateGlobe() : rotateViewport())
+  map().on('moveend', onEnd).on('dragend', onEnd)
 
   let originalCenter
   createEffect(() => {
@@ -171,7 +165,7 @@ export const Camera: Component<Props> = props => {
       : map().stop()
   })
 
-  onCleanup(() => map().off('moveend', onMoveEnd).off('dragend', onDragEnd))
+  onCleanup(() => map().off('moveend', onEnd).off('dragend', onEnd))
 
   return props.children
 }
