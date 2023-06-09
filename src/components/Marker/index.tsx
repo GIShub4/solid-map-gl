@@ -1,14 +1,12 @@
 import { onCleanup, createEffect, Component, untrack } from 'solid-js'
-import { useMap } from '../MapGL'
+import { useMap } from '../MapProvider'
 import type {
   Popup as PopupType,
   PopupOptions,
-} from 'mapbox-gl/src/ui/popup.js'
-import type {
   Marker as MarkerType,
   MarkerOptions,
-} from 'mapbox-gl/src/ui/marker.js'
-import type { LngLatLike } from 'mapbox-gl/src/geo/lng_lat.js'
+  LngLatLike
+} from 'mapbox-gl'
 
 type Props = {
   /** Options for the Mapbox GL JS marker */
@@ -34,8 +32,7 @@ type Props = {
   children?: any
 }
 
-export const Marker: Component<Props> = props => {
-  if (!useMap()) return
+export const Marker: Component<Props> = (props: Props) => {
   const [map] = useMap()
   let marker: MarkerType = null
   let popup: PopupType = null
@@ -52,8 +49,8 @@ export const Marker: Component<Props> = props => {
       popup?.remove()
       popup = props.children
         ? new mapboxgl.Popup(pops)
-            .setHTML(props.children)
-            .on('close', () => props.onClose?.())
+          .setHTML(props.children)
+          .on('close', () => props.onClose?.())
         : null
 
       marker?.remove()

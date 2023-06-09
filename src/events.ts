@@ -4,7 +4,7 @@ import type {
   MapWheelEvent,
   MapDataEvent,
   MapBoxZoomEvent,
-} from 'mapbox-gl/src/ui/events'
+} from 'mapbox-gl'
 
 type mapEventTypes = {
   onMouseDown?: (event: MapMouseEvent) => void

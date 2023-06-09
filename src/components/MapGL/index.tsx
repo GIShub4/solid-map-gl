@@ -3,21 +3,28 @@ import {
   createEffect,
   onMount,
   onCleanup,
-  createContext,
-  useContext,
   Component,
   createUniqueId,
   on,
 } from 'solid-js'
+import { MapProvider } from '../MapProvider'
 import { mapEvents } from '../../events'
 import { vectorStyleList } from '../../mapStyles'
 import type { mapEventTypes } from '../../events'
-import type { MapboxMap, MapboxOptions } from 'mapbox-gl/src/ui/map'
+import type mapboxgl from 'mapbox-gl'
+import type { MapboxOptions } from 'mapbox-gl/src/ui/map'
 import type { LngLatLike } from 'mapbox-gl/src/geo/lng_lat.js'
 import type { LngLatBounds } from 'mapbox-gl/src/geo/lng_lat_bounds.js'
 import type { PaddingOptions } from 'mapbox-gl/src/geo/edge_insets.js'
 import type { StyleSpecification } from 'mapbox-gl/src/style-spec/types.js'
 import type { JSX } from 'solid-js'
+
+export type Map = mapboxgl.Map & {
+  mapLib: any,
+  debug: boolean,
+  sourceIdList: string[]
+  layerIdList: string[]
+}
 
 export type Viewport = {
   id?: string
@@ -81,26 +88,21 @@ type Props = {
   children?: any
 } & mapEventTypes
 
-const MapContext = createContext<MapboxMap>()
-/** Provides the Mapbox Map Object */
-export const useMap = (): MapboxMap => useContext(MapContext)
-
 /** Creates a new Map Container */
 export const MapGL: Component<Props> = props => {
   props.id ??= createUniqueId()
 
-  let map: MapboxMap
+  let map: Map
   let mapRef: HTMLDivElement
   let resizeObserver: ResizeObserver
   let mutationObserver: MutationObserver
 
-  const [mapLoaded, setMapLoaded] = createSignal(false)
-  const [mapRoot, setMapRoot] = createSignal<MapboxMap>()
+  const [mapLoaded, setMapLoaded] = createSignal(null)
   const [darkMode, setDarkMode] = createSignal(
     (typeof window !== 'undefined' &&
       window.matchMedia('(prefers-color-scheme: dark)').matches) ||
-      (typeof document !== 'undefined' &&
-        document.body.classList.contains('dark'))
+    (typeof document !== 'undefined' &&
+      document.body.classList.contains('dark'))
   )
   const [userInteraction, setUserInteraction] = createSignal(false)
   const [internal, setInternal] = createSignal(false)
@@ -116,13 +118,13 @@ export const MapGL: Component<Props> = props => {
     const style = darkMode() && dark ? dark : light
     return typeof style === 'string' || style instanceof String
       ? style
-          ?.split(':')
-          .reduce((p, c) => p && p[c], vectorStyleList)
-          ?.replace(
-            '{apikey}',
-            //@ts-ignore
-            props.apikey || import.meta.env.VITE_VECTOR_API_KEY
-          ) || style
+        ?.split(':')
+        .reduce((p, c) => p && p[c], vectorStyleList)
+        ?.replace(
+          '{apikey}',
+          //@ts-ignore
+          props.apikey || import.meta.env.VITE_VECTOR_API_KEY
+        ) || style
       : style || { version: 8, sources: {}, layers: [] }
   }
 
@@ -152,17 +154,16 @@ export const MapGL: Component<Props> = props => {
     map.layerIdList = []
 
     map.once('load', () => {
-      setMapRoot(map)
-      setMapLoaded(true)
+      setMapLoaded(map)
       debug('Map loaded')
 
-      // Handle User Interaction
-      ;['mousedown', 'touchstart', 'wheel'].forEach(event =>
-        map.on(event, evt => !evt.rotate && setUserInteraction(true))
-      )
-      ;['moveend', 'mouseup', 'touchend'].forEach(event =>
-        map.on(event, evt => !evt.rotate && setUserInteraction(false))
-      )
+        // Handle User Interaction
+        ;['mousedown', 'touchstart', 'wheel'].forEach(event =>
+          map.on(event, evt => !evt.rotate && setUserInteraction(true))
+        )
+        ;['moveend', 'mouseup', 'touchend'].forEach(event =>
+          map.on(event, evt => !evt.rotate && setUserInteraction(false))
+        )
 
       // Listen to dark theme changes
       const darkTheme =
@@ -202,7 +203,7 @@ export const MapGL: Component<Props> = props => {
             })
           } else {
             Object.keys(prop).forEach(layerId => {
-              map.on(event, layerId, e => {
+              map.on(event as any, layerId, e => {
                 prop[layerId](e)
                 isFirstMessage &&
                   debug(`Map '${event}' event on '${layerId}':`, e)
@@ -218,7 +219,7 @@ export const MapGL: Component<Props> = props => {
         const viewport: Viewport = {
           ...props.viewport,
           id: props.id,
-          point: { x: event.originalEvent?.x, y: event.originalEvent?.y },
+          // point: { x: event.originalEvent?.x, y: event.originalEvent?.y },
           center: props.viewport?.center?.lat
             ? map.getCenter()
             : [map.getCenter().lng, map.getCenter().lat],
@@ -249,8 +250,8 @@ export const MapGL: Component<Props> = props => {
           ...vp,
           ...(vp.bounds
             ? map.cameraForBounds(vp.bounds, {
-                padding: vp?.padding,
-              })
+              padding: vp?.padding,
+            })
             : null),
         }
         map.stop()[props.transitionType || 'flyTo'](viewport)
@@ -320,21 +321,21 @@ export const MapGL: Component<Props> = props => {
     return style
   }, props.options?.style)
 
-  // Update debug features
-  ;[
-    'showTileBoundaries',
-    'showTerrainWireframe',
-    'showCollisionBoxes',
-    'showPadding',
-    'showOverdrawInspector',
-  ].forEach(item => {
-    createEffect(() => {
-      const prop = props[item]
-      if (!map || !prop) return
-      map[item] = prop
-      debug(`Set ${item} to:`, prop)
+    // Update debug features
+    ;[
+      'showTileBoundaries',
+      'showTerrainWireframe',
+      'showCollisionBoxes',
+      'showPadding',
+      'showOverdrawInspector',
+    ].forEach(item => {
+      createEffect(() => {
+        const prop = props[item]
+        if (!map || !prop) return
+        map[item] = prop
+        debug(`Set ${item} to:`, prop)
+      })
     })
-  })
 
   onCleanup(() => {
     resizeObserver?.disconnect()
@@ -344,7 +345,7 @@ export const MapGL: Component<Props> = props => {
   })
 
   return (
-    <MapContext.Provider value={[mapRoot, userInteraction, debug]}>
+    <>
       <div
         ref={mapRef}
         id={props.id}
@@ -354,13 +355,17 @@ export const MapGL: Component<Props> = props => {
           props?.class || props?.classList
             ? null
             : props.style || {
-                position: 'absolute',
-                inset: 0,
-                'z-index': -1,
-              }
+              position: 'absolute',
+              inset: 0,
+              'z-index': -1,
+            }
         }
       />
-      {mapLoaded() && props.children}
-    </MapContext.Provider>
+      {mapLoaded() &&
+        <MapProvider map={mapLoaded()}>
+          {props.children}
+        </MapProvider>
+      }
+    </>
   )
 }

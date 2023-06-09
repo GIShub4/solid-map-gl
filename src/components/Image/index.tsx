@@ -5,7 +5,7 @@ import {
   VoidComponent,
   untrack,
 } from 'solid-js'
-import { useMap } from '../MapGL'
+import { useMap } from '../MapProvider'
 import type {
   StyleImageInterface,
   StyleImageMetadata,
@@ -42,13 +42,13 @@ type Props = {
   id: string
   /** The unique identifier for the image. */
   source?:
-    | HTMLImageElement
-    | ImageBitmap
-    | ImageData
-    | SVGElement
-    | { width: number; height: number; data: Uint8Array | Uint8ClampedArray }
-    | StyleImageInterface
-    | string
+  | HTMLImageElement
+  | ImageBitmap
+  | ImageData
+  | SVGElement
+  | { width: number; height: number; data: Uint8Array | Uint8ClampedArray }
+  | StyleImageInterface
+  | string
   /** The image to be used for the image component. */
   options?: StyleImageMetadata & {
     fill?: Color
@@ -66,7 +66,6 @@ type Props = {
 }
 
 export const MGL_Image: VoidComponent<Props> = props => {
-  if (!useMap()) return
   const [map] = useMap()
   const [size, setSize] = createSignal({ width: 0, height: 0 })
 

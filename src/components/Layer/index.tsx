@@ -1,5 +1,5 @@
 import { onCleanup, createEffect, Component, createUniqueId } from 'solid-js'
-import { useMap } from '../MapGL'
+import { useMap } from '../MapProvider'
 import { useSourceId } from '../Source'
 import { layerEvents } from '../../events'
 import type { layerEventTypes } from '../../events'
@@ -37,16 +37,16 @@ type Props = {
   sourceId?: string
   /** A string that specifies the ID of the source that the layer uses for its data. */
   beforeType?:
-    | 'background'
-    | 'fill'
-    | 'line'
-    | 'symbol'
-    | 'raster'
-    | 'circle'
-    | 'fill-extrusion'
-    | 'heatmap'
-    | 'hillshade'
-    | 'sky'
+  | 'background'
+  | 'fill'
+  | 'line'
+  | 'symbol'
+  | 'raster'
+  | 'circle'
+  | 'fill-extrusion'
+  | 'heatmap'
+  | 'hillshade'
+  | 'sky'
   /** A string that specifies the type of layer before which the current layer should be inserted. */
   beforeId?: string
   /** A string that specifies the ID of the layer before which the current layer should be inserted. */
@@ -57,7 +57,6 @@ type Props = {
 } & layerEventTypes
 
 export const Layer: Component<Props> = props => {
-  if (!useMap()) return
   const [map] = useMap()
   const sourceId: string = props.style?.source || useSourceId()
   props.id ??= createUniqueId()
@@ -79,8 +78,8 @@ export const Layer: Component<Props> = props => {
     },
     props.beforeType
       ? map()
-          .getStyle()
-          .layers.find(l => l.type === props.beforeType)?.id
+        .getStyle()
+        .layers.find(l => l.type === props.beforeType)?.id
       : props.beforeId
   )
   map().layerIdList.push(props.id)

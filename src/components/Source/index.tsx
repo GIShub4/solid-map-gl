@@ -6,7 +6,7 @@ import {
   useContext,
   createUniqueId,
 } from 'solid-js'
-import { useMap } from '../MapGL'
+import { useMap } from '../MapProvider'
 import type { SourceSpecification } from 'mapbox-gl/src/style-spec/types.js'
 import { rasterStyleList } from '../../mapStyles'
 
@@ -23,7 +23,6 @@ type Props = {
 }
 
 export const Source: Component<Props> = props => {
-  if (!useMap()) return
   const [map] = useMap()
   props.id ??= createUniqueId()
 
@@ -36,18 +35,18 @@ export const Source: Component<Props> = props => {
     const s = url?.split(':').reduce((p, c) => p && p[c], rasterStyleList)
     const source = s
       ? {
-          ...props.source,
-          url: '',
-          tiles: [
-            s
-              .replace(
-                '{apikey}', //@ts-ignore
-                props.source.apikey || import.meta.env.VITE_RASTER_API_KEY
-              )
-              .replace('{r}', window.devicePixelRatio > 1 ? '@2x' : ''),
-          ],
-          attribution: rasterStyleList[url.split(':')[0]]._copy,
-        }
+        ...props.source,
+        url: '',
+        tiles: [
+          s
+            .replace(
+              '{apikey}', //@ts-ignore
+              props.source.apikey || import.meta.env.VITE_RASTER_API_KEY
+            )
+            .replace('{r}', window.devicePixelRatio > 1 ? '@2x' : ''),
+        ],
+        attribution: rasterStyleList[url.split(':')[0]]._copy,
+      }
       : props.source
 
     source.tiles &&

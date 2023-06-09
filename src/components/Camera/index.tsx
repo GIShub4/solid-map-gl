@@ -1,12 +1,12 @@
 import { createEffect, Component, onCleanup } from 'solid-js'
-import { useMap } from '../MapGL'
-import type LngLatLike from 'mapbox-gl/src/geo/lng_lat.js'
+import { useMap } from '../MapProvider'
+import type { LngLatLike } from 'mapbox-gl'
 
 // linearly interpolate between two positions [x,y,z] based on time
-const lerp = (a, b, t) => a.map((_, idx) => (1.0 - t) * a[idx] + t * b[idx])
+const lerp = (a: number[], b: number[], t: number): number[] => a.map((_, idx) => (1.0 - t) * a[idx] + t * b[idx])
 
 // sphericaly interpolate between two positions [x,y,z] based on time
-const slerp = (a, b, t) => {
+const slerp = (a: number[], b: number[], t: number): number[] => {
   const dotProduct = a.map((_, idx) => a[idx] * b[idx]).reduce((m, n) => m + n)
   const theta = Math.acos(dotProduct)
 
@@ -17,18 +17,6 @@ const slerp = (a, b, t) => {
   )
 }
 
-// const slerp = (a, b, t) => {
-//   const omega = 0.075
-//   // TODO: Proper Calculation
-//   // a.map((_, idx) => a[idx] * b[idx]).reduce((m, n) => m + n)
-
-//   return a.map(
-//     (_, idx) =>
-//       (Math.sin((1 - t) * omega) / Math.sin(omega)) * a[idx] +
-//       (Math.sin(t * omega) / Math.sin(omega)) * b[idx]
-//   )
-// }
-
 // calculations from: https://easings.net
 const easeQuad = {
   in: (x: number): number => x * x,
@@ -37,53 +25,73 @@ const easeQuad = {
     x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2,
 }
 
+/** Options for rotating the globe. */
 interface RotateGlobeOptions {
+  /** The number of seconds per revolution. */
   secPerRev?: number
+  /** The maximum zoom level for spinning the globe.  */
   maxSpinZoom?: number
+  /** The zoom level at which the spinning slows down. */
   slowSpinZoom?: number
 }
 
+/** Options for rotating the viewport. */
 interface RotateViewportOptions {
+  /** The number of seconds per revolution. */
   secPerRev?: number
+  /** The pitch angle in degrees. */
   pitch?: number
+  /** The center of rotation. */
   around?: LngLatLike
 }
 
+/** Props for the component. */
 type Props = {
+  /** Whether to rotate the globe. */
   rotateGlobe?: boolean | RotateGlobeOptions
+  /** Whether to rotate the viewport. */
   rotateViewport?: boolean | RotateViewportOptions
+  /** Whether to reverse the rotation direction. */
   reverse?: boolean
+  /** Whether to reset the rotation when stopped. */
   resetWhenStopped?: boolean
+  /** Translation options. */
   translate?: {
+    /** The type of translation. */
     type?: 'line' | 'sphere'
+    /** The starting position. */
     start: [number, number, number]
+    /** The ending position. */
     end: [number, number, number]
+    /** The target position. */
     target: LngLatLike
+    /** The ending target position. */
     targetEnd?: LngLatLike
+    /** The easing function to use. */
     easing?: 'in' | 'out' | 'inOut'
+    /** Whether to loop the translation. */
     loop?: boolean
+    /** The duration of the translation in milliseconds. */
     duration: number
   }
+  /** The children to render. */
   children?: any
 }
 
 export const Camera: Component<Props> = props => {
-  if (!useMap()) return
   const [map, userInteraction] = useMap()
+  if (!map()) return null
   let animationTime = 0.1
   let isReverse = false
 
-  const updateCameraPosition = async ([lng, lat, alt], target) => {
+  const updateCameraPosition = async ([lng, lat, alt]: number[], target: LngLatLike) => {
     const camera = map().getFreeCameraOptions()
-    camera.position = map().mapLib.MercatorCoordinate.fromLngLat(
-      [lng, lat],
-      alt
-    )
+    camera.position = map().mapLib.MercatorCoordinate.fromLngLat([lng, lat], alt)
     camera.lookAtPoint(target)
     map().setFreeCameraOptions(camera)
   }
 
-  const frame = (time: number) => {
+  const frame = () => {
     props.translate && window.requestAnimationFrame(frame)
     const params = [
       props.translate.start,
@@ -108,28 +116,28 @@ export const Camera: Component<Props> = props => {
 
   const options = { duration: 1000, easing: n => n }
 
-  const rotateGlobe = () => {
-    if (userInteraction()) return
+  const rotateGlobe = (): void => {
+    if (userInteraction) return
     const {
       secPerRev = 120,
       maxSpinZoom = 5,
       slowSpinZoom = 3,
-    } = props.rotateGlobe as RotateGlobeOptions
+    }: RotateGlobeOptions = props.rotateGlobe as RotateGlobeOptions
 
-    const zoom = map().getZoom()
+    const zoom: number = map().getZoom()
     if (zoom > maxSpinZoom) return
-    let distancePerSecond = 360 / secPerRev
+    let distancePerSecond: number = 360 / secPerRev
     if (zoom > slowSpinZoom)
       distancePerSecond *= (maxSpinZoom - zoom) / (maxSpinZoom - slowSpinZoom)
-    const center = map().getCenter()
+    const center: mapboxgl.LngLat = map().getCenter()
     center.lng = props.reverse
       ? center.lng + distancePerSecond
       : center.lng - distancePerSecond
     map().easeTo({ center, ...options }, { rotate: true })
   }
 
-  const rotateViewport = () => {
-    if (!props.rotateViewport || userInteraction()) return
+  const rotateViewport = (): void => {
+    if (!props.rotateViewport || userInteraction) return
     const rotateViewport = props.rotateViewport as RotateViewportOptions
     const secPerRev = rotateViewport?.secPerRev || 60
     const bearing = props.reverse
@@ -143,7 +151,7 @@ export const Camera: Component<Props> = props => {
   const onEnd = () => (props.rotateGlobe ? rotateGlobe() : rotateViewport())
   map().on('moveend', onEnd).on('dragend', onEnd)
 
-  let originalCenter
+  let originalCenter: mapboxgl.LngLatLike
   createEffect(() => {
     if (props.rotateGlobe == undefined) return
     if (props.rotateGlobe) {
@@ -161,8 +169,8 @@ export const Camera: Component<Props> = props => {
     props.rotateViewport
       ? rotateViewport()
       : props.resetWhenStopped
-      ? map().stop().resetNorthPitch()
-      : map().stop()
+        ? map().stop().resetNorthPitch()
+        : map().stop()
   })
 
   onCleanup(() => map().off('moveend', onEnd).off('dragend', onEnd))

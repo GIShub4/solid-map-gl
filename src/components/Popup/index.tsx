@@ -1,10 +1,6 @@
 import { onCleanup, createEffect, Component, untrack } from 'solid-js'
-import { useMap } from '../MapGL'
-import type {
-  Popup as PopupType,
-  PopupOptions,
-} from 'mapbox-gl/src/ui/popup.js'
-import type { LngLatLike } from 'mapbox-gl/src/geo/lng_lat.js'
+import { useMap } from '../MapProvider'
+import type { Popup as PopupType, PopupOptions, LngLatLike } from 'mapbox-gl'
 
 type Props = {
   /** Options for configuring the popup */
@@ -19,8 +15,7 @@ type Props = {
   children?: any
 }
 
-export const Popup: Component<Props> = props => {
-  if (!useMap()) return
+export const Popup: Component<Props> = (props: Props) => {
   const [map] = useMap()
   let popup: PopupType = null
 

@@ -1,5 +1,5 @@
 import { createEffect, onCleanup, VoidComponent } from 'solid-js'
-import { useMap } from '../MapGL'
+import { useMap } from '../MapProvider'
 import type { Options as AttributionOptions } from 'mapbox-gl/src/ui/control/attribution_control'
 import type { Options as FullscreenOptions } from 'mapbox-gl/src/ui/control/fullscreen_control'
 import type { Options as GeolocateOptions } from 'mapbox-gl/src/ui/control/geolocate_control'
@@ -29,12 +29,12 @@ type Props = {
   type?: 'navigation' | 'scale' | 'attribution' | 'fullscreen' | 'geolocate'
   /** a string that specifies the type of control to be displayed. It can be one of 'navigation', 'scale', 'attribution', 'fullscreen', or 'geolocate' */
   options?:
-    | NavigationOptions
-    | ScaleOptions
-    | AttributionOptions
-    | FullscreenOptions
-    | GeolocateOptions
-    | object
+  | NavigationOptions
+  | ScaleOptions
+  | AttributionOptions
+  | FullscreenOptions
+  | GeolocateOptions
+  | object
   /** an optional object that contains options specific to the control type */
   custom?: any
   /**  an optional field that allows passing a custom control element. */
@@ -43,7 +43,6 @@ type Props = {
 }
 
 export const Control: VoidComponent<Props> = props => {
-  if (!useMap()) return
   const [map] = useMap()
   let control = null
 

@@ -1,5 +1,5 @@
 import { onCleanup, VoidComponent } from 'solid-js'
-import { useMap } from '../MapGL'
+import { useMap } from '../MapProvider'
 import { drawEvents } from '../../events'
 import type { drawEventTypes } from '../../events'
 
@@ -14,8 +14,7 @@ type Props = {
   getInstance?: (object) => void
 } & drawEventTypes
 
-export const Draw: VoidComponent<Props> = props => {
-  if (!useMap()) return
+export const Draw: VoidComponent<Props> = (props: Props) => {
   const [map] = useMap()
 
   // Add Draw Control
@@ -24,7 +23,7 @@ export const Draw: VoidComponent<Props> = props => {
   props.getInstance && props.getInstance(draw)
 
   // Hook up events
-  const eventList = {}
+  const eventList: Record<string, (evt: any) => void> = {}
   drawEvents.forEach(item => {
     if (props[item]) {
       const event = `draw.${item.slice(2).toLowerCase()}`
