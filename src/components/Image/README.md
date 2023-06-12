@@ -6,11 +6,11 @@ description: Image Component
 
 ## Props
 
-| Name    | Type                                                                                     | Description                                                                                      |
-| ------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| id\*    | string                                                                                   | ID to reference image in layer style                                                             |
-| image\* | [HTMLImageElement, SVGElement, ImageBitmap, ImageData](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#addimage) \| string | ImageBitmap or [Loadable Image URL](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#loadimage) |
-| options  | object or { stroke \| fill \| transform }                                                                                | [Add image options](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#addimage) or overwrite SVG properties                |
+| Name     | Type                                                                                                                         | Description                                                                                                 |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| id\*     | string                                                                                                                       | ID to reference image in layer style                                                                        |
+| source\* | [HTMLImageElement, SVGElement, ImageBitmap, ImageData](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#addimage) \| string | ImageBitmap or [Loadable Image URL](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#loadimage)            |
+| options  | object or { stroke \| fill \| transform }                                                                                    | [Add image options](https://docs.mapbox.com/mapbox-gl-js/api/map/#map#addimage) or overwrite SVG properties |
 
 _\*required_
 
@@ -35,7 +35,7 @@ const App: Component = () => {
     >
       <Image
         id="cat"
-        image="https://docs.mapbox.com/mapbox-gl-js/assets/cat.png"
+        source="https://docs.mapbox.com/mapbox-gl-js/assets/cat.png"
       />
       <Source
         source={{
