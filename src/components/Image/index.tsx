@@ -5,7 +5,7 @@ import {
   VoidComponent,
   untrack,
 } from 'solid-js'
-import { useMap } from '../MapProvider'
+import { useMapContext } from '../MapProvider'
 import type {
   StyleImageInterface,
   StyleImageMetadata,
@@ -66,17 +66,17 @@ type Props = {
 }
 
 export const MGL_Image: VoidComponent<Props> = props => {
-  const [map] = useMap()
+  const [ctx] = useMapContext()
   const [size, setSize] = createSignal({ width: 0, height: 0 })
 
   const debug = (text, value?) => {
-    map().debug &&
+    ctx.map.debug &&
       console.debug('%c[MapGL]', 'color: #10b981', text, value || '')
   }
 
   // Remove Image
   onCleanup(() => {
-    map()?.hasImage(props.id) && map()?.removeImage(props.id)
+    ctx.map?.hasImage(props.id) && ctx.map?.removeImage(props.id)
     debug('Remove Image:', props.id)
   })
 
@@ -92,23 +92,23 @@ export const MGL_Image: VoidComponent<Props> = props => {
 
     _loadImage(props.source || _createPattern(props.pattern), data => {
       const { width, height } = data
-      if (map() && !map().hasImage(props.id))
-        map().addImage(props.id, data, ops)
+      if (ctx.map && !ctx.map.hasImage(props.id))
+        ctx.map.addImage(props.id, data, ops)
       if (
         !props.pattern &&
         untrack(() => width === size().width && height === size().height)
       ) {
-        map().updateImage(props.id, data)
-        map().triggerRepaint()
+        ctx.map.updateImage(props.id, data)
+        ctx.map.triggerRepaint()
       } else {
-        map().removeImage(props.id)
-        map().addImage(props.id, data, ops)
+        ctx.map.removeImage(props.id)
+        ctx.map.addImage(props.id, data, ops)
       }
       setSize({ width, height })
       debug('Add Image:', props.id)
-      map().on('style.load', () => {
-        if (map().hasImage(props.id)) return
-        map().addImage(props.id, data, ops)
+      ctx.map.on('style.load', () => {
+        if (ctx.map.hasImage(props.id)) return
+        ctx.map.addImage(props.id, data, ops)
         debug('Re-Add Image:', props.id)
       })
     })
@@ -127,7 +127,7 @@ export const MGL_Image: VoidComponent<Props> = props => {
       image = new XMLSerializer().serializeToString(image)
     }
     if (typeof image !== 'string') return callback(image)
-    map().loadImage(image, async (error, imageData) => {
+    ctx.map.loadImage(image, async (error, imageData) => {
       if (error) {
         if (typeof image == 'string' && image?.trimEnd().endsWith('.svg')) {
           image = await (await fetch(image)).text()

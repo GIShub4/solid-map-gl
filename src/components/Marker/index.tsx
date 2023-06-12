@@ -1,5 +1,5 @@
 import { onCleanup, createEffect, Component, untrack } from 'solid-js'
-import { useMap } from '../MapProvider'
+import { useMapContext } from '../MapProvider'
 import type {
   Popup as PopupType,
   PopupOptions,
@@ -33,7 +33,7 @@ type Props = {
 }
 
 export const Marker: Component<Props> = (props: Props) => {
-  const [map] = useMap()
+  const [ctx] = useMapContext()
   let marker: MarkerType = null
   let popup: PopupType = null
 
@@ -43,8 +43,8 @@ export const Marker: Component<Props> = (props: Props) => {
   createEffect(() => {
     const ops = { ...props.options }
     const pops = { ...props.options?.popup }
-    if (!map()) return
-    const mapboxgl = map().mapLib
+    if (!ctx.map) return
+    const mapboxgl = ctx.map.mapLib
     untrack(() => {
       popup?.remove()
       popup = props.children
@@ -61,7 +61,7 @@ export const Marker: Component<Props> = (props: Props) => {
         .on('drag', () => props.onLngLatChange?.(marker.getLngLat().toArray()))
         .setDraggable(props.draggable || props.options?.draggable)
         .setLngLat(props.lngLat)
-        .addTo(map())
+        .addTo(ctx.map)
       props.openPopup !== popup?.isOpen() && marker.togglePopup()
     })
   })

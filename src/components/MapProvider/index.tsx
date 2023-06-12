@@ -1,22 +1,25 @@
-import { createContext, useContext, ParentComponent, createSignal } from "solid-js";
+import { createContext, useContext, ParentComponent } from "solid-js";
+import { createStore } from "solid-js/store";
 import type { Map } from '../MapGL'
 
-const [map, setMap] = createSignal(null)
-const [userInteraction, setUserInteraction] = createSignal(null)
+const [state, setState] = createStore({
+    map: null,
+    userInteraction: false
+})
 
-export const MapContext = createContext([map, userInteraction])
+export const MapContext = createContext([state])
 
-export const useMap = () => useContext(MapContext)
+export const useMapContext = () => useContext(MapContext)
 
 export const MapProvider: ParentComponent<{
     map?: Map,
     userInteraction?: boolean;
 }> = props => {
-    props.map && setMap(props.map)
-    props.userInteraction && setUserInteraction(props.userInteraction)
+    props.map && setState('map', props.map)
+    props.userInteraction && setState('userInteraction', props.userInteraction)
 
     return (
-        <MapContext.Provider value={[map, userInteraction]}>
+        <MapContext.Provider value={[state]}>
             {props.children}
         </MapContext.Provider>
     )

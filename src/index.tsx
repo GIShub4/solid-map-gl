@@ -1,5 +1,5 @@
 export { MapGL as default } from './components/MapGL'
-export { MapProvider, useMap } from './components/MapProvider'
+export { MapProvider, useMapContext } from './components/MapProvider'
 export { Source, useSourceId } from './components/Source'
 export { Layer } from './components/Layer'
 export { Atmosphere } from './components/Atmosphere'

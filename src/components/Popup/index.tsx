@@ -1,5 +1,5 @@
 import { onCleanup, createEffect, Component, untrack } from 'solid-js'
-import { useMap } from '../MapProvider'
+import { useMapContext } from '../MapProvider'
 import type { Popup as PopupType, PopupOptions, LngLatLike } from 'mapbox-gl'
 
 type Props = {
@@ -16,7 +16,7 @@ type Props = {
 }
 
 export const Popup: Component<Props> = (props: Props) => {
-  const [map] = useMap()
+  const [ctx] = useMapContext()
   let popup: PopupType = null
 
   if (!props.trackPointer && !props.lngLat)
@@ -25,8 +25,8 @@ export const Popup: Component<Props> = (props: Props) => {
   // Add or Update Popup
   createEffect(() => {
     const ops = { ...props.options }
-    if (!map()) return
-    const mapboxgl = map().mapLib
+    if (!ctx.map) return
+    const mapboxgl = ctx.map.mapLib
     untrack(() => {
       popup?.remove()
       popup = new mapboxgl.Popup(
@@ -37,7 +37,7 @@ export const Popup: Component<Props> = (props: Props) => {
         .setHTML(props.children || '')
         .setLngLat(props.lngLat)
         .on('close', () => props.onClose?.())
-        .addTo(map())
+        .addTo(ctx.map)
     })
   })
 

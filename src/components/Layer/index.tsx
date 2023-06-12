@@ -1,5 +1,5 @@
 import { onCleanup, createEffect, Component, createUniqueId } from 'solid-js'
-import { useMap } from '../MapProvider'
+import { useMapContext } from '../MapProvider'
 import { useSourceId } from '../Source'
 import { layerEvents } from '../../events'
 import type { layerEventTypes } from '../../events'
@@ -57,17 +57,17 @@ type Props = {
 } & layerEventTypes
 
 export const Layer: Component<Props> = props => {
-  const [map] = useMap()
+  const [ctx] = useMapContext()
   const sourceId: string = props.style?.source || useSourceId()
   props.id ??= createUniqueId()
 
   const debug = (text, value?) => {
-    map().debug &&
+    ctx.map.debug &&
       console.debug('%c[MapGL]', 'color: #10b981', text, value || '')
   }
 
   // Add Layer
-  map().addLayer(
+  ctx.map.addLayer(
     props.customLayer || {
       ...props.style,
       id: props.id,
@@ -77,19 +77,19 @@ export const Layer: Component<Props> = props => {
       },
     },
     props.beforeType
-      ? map()
+      ? ctx.map
         .getStyle()
         .layers.find(l => l.type === props.beforeType)?.id
       : props.beforeId
   )
-  map().layerIdList.push(props.id)
+  ctx.map.layerIdList.push(props.id)
   debug('Add Layer:', props.id)
 
   // Hook up events
   layerEvents.forEach(item => {
     if (props[item]) {
       const event = item.slice(2).toLowerCase()
-      map().on(event, props.id, evt => {
+      ctx.map.on(event, props.id, evt => {
         props[item](evt)
         debug(`Layer '${event}' event on '${props.id}':`, evt)
       })
@@ -103,19 +103,19 @@ export const Layer: Component<Props> = props => {
 
     if (style.layout !== prev?.layout)
       diff(style.layout, prev?.layout).forEach(([key, value]) =>
-        map().setLayoutProperty(props.id, key, value, { validate: false })
+        ctx.map.setLayoutProperty(props.id, key, value, { validate: false })
       )
 
     if (style.paint !== prev?.paint)
       diff(style.paint, prev?.paint).forEach(([key, value]) =>
-        map().setPaintProperty(props.id, key, value, { validate: false })
+        ctx.map.setPaintProperty(props.id, key, value, { validate: false })
       )
 
     if (style.minzoom !== prev?.minzoom || style.maxzoom !== prev?.maxzoom)
-      map().setLayerZoomRange(props.id, style.minzoom, style.maxzoom)
+      ctx.map.setLayerZoomRange(props.id, style.minzoom, style.maxzoom)
 
     if (style.filter !== prev?.filter)
-      map().setFilter(props.id, style.filter, { validate: false })
+      ctx.map.setFilter(props.id, style.filter, { validate: false })
 
     debug('Update Layer Style:', props.id)
     return style
@@ -125,7 +125,7 @@ export const Layer: Component<Props> = props => {
   createEffect((prev: boolean) => {
     if (props.visible === prev) return
 
-    map().setLayoutProperty(
+    ctx.map.setLayoutProperty(
       props.id,
       'visibility',
       props.visible ? 'visible' : 'none',
@@ -139,22 +139,22 @@ export const Layer: Component<Props> = props => {
   createEffect(async () => {
     if (!props.filter) return
 
-    !map().isStyleLoaded() && (await map().once('styledata'))
-    map().setFilter(props.id, props.filter)
+    !ctx.map.isStyleLoaded() && (await ctx.map.once('styledata'))
+    ctx.map.setFilter(props.id, props.filter)
     debug(`Update Filter (${props.id}):`, props.filter)
   })
 
   // Update Feature State
   createEffect(async () => {
-    if (!props.featureState || !props.featureState.id) return
+    if (!props.featureState || props.featureState.id === null) return
 
-    !map().isStyleLoaded() && (await map().once('styledata'))
+    !ctx.map.isStyleLoaded() && (await ctx.map.once('styledata'))
 
-    map().removeFeatureState({
+    ctx.map.removeFeatureState({
       source: sourceId,
       sourceLayer: props.style['source-layer'],
     })
-    map().setFeatureState(
+    ctx.map.setFeatureState(
       {
         source: sourceId,
         sourceLayer: props.style['source-layer'],
@@ -165,7 +165,7 @@ export const Layer: Component<Props> = props => {
   })
 
   //Remove Layer
-  onCleanup(() => map()?.getLayer(props.id) && map()?.removeLayer(props.id))
+  onCleanup(() => ctx.map?.getLayer(props.id) && ctx.map?.removeLayer(props.id))
 
   return props.children
 }

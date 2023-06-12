@@ -6,7 +6,7 @@ import {
   useContext,
   createUniqueId,
 } from 'solid-js'
-import { useMap } from '../MapProvider'
+import { useMapContext } from '../MapProvider'
 import type { SourceSpecification } from 'mapbox-gl/src/style-spec/types.js'
 import { rasterStyleList } from '../../mapStyles'
 
@@ -23,11 +23,11 @@ type Props = {
 }
 
 export const Source: Component<Props> = props => {
-  const [map] = useMap()
+  const [ctx] = useMapContext()
   props.id ??= createUniqueId()
 
   const debug = (text, value?) => {
-    map().debug &&
+    ctx.map.debug &&
       console.debug('%c[MapGL]', 'color: #ec4899', text, value || '')
   }
 
@@ -58,17 +58,17 @@ export const Source: Component<Props> = props => {
   }
 
   // Add Source
-  map().addSource(props.id, lookup(props.source.url))
-  map().sourceIdList.push(props.id)
+  ctx.map.addSource(props.id, lookup(props.source.url))
+  ctx.map.sourceIdList.push(props.id)
   debug('Add Source:', props.id)
 
   // Update Data
-  const source = map().getSource(props.id)
+  const source = ctx.map.getSource(props.id)
   switch (props.source.type) {
     case 'geojson':
       createEffect(() => {
         const data = props.source.data
-        if (!map().isSourceLoaded(props.id)) return
+        if (!ctx.map.isSourceLoaded(props.id)) return
         source.setData(data || {})
         debug('Update GeoJSON Data:', props.id)
       })
@@ -77,7 +77,7 @@ export const Source: Component<Props> = props => {
       createEffect(() => {
         const url = props.source.url
         const coords = props.source.coordinates
-        if (!map().isSourceLoaded(props.id)) return
+        if (!ctx.map.isSourceLoaded(props.id)) return
         source.updateImage(url, coords)
         debug('Update Image Data:', props.id)
       })
@@ -86,7 +86,7 @@ export const Source: Component<Props> = props => {
       createEffect(() => {
         const url = props.source.url
         const tiles = props.source.tiles
-        if (!map().isSourceLoaded(props.id)) return
+        if (!ctx.map.isSourceLoaded(props.id)) return
         url ? source.setUrl(url) : source.setTiles(tiles)
         debug('Update Vector Data:', props.id)
       })
@@ -94,7 +94,7 @@ export const Source: Component<Props> = props => {
     case 'raster':
       createEffect(() => {
         const src = lookup(props.source.url)
-        if (!map().isSourceLoaded(props.id)) return
+        if (!ctx.map.isSourceLoaded(props.id)) return
         src.url ? source.setUrl(src.url) : source.setTiles(src.tiles)
         debug('Update Raster Data:', props.id)
       })
@@ -103,12 +103,12 @@ export const Source: Component<Props> = props => {
 
   // Remove Source
   onCleanup(() => {
-    map()
+    ctx.map
       ?.getStyle()
       .layers.forEach(
-        layer => layer.source === props.id && map().removeLayer(layer.id)
+        layer => layer.source === props.id && ctx.map.removeLayer(layer.id)
       )
-    map()?.getSource(props.id) && map()?.removeSource(props.id)
+    ctx.map?.getSource(props.id) && ctx.map?.removeSource(props.id)
     debug('Remove Source:', props.id)
   })
 

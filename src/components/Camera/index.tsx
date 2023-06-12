@@ -1,5 +1,5 @@
 import { createEffect, Component, onCleanup } from 'solid-js'
-import { useMap } from '../MapProvider'
+import { useMapContext } from '../MapProvider'
 import type { LngLatLike } from 'mapbox-gl'
 
 // linearly interpolate between two positions [x,y,z] based on time
@@ -79,16 +79,16 @@ type Props = {
 }
 
 export const Camera: Component<Props> = props => {
-  const [map, userInteraction] = useMap()
-  if (!map()) return null
+  const [ctx] = useMapContext()
+  if (!ctx.map) return null
   let animationTime = 0.1
   let isReverse = false
 
   const updateCameraPosition = async ([lng, lat, alt]: number[], target: LngLatLike) => {
-    const camera = map().getFreeCameraOptions()
-    camera.position = map().mapLib.MercatorCoordinate.fromLngLat([lng, lat], alt)
+    const camera = ctx.map.getFreeCameraOptions()
+    camera.position = ctx.map.mapLib.MercatorCoordinate.fromLngLat([lng, lat], alt)
     camera.lookAtPoint(target)
-    map().setFreeCameraOptions(camera)
+    ctx.map.setFreeCameraOptions(camera)
   }
 
   const frame = () => {
@@ -117,50 +117,50 @@ export const Camera: Component<Props> = props => {
   const options = { duration: 1000, easing: n => n }
 
   const rotateGlobe = (): void => {
-    if (userInteraction) return
+    if (ctx.userInteraction) return
     const {
       secPerRev = 120,
       maxSpinZoom = 5,
       slowSpinZoom = 3,
     }: RotateGlobeOptions = props.rotateGlobe as RotateGlobeOptions
 
-    const zoom: number = map().getZoom()
+    const zoom: number = ctx.map.getZoom()
     if (zoom > maxSpinZoom) return
     let distancePerSecond: number = 360 / secPerRev
     if (zoom > slowSpinZoom)
       distancePerSecond *= (maxSpinZoom - zoom) / (maxSpinZoom - slowSpinZoom)
-    const center: mapboxgl.LngLat = map().getCenter()
+    const center: mapboxgl.LngLat = ctx.map.getCenter()
     center.lng = props.reverse
       ? center.lng + distancePerSecond
       : center.lng - distancePerSecond
-    map().easeTo({ center, ...options }, { rotate: true })
+    ctx.map.easeTo({ center, ...options }, { rotate: true })
   }
 
   const rotateViewport = (): void => {
-    if (!props.rotateViewport || userInteraction) return
+    if (!props.rotateViewport || ctx.userInteraction) return
     const rotateViewport = props.rotateViewport as RotateViewportOptions
     const secPerRev = rotateViewport?.secPerRev || 60
     const bearing = props.reverse
-      ? map().getBearing() + 360 / secPerRev
-      : map().getBearing() - 360 / secPerRev
+      ? ctx.map.getBearing() + 360 / secPerRev
+      : ctx.map.getBearing() - 360 / secPerRev
     const pitch = rotateViewport?.pitch || 60
     const around = rotateViewport?.around
-    map().easeTo({ bearing, pitch, around, ...options }, { rotate: true })
+    ctx.map.easeTo({ bearing, pitch, around, ...options }, { rotate: true })
   }
 
   const onEnd = () => (props.rotateGlobe ? rotateGlobe() : rotateViewport())
-  map().on('moveend', onEnd).on('dragend', onEnd)
+  ctx.map.on('moveend', onEnd).on('dragend', onEnd)
 
   let originalCenter: mapboxgl.LngLatLike
   createEffect(() => {
     if (props.rotateGlobe == undefined) return
     if (props.rotateGlobe) {
-      originalCenter = map().getCenter()
+      originalCenter = ctx.map.getCenter()
       rotateGlobe()
     } else {
       props.resetWhenStopped
-        ? map().stop().easeTo({ center: originalCenter })
-        : map().stop()
+        ? ctx.map.stop().easeTo({ center: originalCenter })
+        : ctx.map.stop()
     }
   })
 
@@ -169,11 +169,11 @@ export const Camera: Component<Props> = props => {
     props.rotateViewport
       ? rotateViewport()
       : props.resetWhenStopped
-        ? map().stop().resetNorthPitch()
-        : map().stop()
+        ? ctx.map.stop().resetNorthPitch()
+        : ctx.map.stop()
   })
 
-  onCleanup(() => map().off('moveend', onEnd).off('dragend', onEnd))
+  onCleanup(() => ctx.map.off('moveend', onEnd).off('dragend', onEnd))
 
   return props.children
 }

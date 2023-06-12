@@ -1,5 +1,5 @@
 import { onCleanup, createEffect, VoidComponent } from 'solid-js'
-import { useMap } from '../MapProvider'
+import { useMapContext } from '../MapProvider'
 import type { Fog } from 'mapbox-gl'
 
 type Props = {
@@ -8,13 +8,13 @@ type Props = {
 }
 
 export const Atmosphere: VoidComponent<Props> = (props: Props) => {
-  const [map] = useMap()
+  const [ctx] = useMapContext()
 
   // Add or Update Atmosphere Layer
-  createEffect(() => map().setFog(props.style || {}))
+  createEffect(() => ctx.map.setFog(props.style || {}))
 
   // Remove Atmosphere Layer
-  onCleanup(() => map().setFog(null))
+  onCleanup(() => ctx.map.setFog(null))
 
   return null
 }
