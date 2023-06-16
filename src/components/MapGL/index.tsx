@@ -20,8 +20,8 @@ import type { StyleSpecification } from 'mapbox-gl/src/style-spec/types.js'
 import type { JSX } from 'solid-js'
 
 export type Map = mapboxgl.Map & {
-  mapLib: any,
-  debug: boolean,
+  mapLib: any
+  debug: boolean
   sourceIdList: string[]
   layerIdList: string[]
 }
@@ -89,7 +89,7 @@ type Props = {
 } & mapEventTypes
 
 /** Creates a new Map Container */
-export const MapGL: Component<Props> = props => {
+export const MapGL: Component<Props> = (props) => {
   props.id ??= createUniqueId()
 
   let map: Map
@@ -101,13 +101,10 @@ export const MapGL: Component<Props> = props => {
   const [darkMode, setDarkMode] = createSignal(
     (typeof window !== 'undefined' &&
       window.matchMedia('(prefers-color-scheme: dark)').matches) ||
-    (typeof document !== 'undefined' &&
-      document.body.classList.contains('dark'))
+      (typeof document !== 'undefined' &&
+        document.body.classList.contains('dark'))
   )
-  const [userInteraction, setUserInteraction] = createSignal(false)
   const [internal, setInternal] = createSignal(false)
-  // debounce user interactions
-  createEffect(() => props.onUserInteraction?.(userInteraction()))
 
   const debug = (text, value?) => {
     props.debug &&
@@ -118,13 +115,13 @@ export const MapGL: Component<Props> = props => {
     const style = darkMode() && dark ? dark : light
     return typeof style === 'string' || style instanceof String
       ? style
-        ?.split(':')
-        .reduce((p, c) => p && p[c], vectorStyleList)
-        ?.replace(
-          '{apikey}',
-          //@ts-ignore
-          props.apikey || import.meta.env.VITE_VECTOR_API_KEY
-        ) || style
+          ?.split(':')
+          .reduce((p, c) => p && p[c], vectorStyleList)
+          ?.replace(
+            '{apikey}',
+            //@ts-ignore
+            props.apikey || import.meta.env.VITE_VECTOR_API_KEY
+          ) || style
       : style || { version: 8, sources: {}, layers: [] }
   }
 
@@ -157,13 +154,13 @@ export const MapGL: Component<Props> = props => {
       setMapLoaded(map)
       debug('Map loaded')
 
-        // Handle User Interaction
-        ;['mousedown', 'touchstart', 'wheel'].forEach(event =>
-          map.on(event, evt => !evt.rotate && setUserInteraction(true))
-        )
-        ;['moveend', 'mouseup', 'touchend'].forEach(event =>
-          map.on(event, evt => !evt.rotate && setUserInteraction(false))
-        )
+      // Handle User Interaction
+      ;['mousedown', 'touchstart', 'wheel'].forEach((event) =>
+        map.on(event, (evt) => !evt.rotate && props.onUserInteraction(true))
+      )
+      ;['moveend', 'mouseup', 'touchend'].forEach((event) =>
+        map.on(event, (evt) => !evt.rotate && props.onUserInteraction(false))
+      )
 
       // Listen to dark theme changes
       const darkTheme =
@@ -190,20 +187,20 @@ export const MapGL: Component<Props> = props => {
       // }
 
       // Hook up events
-      mapEvents.forEach(item => {
+      mapEvents.forEach((item) => {
         const prop = props[item]
         let isFirstMessage = true
         if (prop) {
           const event = item.slice(2).toLowerCase()
           if (typeof prop === 'function') {
-            map.on(event, e => {
+            map.on(event, (e) => {
               prop(e)
               isFirstMessage && debug(`Map '${event}' event:`, e)
               isFirstMessage = false
             })
           } else {
-            Object.keys(prop).forEach(layerId => {
-              map.on(event as any, layerId, e => {
+            Object.keys(prop).forEach((layerId) => {
+              map.on(event as any, layerId, (e) => {
                 prop[layerId](e)
                 isFirstMessage &&
                   debug(`Map '${event}' event on '${layerId}':`, e)
@@ -215,7 +212,7 @@ export const MapGL: Component<Props> = props => {
       })
 
       // Update Viewport
-      map.on('move', event => {
+      map.on('move', (event) => {
         const viewport: Viewport = {
           ...props.viewport,
           id: props.id,
@@ -232,7 +229,7 @@ export const MapGL: Component<Props> = props => {
         !event.viewport && props.onViewportChange?.(viewport)
       })
 
-      map.on('moveend', event => {
+      map.on('moveend', (event) => {
         !event.rotate &&
           props.onViewportChange?.({ ...props.viewport, inTransit: false })
         setInternal(false)
@@ -244,14 +241,14 @@ export const MapGL: Component<Props> = props => {
   createEffect(
     on(
       () => props.viewport,
-      vp => {
+      (vp) => {
         if (props.id !== vp?.id || internal()) return
         const viewport = {
           ...vp,
           ...(vp.bounds
             ? map.cameraForBounds(vp.bounds, {
-              padding: vp?.padding,
-            })
+                padding: vp?.padding,
+              })
             : null),
         }
         map.stop()[props.transitionType || 'flyTo'](viewport)
@@ -278,8 +275,8 @@ export const MapGL: Component<Props> = props => {
   })
 
   const insertLayers = (list, layers) => {
-    layers.forEach(layer => {
-      const index = list.findIndex(i =>
+    layers.forEach((layer) => {
+      const index = list.findIndex((i) =>
         layer.metadata.smg.beforeType
           ? i.type === layer.metadata.smg.beforeType
           : i.id === layer.metadata.smg.beforeId
@@ -293,15 +290,15 @@ export const MapGL: Component<Props> = props => {
   }
 
   // Update map style
-  createEffect(prev => {
+  createEffect((prev) => {
     const style = getStyle(props.options?.style, props.darkStyle)
     if (map?.isStyleLoaded() && prev !== style) {
       const oldStyle = map.getStyle()
-      const oldLayers = oldStyle.layers.filter(l =>
+      const oldLayers = oldStyle.layers.filter((l) =>
         map.layerIdList.includes(l.id)
       )
       const oldSources = Object.keys(oldStyle.sources)
-        .filter(s => map.sourceIdList.includes(s))
+        .filter((s) => map.sourceIdList.includes(s))
         .reduce((obj, key) => ({ ...obj, [key]: oldStyle.sources[key] }), {})
 
       map.setStyle(style)
@@ -321,21 +318,21 @@ export const MapGL: Component<Props> = props => {
     return style
   }, props.options?.style)
 
-    // Update debug features
-    ;[
-      'showTileBoundaries',
-      'showTerrainWireframe',
-      'showCollisionBoxes',
-      'showPadding',
-      'showOverdrawInspector',
-    ].forEach(item => {
-      createEffect(() => {
-        const prop = props[item]
-        if (!map || !prop) return
-        map[item] = prop
-        debug(`Set ${item} to:`, prop)
-      })
+  // Update debug features
+  ;[
+    'showTileBoundaries',
+    'showTerrainWireframe',
+    'showCollisionBoxes',
+    'showPadding',
+    'showOverdrawInspector',
+  ].forEach((item) => {
+    createEffect(() => {
+      const prop = props[item]
+      if (!map || !prop) return
+      map[item] = prop
+      debug(`Set ${item} to:`, prop)
     })
+  })
 
   onCleanup(() => {
     resizeObserver?.disconnect()
@@ -355,17 +352,15 @@ export const MapGL: Component<Props> = props => {
           props?.class || props?.classList
             ? null
             : props.style || {
-              position: 'absolute',
-              inset: 0,
-              'z-index': -1,
-            }
+                position: 'absolute',
+                inset: 0,
+                'z-index': -1,
+              }
         }
       />
-      {mapLoaded() &&
-        <MapProvider map={mapLoaded()}>
-          {props.children}
-        </MapProvider>
-      }
+      {mapLoaded() && (
+        <MapProvider map={mapLoaded()}>{props.children}</MapProvider>
+      )}
     </>
   )
 }

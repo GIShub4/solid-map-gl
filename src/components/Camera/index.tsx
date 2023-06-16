@@ -1,9 +1,10 @@
-import { createEffect, Component, onCleanup } from 'solid-js'
+import { createEffect, Component, onCleanup, createSignal } from 'solid-js'
 import { useMapContext } from '../MapProvider'
 import type { LngLatLike } from 'mapbox-gl'
 
 // linearly interpolate between two positions [x,y,z] based on time
-const lerp = (a: number[], b: number[], t: number): number[] => a.map((_, idx) => (1.0 - t) * a[idx] + t * b[idx])
+const lerp = (a: number[], b: number[], t: number): number[] =>
+  a.map((_, idx) => (1.0 - t) * a[idx] + t * b[idx])
 
 // sphericaly interpolate between two positions [x,y,z] based on time
 const slerp = (a: number[], b: number[], t: number): number[] => {
@@ -78,15 +79,29 @@ type Props = {
   children?: any
 }
 
-export const Camera: Component<Props> = props => {
+export const Camera: Component<Props> = (props) => {
   const [ctx] = useMapContext()
-  if (!ctx.map) return null
   let animationTime = 0.1
   let isReverse = false
 
-  const updateCameraPosition = async ([lng, lat, alt]: number[], target: LngLatLike) => {
+  // Handle User Interaction
+  const [userInteraction, setUserInteraction] = createSignal(false)
+  ;['mousedown', 'touchstart', 'wheel'].forEach((event) =>
+    ctx.map.on(event, (evt) => !evt.rotate && setUserInteraction(true))
+  )
+  ;['moveend', 'mouseup', 'touchend'].forEach((event) =>
+    ctx.map.on(event, (evt) => !evt.rotate && setUserInteraction(false))
+  )
+
+  const updateCameraPosition = async (
+    [lng, lat, alt]: number[],
+    target: LngLatLike
+  ) => {
     const camera = ctx.map.getFreeCameraOptions()
-    camera.position = ctx.map.mapLib.MercatorCoordinate.fromLngLat([lng, lat], alt)
+    camera.position = ctx.map.mapLib.MercatorCoordinate.fromLngLat(
+      [lng, lat],
+      alt
+    )
     camera.lookAtPoint(target)
     ctx.map.setFreeCameraOptions(camera)
   }
@@ -114,10 +129,10 @@ export const Camera: Component<Props> = props => {
     props.translate && window.requestAnimationFrame(frame)
   })
 
-  const options = { duration: 1000, easing: n => n }
+  const options = { duration: 1000, easing: (n) => n }
 
   const rotateGlobe = (): void => {
-    if (ctx.userInteraction) return
+    if (userInteraction()) return
     const {
       secPerRev = 120,
       maxSpinZoom = 5,
@@ -137,7 +152,7 @@ export const Camera: Component<Props> = props => {
   }
 
   const rotateViewport = (): void => {
-    if (!props.rotateViewport || ctx.userInteraction) return
+    if (!props.rotateViewport || userInteraction()) return
     const rotateViewport = props.rotateViewport as RotateViewportOptions
     const secPerRev = rotateViewport?.secPerRev || 60
     const bearing = props.reverse
@@ -169,8 +184,8 @@ export const Camera: Component<Props> = props => {
     props.rotateViewport
       ? rotateViewport()
       : props.resetWhenStopped
-        ? ctx.map.stop().resetNorthPitch()
-        : ctx.map.stop()
+      ? ctx.map.stop().resetNorthPitch()
+      : ctx.map.stop()
   })
 
   onCleanup(() => ctx.map.off('moveend', onEnd).off('dragend', onEnd))
