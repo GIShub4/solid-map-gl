@@ -156,10 +156,10 @@ export const MapGL: Component<Props> = (props) => {
 
       // Handle User Interaction
       ;['mousedown', 'touchstart', 'wheel'].forEach((event) =>
-        map.on(event, (evt) => !evt.rotate && props.onUserInteraction(true))
+        map.on(event, (evt) => !evt.rotate && props.onUserInteraction?.(true))
       )
       ;['moveend', 'mouseup', 'touchend'].forEach((event) =>
-        map.on(event, (evt) => !evt.rotate && props.onUserInteraction(false))
+        map.on(event, (evt) => !evt.rotate && props.onUserInteraction?.(false))
       )
 
       // Listen to dark theme changes
