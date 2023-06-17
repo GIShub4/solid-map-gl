@@ -129,7 +129,8 @@ export const MapGL: Component<Props> = (props) => {
     let mapLib = props.mapLib || (await import('mapbox-gl'))
     if (!mapLib.Map) mapLib = window['maplibregl'] || window['mapboxgl']
 
-    if (!mapLib.supported?.()) throw new Error('Mapbox GL not supported')
+    if (typeof mapLib.supported === 'function' && !mapLib.supported())
+      throw new Error('Mapbox GL not supported')
 
     debug(`Map (v${mapLib.version}) loading...`)
     map = new mapLib.Map({

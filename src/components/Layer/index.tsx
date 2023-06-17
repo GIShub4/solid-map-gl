@@ -2,6 +2,7 @@ import { onCleanup, createEffect, Component, createUniqueId } from 'solid-js'
 import { useMapContext } from '../MapProvider'
 import { useSourceId } from '../Source'
 import { layerEvents } from '../../events'
+import { baseStyle, layoutStyles } from '../../styles'
 import type { layerEventTypes } from '../../events'
 import type {
   FilterSpecification,
@@ -37,16 +38,16 @@ type Props = {
   sourceId?: string
   /** A string that specifies the ID of the source that the layer uses for its data. */
   beforeType?:
-  | 'background'
-  | 'fill'
-  | 'line'
-  | 'symbol'
-  | 'raster'
-  | 'circle'
-  | 'fill-extrusion'
-  | 'heatmap'
-  | 'hillshade'
-  | 'sky'
+    | 'background'
+    | 'fill'
+    | 'line'
+    | 'symbol'
+    | 'raster'
+    | 'circle'
+    | 'fill-extrusion'
+    | 'heatmap'
+    | 'hillshade'
+    | 'sky'
   /** A string that specifies the type of layer before which the current layer should be inserted. */
   beforeId?: string
   /** A string that specifies the ID of the layer before which the current layer should be inserted. */
@@ -56,7 +57,35 @@ type Props = {
   /** Any content that should be rendered within the layer. */
 } & layerEventTypes
 
-export const Layer: Component<Props> = props => {
+const newKey = (key, type) =>
+  (key.startsWith(type) || key.startsWith('icon') || key.startsWith('text')
+    ? ''
+    : type + '-') + key.replace(/[A-Z]/g, (s) => '-' + s.toLowerCase())
+
+const updateStyle = (oldStyle) => {
+  let layout = {}
+  let paint = {}
+  let style = {}
+
+  Object.entries(oldStyle).forEach(([key, value]) => {
+    if (baseStyle.includes(key)) style[key] = value
+    else {
+      const nk = newKey(key, oldStyle.type)
+      layoutStyles.includes(nk) ? (layout[nk] = value) : (paint[nk] = value)
+    }
+  })
+  if (oldStyle.paint)
+    Object.entries(oldStyle.paint).forEach(
+      ([key, value]) => (paint[newKey(key, oldStyle.type)] = value)
+    )
+  if (oldStyle.layout)
+    Object.entries(oldStyle.layout).forEach(
+      ([key, value]) => (layout[newKey(key, oldStyle.type)] = value)
+    )
+  return { ...style, paint, layout } as StyleSpecification
+}
+
+export const Layer: Component<Props> = (props) => {
   const [ctx] = useMapContext()
   const sourceId: string = props.style?.source || useSourceId()
   props.id ??= createUniqueId()
@@ -69,7 +98,7 @@ export const Layer: Component<Props> = props => {
   // Add Layer
   ctx.map.addLayer(
     props.customLayer || {
-      ...props.style,
+      ...updateStyle(props.style),
       id: props.id,
       source: sourceId,
       metadata: {
@@ -77,19 +106,17 @@ export const Layer: Component<Props> = props => {
       },
     },
     props.beforeType
-      ? ctx.map
-        .getStyle()
-        .layers.find(l => l.type === props.beforeType)?.id
+      ? ctx.map.getStyle().layers.find((l) => l.type === props.beforeType)?.id
       : props.beforeId
   )
   ctx.map.layerIdList.push(props.id)
   debug('Add Layer:', props.id)
 
   // Hook up events
-  layerEvents.forEach(item => {
+  layerEvents.forEach((item) => {
     if (props[item]) {
       const event = item.slice(2).toLowerCase()
-      ctx.map.on(event, props.id, evt => {
+      ctx.map.on(event, props.id, (evt) => {
         props[item](evt)
         debug(`Layer '${event}' event on '${props.id}':`, evt)
       })
@@ -98,7 +125,7 @@ export const Layer: Component<Props> = props => {
 
   // Update Style
   createEffect((prev: StyleSpecification) => {
-    const style = props.style
+    const style = updateStyle(props.style)
     if (style === prev) return
 
     if (style.layout !== prev?.layout)
@@ -119,7 +146,7 @@ export const Layer: Component<Props> = props => {
 
     debug('Update Layer Style:', props.id)
     return style
-  }, props.style)
+  }, updateStyle(props.style))
 
   // Update Visibility
   createEffect((prev: boolean) => {

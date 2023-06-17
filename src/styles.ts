@@ -1,4 +1,17 @@
-const layoutStyles = [
+export const baseStyle = [
+    'id',
+    'type',
+    'filter',
+    'source',
+    'source-layer',
+    'minzoom',
+    'metadata',
+    'maxzoom',
+    'paint',
+    'layout'
+  ]
+
+export const layoutStyles = [
     'visibility',
     'line-join',
     'line-cap',
