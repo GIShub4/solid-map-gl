@@ -6,18 +6,23 @@ import type { Options as GeolocateOptions } from 'mapbox-gl/src/ui/control/geolo
 import type { Options as NavigationOptions } from 'mapbox-gl/src/ui/control/navigation_control'
 import type { Options as ScaleOptions } from 'mapbox-gl/src/ui/control/scale_control'
 
-type ControlType = 'navigation' | 'scale' | 'attribution' | 'fullscreen' | 'geolocate'
+type ControlType =
+  | 'navigation'
+  | 'scale'
+  | 'attribution'
+  | 'fullscreen'
+  | 'geolocate'
 
 type Props = {
   type?: ControlType
   /** a string that specifies the type of control to be displayed. It can be one of 'navigation', 'scale', 'attribution', 'fullscreen', or 'geolocate' */
   options?:
-  | NavigationOptions
-  | ScaleOptions
-  | AttributionOptions
-  | FullscreenOptions
-  | GeolocateOptions
-  | object
+    | NavigationOptions
+    | ScaleOptions
+    | AttributionOptions
+    | FullscreenOptions
+    | GeolocateOptions
+    | object
   /** an optional object that contains options specific to the control type */
   custom?: any
   /**  an optional field that allows passing a custom control element. */
@@ -25,7 +30,7 @@ type Props = {
   /** a string that specifies the position of the control on the map. It can be one of 'top-left', 'top-right', 'bottom-left', or 'bottom-right' */
 }
 
-export const Control: VoidComponent<Props> = props => {
+export const Control: VoidComponent<Props> = (props) => {
   const [ctx] = useMapContext()
   const controlClasses = new Map<ControlType, any>([
     ['navigation', ctx.map.mapLib.NavigationControl],
@@ -34,12 +39,14 @@ export const Control: VoidComponent<Props> = props => {
     ['geolocate', ctx.map.mapLib.GeolocateControl],
     ['fullscreen', ctx.map.mapLib.FullscreenControl],
   ])
-  const ControlClass = props.custom || controlClasses.get(props.type || 'navigation')
-  if (!ControlClass) throw new Error(`Unknown control type: ${props.type}`)
 
   // Add or Update Control
   createEffect(() => {
+    const ControlClass =
+      props.custom || controlClasses.get(props.type || 'navigation')
+    if (!ControlClass) throw new Error(`Unknown control type: ${props.type}`)
     const control = new ControlClass(props.options)
+
     control && ctx.map.hasControl(control) && ctx.map.removeControl(control)
     ctx.map.addControl(control, props.position)
   })

@@ -63,6 +63,7 @@ const newKey = (key, type) =>
     : type + '-') + key.replace(/[A-Z]/g, (s) => '-' + s.toLowerCase())
 
 const updateStyle = (oldStyle) => {
+  if (!oldStyle) return
   let layout = {}
   let paint = {}
   let style = {}
@@ -117,6 +118,7 @@ export const Layer: Component<Props> = (props) => {
     if (props[item]) {
       const event = item.slice(2).toLowerCase()
       ctx.map.on(event, props.id, (evt) => {
+        evt.clickOnLayer = true
         props[item](evt)
         debug(`Layer '${event}' event on '${props.id}':`, evt)
       })

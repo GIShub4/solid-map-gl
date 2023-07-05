@@ -194,17 +194,19 @@ export const MapGL: Component<Props> = (props) => {
         if (prop) {
           const event = item.slice(2).toLowerCase()
           if (typeof prop === 'function') {
-            map.on(event, (e) => {
-              prop(e)
-              isFirstMessage && debug(`Map '${event}' event:`, e)
+            map.on(event, (evt) => {
+              if (evt.clickOnLayer) return
+              prop(evt)
+              isFirstMessage && debug(`Map '${event}' event:`, evt)
               isFirstMessage = false
             })
           } else {
             Object.keys(prop).forEach((layerId) => {
-              map.on(event as any, layerId, (e) => {
-                prop[layerId](e)
+              map.on(event as any, layerId, (evt) => {
+                if (evt.clickOnLayer) return
+                prop[layerId](evt)
                 isFirstMessage &&
-                  debug(`Map '${event}' event on '${layerId}':`, e)
+                  debug(`Map '${event}' event on '${layerId}':`, evt)
                 isFirstMessage = false
               })
             })
@@ -217,7 +219,10 @@ export const MapGL: Component<Props> = (props) => {
         const viewport: Viewport = {
           ...props.viewport,
           id: props.id,
-          // point: { x: event.originalEvent?.x, y: event.originalEvent?.y },
+          point: {
+            x: (event as any).originalEvent?.x,
+            y: (event as any).originalEvent?.y,
+          },
           center: props.viewport?.center?.lat
             ? map.getCenter()
             : [map.getCenter().lng, map.getCenter().lat],
@@ -225,6 +230,7 @@ export const MapGL: Component<Props> = (props) => {
           pitch: map.getPitch(),
           bearing: map.getBearing(),
           inTransit: true,
+          bounds: null,
         }
         setInternal(true)
         !event.viewport && props.onViewportChange?.(viewport)
