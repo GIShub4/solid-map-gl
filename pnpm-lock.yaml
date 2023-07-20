@@ -13,7 +13,7 @@ devDependencies:
     version: 0.8.4(@solidjs/router@0.8.2)(solid-js@1.7.7)
   '@types/mapbox-gl':
     specifier: ^2.7.11
-    version: 2.7.11
+    version: 2.7.12
   canvas:
     specifier: ^2.11.2
     version: 2.11.2
@@ -1822,8 +1822,8 @@ packages:
     resolution: {integrity: sha512-Nmh0K3iWQJzniTuPRcJn5hxXkfB1T1pgB89SBig5PlJQU5yocazeu4jATJlaA0GYFKWMqDdvYemoSnF2pXgLVA==}
     dev: true
 
-  /@types/mapbox-gl@2.7.11:
-    resolution: {integrity: sha512-4vSwPSTQIawZTFRiTY2R74aZwAiM9gE6KGj871xdyAPpa+DmEObXxQQXqL2PsMH31/rP9nxJ2Kv0boeTVJMXVw==}
+  /@types/mapbox-gl@2.7.12:
+    resolution: {integrity: sha512-aEMMOWlSTn2lp0liLqHsI/vAkV8858mkhn4fFYZELdLO1o6PEKCkkUfQ/GBp603Xfc3xmasLZsoELJBbje+atw==}
     dependencies:
       '@types/geojson': 7946.0.10
     dev: true
