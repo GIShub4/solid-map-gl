@@ -42,11 +42,7 @@ export const Control: VoidComponent<Props> = (props) => {
 
   // Add or Update Control
   createEffect(() => {
-    const ControlClass =
-      props.custom || controlClasses.get(props.type || 'navigation')
-    if (!ControlClass) throw new Error(`Unknown control type: ${props.type}`)
-    const control = new ControlClass(props.options)
-
+    const control = props.custom || new (controlClasses.get(props.type || 'navigation'))(props.options)
     control && ctx.map.hasControl(control) && ctx.map.removeControl(control)
     ctx.map.addControl(control, props.position)
   })
