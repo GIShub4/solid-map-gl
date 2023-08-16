@@ -151,6 +151,33 @@ export const MapGL: Component<Props> = (props) => {
     map.sourceIdList = []
     map.layerIdList = []
 
+    // Hook up events
+    mapEvents.forEach((item) => {
+      const prop = props[item]
+      let isFirstMessage = true
+      if (prop) {
+        const event = item.slice(2).toLowerCase()
+        if (typeof prop === 'function') {
+          map.on(event, (evt) => {
+            if (evt.clickOnLayer) return
+            prop(evt)
+            isFirstMessage && debug(`Map '${event}' event:`, evt)
+            isFirstMessage = false
+          })
+        } else {
+          Object.keys(prop).forEach((layerId) => {
+            map.on(event as any, layerId, (evt) => {
+              if (evt.clickOnLayer) return
+              prop[layerId](evt)
+              isFirstMessage &&
+                debug(`Map '${event}' event on '${layerId}':`, evt)
+              isFirstMessage = false
+            })
+          })
+        }
+      }
+    })
+
     map.once('load', () => {
       setMapLoaded(map)
       debug('Map loaded')
@@ -186,33 +213,6 @@ export const MapGL: Component<Props> = (props) => {
       //   })
       //   resizeObserver.observe(mapRef as Element)
       // }
-
-      // Hook up events
-      mapEvents.forEach((item) => {
-        const prop = props[item]
-        let isFirstMessage = true
-        if (prop) {
-          const event = item.slice(2).toLowerCase()
-          if (typeof prop === 'function') {
-            map.on(event, (evt) => {
-              if (evt.clickOnLayer) return
-              prop(evt)
-              isFirstMessage && debug(`Map '${event}' event:`, evt)
-              isFirstMessage = false
-            })
-          } else {
-            Object.keys(prop).forEach((layerId) => {
-              map.on(event as any, layerId, (evt) => {
-                if (evt.clickOnLayer) return
-                prop[layerId](evt)
-                isFirstMessage &&
-                  debug(`Map '${event}' event on '${layerId}':`, evt)
-                isFirstMessage = false
-              })
-            })
-          }
-        }
-      })
 
       // Update Viewport
       map.on('move', (event) => {
