@@ -89,7 +89,7 @@ const updateStyle = (oldStyle) => {
 export const Layer: Component<Props> = (props) => {
   const [ctx] = useMapContext()
   const sourceId: string = props.style?.source || useSourceId()
-  props.id ??= createUniqueId()
+  props.id = props.id || props.customLayer?.id || createUniqueId()
 
   const debug = (text, value?) => {
     ctx.map.debug &&
@@ -160,7 +160,7 @@ export const Layer: Component<Props> = (props) => {
       props.visible ? 'visible' : 'none',
       { validate: false }
     )
-    debug(`Update Visibility (${props.id}):`, props.visible)
+    debug(`Update Visibility (${props.id}):`, props.visible.toString())
     return props.visible
   }, props.visible)
 

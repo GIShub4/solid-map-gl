@@ -5,7 +5,7 @@ import type {
   PopupOptions,
   Marker as MarkerType,
   MarkerOptions,
-  LngLatLike
+  LngLatLike,
 } from 'mapbox-gl'
 
 type Props = {
@@ -48,9 +48,7 @@ export const Marker: Component<Props> = (props: Props) => {
     untrack(() => {
       popup?.remove()
       popup = props.children
-        ? new mapboxgl.Popup(pops)
-          .setHTML(props.children)
-          .on('close', () => props.onClose?.())
+        ? new mapboxgl.Popup(pops).on('close', () => props.onClose?.())
         : null
 
       marker?.remove()
@@ -75,7 +73,11 @@ export const Marker: Component<Props> = (props: Props) => {
   createEffect(() => marker.setLngLat(props.lngLat))
 
   // Update Popup Content
-  createEffect(() => popup?.setHTML(props.children))
+  createEffect(() =>
+    typeof props.children === 'string'
+      ? popup?.setHTML(props.children)
+      : popup?.setDOMContent(props.children)
+  )
 
   // Update Draggable
   createEffect(() => marker.setDraggable(props.draggable))

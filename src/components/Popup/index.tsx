@@ -34,8 +34,6 @@ export const Popup: Component<Props> = (props: Props) => {
           ? { ...ops, closeOnClick: false, closeButton: false }
           : { focusAfterOpen: false, ...ops }
       )
-        .setHTML(props.children || '')
-        .setLngLat(props.lngLat)
         .on('close', () => props.onClose?.())
         .addTo(ctx.map)
     })
@@ -47,7 +45,11 @@ export const Popup: Component<Props> = (props: Props) => {
   )
 
   // Update Content
-  createEffect(() => popup.setHTML(props.children || ''))
+  createEffect(() =>
+    typeof props.children === 'string'
+      ? popup?.setHTML(props.children)
+      : popup?.setDOMContent(props.children)
+  )
 
   // Remove Popup
   onCleanup(() => popup?.remove())
