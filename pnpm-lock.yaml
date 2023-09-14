@@ -25,7 +25,7 @@ devDependencies:
     version: 3.29.0
   rollup-plugin-import-css:
     specifier: ^3.3.1
-    version: 3.3.1(rollup@3.29.0)
+    version: 3.3.3(rollup@3.29.0)
   rollup-preset-solid:
     specifier: ^2.0.1
     version: 2.0.1
@@ -3125,8 +3125,8 @@ packages:
       supports-preserve-symlinks-flag: 1.0.0
     dev: true
 
-  /rollup-plugin-import-css@3.3.1(rollup@3.29.0):
-    resolution: {integrity: sha512-/v/OjjDPhhhbua5w4VzHRTtqfyyG950jJSObtM9os5ELGgaHiolNOvpZNk2KeTSFMuhdrXirGXM64bluHgwySA==}
+  /rollup-plugin-import-css@3.3.3(rollup@3.29.0):
+    resolution: {integrity: sha512-s7jyth3n5vpdadyIozb4HpBf4CYJ2kQh0NH9aNXAUuNNQJMlqBjT4n/gm8a9KvDqodR3A4VzyrbTGJz/EJ9AFg==}
     engines: {node: '>=16'}
     peerDependencies:
       rollup: ^2.x.x || ^3.x.x
