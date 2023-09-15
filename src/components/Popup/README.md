@@ -12,6 +12,7 @@ description: Popup Component
 | lngLat\*     | [LngLatLike](https://docs.mapbox.com/mapbox-gl-js/api/geography/#lnglatlike)       | Popup Location (required if trackPointer is false)                                     |
 | trackPointer | boolean                                                                            | Track Popup to mouse cursor                                                            |
 | children     | [HTML Element \| String](https://developer.mozilla.org/en-US/docs/Web/API/Element) | Popup Content                                                                          |
+| onOpen       | function                                                                           | Called when popup opens                                                                |
 | onClose      | function                                                                           | Called when popup closes                                                               |
 
 _\*required_

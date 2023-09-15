@@ -1,4 +1,4 @@
-import { onCleanup, createEffect, Component, untrack } from 'solid-js'
+import { onCleanup, createEffect, Component, splitProps } from 'solid-js'
 import { useMapContext } from '../MapProvider'
 import type { Popup as PopupType, PopupOptions, LngLatLike } from 'mapbox-gl'
 
@@ -9,6 +9,8 @@ type Props = {
   trackPointer?: boolean
   /** Longitude and latitude for the popup */
   lngLat?: LngLatLike
+  /** Callback for when the popup is opened */
+  onOpen?: () => void
   /** Callback for when the popup is closed */
   onClose?: () => void
   /** Children to display within the popup */
@@ -16,40 +18,44 @@ type Props = {
 }
 
 export const Popup: Component<Props> = (props: Props) => {
-  const [ctx] = useMapContext()
-  let popup: PopupType = null
-
   if (!props.trackPointer && !props.lngLat)
     throw new Error('Popup - lngLat or trackPointer is required')
 
-  // Add or Update Popup
+  const [update, create] = splitProps(props, [
+    'lngLat',
+    'children',
+    'trackPointer',
+  ])
+  const [ctx] = useMapContext()
+  let popup: PopupType | undefined
+
+  // Update Popup
   createEffect(() => {
-    const ops = { ...props.options }
     if (!ctx.map) return
-    const mapboxgl = ctx.map.mapLib
-    untrack(() => {
-      popup?.remove()
-      popup = new mapboxgl.Popup(
-        props.trackPointer
-          ? { ...ops, closeOnClick: false, closeButton: false }
-          : { focusAfterOpen: false, ...ops }
-      )
-        .on('close', () => props.onClose?.())
-        .addTo(ctx.map)
+    popup?.remove()
+    popup = new ctx.map.mapLib.Popup({
+      closeOnClick: false,
+      focusAfterOpen: false,
+      ...create.options,
     })
+      .on('open', () => create.onOpen?.())
+      .on('close', () => create.onClose?.())
+      .addTo(ctx.map)
+
+    // Update Position
+    createEffect(() =>
+      update.trackPointer
+        ? popup.trackPointer()
+        : popup.setLngLat(update.lngLat)
+    )
+
+    // Update Content
+    createEffect(() =>
+      typeof update.children === 'string'
+        ? popup.setHTML(update.children)
+        : popup.setDOMContent(update.children)
+    )
   })
-
-  // Update Position
-  createEffect(() =>
-    props.trackPointer ? popup.trackPointer() : popup.setLngLat(props.lngLat)
-  )
-
-  // Update Content
-  createEffect(() =>
-    typeof props.children === 'string'
-      ? popup?.setHTML(props.children)
-      : popup?.setDOMContent(props.children)
-  )
 
   // Remove Popup
   onCleanup(() => popup?.remove())

@@ -1,13 +1,16 @@
-import { describe, it } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { render } from '@solidjs/testing-library'
 import MapGL from '../..'
-import 'mapbox-gl/dist/mapbox-gl.css'
 
 describe('Map', () => {
-  it('renders', async () =>
-    await render(() => <MapGL options={{ testMode: true }}></MapGL>))
+  it('renders', () => {
+    const { container, unmount } = render(() => (
+      <MapGL options={{ testMode: true }}></MapGL>
+    ))
+    expect(container.innerHTML).toMatchSnapshot()
+    unmount()
+  })
 
-  // it('renders with static viewport', async () => {
-  //   await render(() => <MapGL viewport={{ center: [0, 0], zoom: 5 }}></MapGL>)
-  // })
+  it('renders with static viewport', () =>
+    render(() => <MapGL viewport={{ center: [0, 0], zoom: 5 }}></MapGL>))
 })

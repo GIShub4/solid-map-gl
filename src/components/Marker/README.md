@@ -6,17 +6,18 @@ description: Marker Component
 
 ## Props
 
-| Prop           | Type                                                                               | Description                                                                                                  |
-| -------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| options        | object                                                                             | [Marker Parameters](https://docs.mapbox.com/mapbox-gl-js/api/markers/#marker-parameters)                     |
-| lngLat\*       | [LngLatLike](https://docs.mapbox.com/mapbox-gl-js/api/geography/#lnglatlike)       | Marker Location                                                                                              |
-| openPopup      | boolean                                                                            | Is Popup showing                                                                                             |
-| children       | [HTML Element \| String](https://developer.mozilla.org/en-US/docs/Web/API/Element) | Popup Content                                                                                                |
-| onOpen         | function                                                                           | Called when Popup opens                                                                                      |
-| onClose        | function                                                                           | Called when Popup closes                                                                                     |
-| onDragStart    | function                                                                           | Called when Marker drag starts                                                                               |
-| onDragEnd      | function                                                                           | Called when Marker finshed dragging                                                                          |
-| onLngLatChange | function                                                                           | [LngLatLike](https://docs.mapbox.com/mapbox-gl-js/api/geography/#lnglatlike) position when Marker is dragged |
+| Prop        | Type                                                                               | Description                                                                                                  |
+| ----------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| options     | object                                                                             | [Marker Parameters](https://docs.mapbox.com/mapbox-gl-js/api/markers/#marker-parameters)                     |
+| popup       | object                                                                             | [Popup Parameters](https://docs.mapbox.com/mapbox-gl-js/api/markers/#popup-parameters)                       |
+| lngLat\*    | [LngLatLike](https://docs.mapbox.com/mapbox-gl-js/api/geography/#lnglatlike)       | Marker Location                                                                                              |
+| showPopup   | boolean                                                                            | Is Popup showing                                                                                             |
+| children    | [HTML Element \| String](https://developer.mozilla.org/en-US/docs/Web/API/Element) | Popup Content                                                                                                |
+| onOpen      | function                                                                           | Called when Popup opens                                                                                      |
+| onClose     | function                                                                           | Called when Popup closes                                                                                     |
+| onDragStart | function                                                                           | Called when Marker drag starts                                                                               |
+| onDragEnd   | function                                                                           | Called when Marker finshed dragging                                                                          |
+| onDrag      | function                                                                           | [LngLatLike](https://docs.mapbox.com/mapbox-gl-js/api/geography/#lnglatlike) position when Marker is dragged |
 
 _\*required_
 

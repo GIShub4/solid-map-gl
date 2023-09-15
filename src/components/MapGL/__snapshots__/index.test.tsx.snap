@@ -1,0 +1,3 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Map > renders 1`] = `"<div id=\\"cl-0\\" style=\\"position: absolute; inset: 0; z-index: -1;\\"></div>"`;
