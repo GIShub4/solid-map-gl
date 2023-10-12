@@ -19,8 +19,13 @@ import type { PaddingOptions } from 'mapbox-gl/src/geo/edge_insets.js'
 import type { StyleSpecification } from 'mapbox-gl/src/style-spec/types.js'
 import type { JSX } from 'solid-js'
 
+declare global {
+  interface Window {
+    MapLib?: any
+  }
+}
+
 export type Map = mapboxgl.Map & {
-  mapLib: any
   debug: boolean
   sourceIdList: string[]
   layerIdList: string[]
@@ -146,10 +151,10 @@ export const MapGL: Component<Props> = (props) => {
       fitBoundsOptions: { padding: props.viewport?.padding },
     } as MapboxOptions)
 
-    map.mapLib = mapLib
     map.debug = props.debug
     map.sourceIdList = []
     map.layerIdList = []
+    window.MapLib = mapLib
 
     // Hook up events
     mapEvents.forEach((item) => {

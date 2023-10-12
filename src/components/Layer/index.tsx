@@ -111,6 +111,7 @@ export const Layer: Component<Props> = (props) => {
       : props.beforeId
   )
   ctx.map.layerIdList.push(props.id)
+  if (props.customLayer) ctx.map.fire('load')
   debug('Add Layer:', props.id)
 
   // Hook up events

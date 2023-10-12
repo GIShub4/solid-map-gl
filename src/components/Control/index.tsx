@@ -1,4 +1,11 @@
-import { createEffect, VoidComponent } from 'solid-js'
+import {
+  createSignal,
+  createEffect,
+  onCleanup,
+  splitProps,
+  VoidComponent,
+  untrack,
+} from 'solid-js'
 import { useMapContext } from '../MapProvider'
 import type { Options as AttributionOptions } from 'mapbox-gl/src/ui/control/attribution_control'
 import type { Options as FullscreenOptions } from 'mapbox-gl/src/ui/control/fullscreen_control'
@@ -12,6 +19,8 @@ type ControlType =
   | 'attribution'
   | 'fullscreen'
   | 'geolocate'
+  | 'logo'
+  | 'terrain'
 
 type Props = {
   type?: ControlType
@@ -32,19 +41,41 @@ type Props = {
 
 export const Control: VoidComponent<Props> = (props) => {
   const [ctx] = useMapContext()
+  const [update, create] = splitProps(props, ['position'])
+  const [control, setControl] = createSignal<any>(null)
+
   const controlClasses = new Map<ControlType, any>([
-    ['navigation', ctx.map.mapLib.NavigationControl],
-    ['scale', ctx.map.mapLib.ScaleControl],
-    ['attribution', ctx.map.mapLib.AttributionControl],
-    ['geolocate', ctx.map.mapLib.GeolocateControl],
-    ['fullscreen', ctx.map.mapLib.FullscreenControl],
+    ['navigation', window.MapLib.NavigationControl],
+    ['scale', window.MapLib.ScaleControl],
+    ['attribution', window.MapLib.AttributionControl],
+    ['geolocate', window.MapLib.GeolocateControl],
+    ['fullscreen', window.MapLib.FullscreenControl],
+    ['logo', window.MapLib.LogoControl],
+    ['terrain', window.MapLib.TerrainControl],
   ])
 
-  // Add or Update Control
+  // Add Control
   createEffect(() => {
-    const control = props.custom || new (controlClasses.get(props.type || 'navigation'))(props.options)
-    control && ctx.map.hasControl(control) && ctx.map.removeControl(control)
-    ctx.map.addControl(control, props.position)
+    untrack(
+      () =>
+        control() &&
+        ctx.map.hasControl(control()) &&
+        ctx.map.removeControl(control())
+    )
+    setControl(
+      create.custom ||
+        new (controlClasses.get(create.type || 'navigation'))(create.options)
+    )
+  })
+
+  // Update Position
+  createEffect(() => {
+    ctx.map.hasControl(control()) && ctx.map.removeControl(control())
+    ctx.map.addControl(control(), update.position)
+  })
+
+  onCleanup(() => {
+    ctx.map.hasControl(control()) && ctx.map.removeControl(control())
   })
 
   return null
