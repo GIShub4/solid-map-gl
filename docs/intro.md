@@ -23,14 +23,15 @@ layout: landing
 
 #### Roadmap
 
-* [x] Basic Mapbox GL Functionality
-* [x] Include Map Controls
-* [x] Include Fog, Sky, and Terrain
-* [x] Include Popup and Markers
-* [x] Minify bundle & reduce size
-* [x] Add basemap switching
-* [x] Include event handling
-* [x] Sync Maps
-* [x] Add MapLibre support
-* [ ] Add draw functionality
-* [ ] Add debug console
+- [x] Basic Mapbox GL Functionality
+- [x] Include Map Controls
+- [x] Include Fog, Sky, and Terrain
+- [x] Include Popup and Markers
+- [x] Minify bundle & reduce size
+- [x] Add basemap switching
+- [x] Include event handling
+- [x] Sync Maps
+- [x] Add MapLibre support
+- [x] Add draw functionality
+- [x] Add 3D Layer
+- [ ] Add debug console
