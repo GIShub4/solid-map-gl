@@ -6,10 +6,7 @@ description: Source Component
 
 ## Props
 
-| Name     | Type   | Description                                                                    |
-| -------- | ------ | ------------------------------------------------------------------------------ |
-| id       | string | required if `Layer` components are not nested                                  |
-| source\* | object | [Source style specs](https://docs.mapbox.com/mapbox-gl-js/style-spec/sources/) |
+<table><thead><tr><th width="134.33333333333331">Name</th><th width="106">Type</th><th>Description</th></tr></thead><tbody><tr><td>id</td><td>string</td><td>required if <code>Layer</code> components are not nested</td></tr><tr><td>source*</td><td>object</td><td><a href="https://docs.mapbox.com/mapbox-gl-js/style-spec/sources/">Source style specs</a></td></tr></tbody></table>
 
 _\*required_
 

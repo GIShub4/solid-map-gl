@@ -1,6 +1,8 @@
 ---
-description: Solid Map GL provides Mapbox & MapLibre functionality within SolidJS applications
-cover: docs/header.png
+description: >-
+  Solid Map GL provides Mapbox & MapLibre functionality within SolidJS
+  applications
+cover: docs/docs/header.png
 coverY: -136.56381942189023
 layout: landing
 ---
@@ -23,15 +25,15 @@ layout: landing
 
 #### Roadmap
 
-- [x] Basic Mapbox GL Functionality
-- [x] Include Map Controls
-- [x] Include Fog, Sky, and Terrain
-- [x] Include Popup and Markers
-- [x] Minify bundle & reduce size
-- [x] Add basemap switching
-- [x] Include event handling
-- [x] Sync Maps
-- [x] Add MapLibre support
-- [x] Add draw functionality
-- [x] Add 3D Layer support
-- [ ] Add debug console
+* [x] Basic Mapbox GL Functionality
+* [x] Include Map Controls
+* [x] Include Fog, Sky, and Terrain
+* [x] Include Popup and Markers
+* [x] Minify bundle & reduce size
+* [x] Add basemap switching
+* [x] Include event handling
+* [x] Sync Maps
+* [x] Add MapLibre support
+* [x] Add draw functionality
+* [x] Add 3D Layer support
+* [ ] Add debug console

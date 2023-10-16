@@ -6,11 +6,7 @@ description: Represents the map's control
 
 ## Props
 
-| Name     | Type   | Description                                                                          |
-| -------- | ------ | ------------------------------------------------------------------------------------ |
-| type\*   | string | navigation \| scale \| attribution \| fullscreen \| geolocate \| language \| traffic |
-| options  | object | [Control Options](https://docs.mapbox.com/mapbox-gl-js/api/markers/)                 |
-| position | string | top-left \| top-right^ \| bottom-left \| bottom-right                                |
+<table><thead><tr><th width="110.33333333333331">Name</th><th width="82">Type</th><th>Description</th></tr></thead><tbody><tr><td>type*</td><td>string</td><td>navigation | scale | attribution | fullscreen | geolocate | language | traffic</td></tr><tr><td>options</td><td>object</td><td><a href="https://docs.mapbox.com/mapbox-gl-js/api/markers/">Control Options</a></td></tr><tr><td>position</td><td>string</td><td>top-left | top-right^ | bottom-left | bottom-right</td></tr></tbody></table>
 
 _\*required_\
 _^default_

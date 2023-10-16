@@ -6,9 +6,7 @@ description: Atmosphere Layer Component
 
 ## Props
 
-| Name  | Type   | Description                                                             |
-| ----- | ------ | ----------------------------------------------------------------------- |
-| style | object | [Fog style specs](https://docs.mapbox.com/mapbox-gl-js/style-spec/fog/) |
+<table><thead><tr><th width="194">Name</th><th width="135.33333333333331">Type</th><th>Description</th></tr></thead><tbody><tr><td>style</td><td>object</td><td><a href="https://docs.mapbox.com/mapbox-gl-js/style-spec/fog/">Fog style specs</a></td></tr></tbody></table>
 
 _\*required_
 
