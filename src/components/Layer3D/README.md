@@ -9,10 +9,10 @@ description: Layer 3D Component
 | Name         | Type                                   | Description                                                                                                      |
 | ------------ | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | origin       | object [x: number, y:number, z:number] | The origin of the 3D model                                                                                       |
-| babylon\*    | boolean                                | Flag to indicate using [BabylonJS](https://www.babylonjs.com/) otherwise [ThreeJS](https://threejs.org/) library |
-| defaultLight | boolean                                | Default light for the scene                                                                                      |
+| babylon      | boolean                                | Flag to indicate using [BabylonJS](https://www.babylonjs.com/) otherwise [ThreeJS](https://threejs.org/) library |
+| defaultLight | boolean                                | Add default light to scene                                                                                       |
 | onAdd        | function                               | Function to create the scene after layer is added                                                                |
-| onRender     | function                               | Function to implement functionallity on each render cycle                                                        |
+| onRender     | function                               | Function to implement functionality on each render cycle                                                         |
 
 _\*required_
 

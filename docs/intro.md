@@ -33,5 +33,5 @@ layout: landing
 - [x] Sync Maps
 - [x] Add MapLibre support
 - [x] Add draw functionality
-- [x] Add 3D Layer
+- [x] Add 3D Layer support
 - [ ] Add debug console

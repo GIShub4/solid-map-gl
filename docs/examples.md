@@ -54,7 +54,6 @@ description: List of example links run in SolidJS playground
 - [Query Elevation](https://stackblitz.com/edit/solid-map-gl-query-elevation?embed=1&file=src%2Findex.tsx)
 - [Add 3D Layer with BabylonJS](https://stackblitz.com/edit/solid-map-gl-3d-babylon?embed=1&file=src%2Findex.tsx)
 - [Add 3D Layer with ThreeJS](https://stackblitz.com/edit/solid-map-gl-3d-three?embed=1&file=src%2Findex.tsx)
-- [Add 3D Layer with ThreeBox](https://stackblitz.com/edit/solid-map-gl-3d-threebox?embed=1&file=src%2Findex.tsx)
 
 - ~~Camera Transition~~
   {% endtab %}
