@@ -33,7 +33,6 @@ export const Layer3D: VoidComponent<Props> = (props) => {
     let THREE = null
 
     if (props.babylon) {
-      //@ts-ignore
       BABYLON = await import('@babylonjs/core')
       worldMatrix = BABYLON.Matrix.Compose(
         new BABYLON.Vector3(worldScale, worldScale, worldScale),
@@ -45,7 +44,6 @@ export const Layer3D: VoidComponent<Props> = (props) => {
         )
       )
     } else {
-      //@ts-ignore
       THREE = await import('three')
       worldMatrix = {
         translateX: worldOriginMercator.x,
