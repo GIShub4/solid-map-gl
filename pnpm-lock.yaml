@@ -30,7 +30,7 @@ devDependencies:
     version: 6.1.3(vitest@0.34.6)
   '@types/mapbox-gl':
     specifier: ^2.7.15
-    version: 2.7.15
+    version: 2.7.17
   '@vitest/coverage-v8':
     specifier: ^0.34.6
     version: 0.34.6(vitest@0.34.6)
@@ -1915,8 +1915,8 @@ packages:
     resolution: {integrity: sha512-z/QT1XN4K4KYuslS23k62yDIDLwLFkzxOuMplDtObz0+y7VqJCaO2o+SPwHCvLFZh7xazvvoor2tA/hPz9ee7g==}
     dev: true
 
-  /@types/mapbox-gl@2.7.15:
-    resolution: {integrity: sha512-UE0dKAnfnFSut6xnoMiABVUGu/yZpwgr+houGvoW3HZ3RtYzg+NyqOMvASOc5sQf6s7O3P20z3cmtUoZecREjA==}
+  /@types/mapbox-gl@2.7.17:
+    resolution: {integrity: sha512-5lDO2W6glPCqiRuqKh0a7MPOwnVt1/KWcYnxsL3z5rmjuOcFdHEa+KzUwCzqsAlbAegIIhgQiREZzJ9o1ze1gQ==}
     dependencies:
       '@types/geojson': 7946.0.11
     dev: true
