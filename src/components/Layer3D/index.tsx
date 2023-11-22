@@ -13,7 +13,7 @@ type Props = {
   origin?: [number, number, number?] // [lng, lat, altitude]
   defaultLight?: boolean
   babylon?: boolean
-  onAdd?: (scene: any, camera: any, map: any, gl: any) => void
+  onAdd?: (scene: any, map: any, gl: any) => void
   onRender?: (gl: any, matrix: any) => void
 }
 export const Layer3D: VoidComponent<Props> = (props) => {
@@ -74,23 +74,23 @@ export const Layer3D: VoidComponent<Props> = (props) => {
           this.scene.autoClear = false
           this.scene.detachControl()
           this.scene.beforeRender = () => engine.wipeCaches(true)
-          this.camera = new BABYLON.Camera(
+          this.scene.activeCamera = new BABYLON.Camera(
             'Camera',
-            new BABYLON.Vector3(0, 0, 0),
+            new BABYLON.Vector3(),
             this.scene
           )
-          this.light = new BABYLON.HemisphericLight(
-            'Light',
-            new BABYLON.Vector3(0, 100, -100),
-            this.scene
-          )
-          this.light.setEnabled(props.defaultLight)
+          if (props.defaultLight)
+            new BABYLON.HemisphericLight(
+              'Light',
+              new BABYLON.Vector3(1, 0, 0),
+              this.scene
+            )
         } else {
           this.camera = new THREE.Camera()
           this.scene = new THREE.Scene()
           if (props.defaultLight) {
             this.light = new THREE.DirectionalLight(0xffffff)
-            this.light.position.set(0, 100, 100).normalize()
+            this.light.position.set(100, 0, 0).normalize()
             this.scene.add(this.light)
           }
 
@@ -101,14 +101,20 @@ export const Layer3D: VoidComponent<Props> = (props) => {
           })
           this.renderer.autoClear = false
         }
-        props.onAdd && props.onAdd(this.scene, this.camera, map, gl)
+        this.map = map
+        props.onAdd && props.onAdd(this.scene, this.map, gl)
       },
       render(gl, matrix) {
         if (props.babylon) {
-          const cameraMatrix = BABYLON.Matrix.FromArray(matrix)
-          const wvpMatrix = worldMatrix.multiply(cameraMatrix)
-
-          this.camera.freezeProjectionMatrix(wvpMatrix)
+          this.scene.activeCamera.freezeProjectionMatrix(
+            worldMatrix.multiply(BABYLON.Matrix.FromArray(matrix))
+          )
+          const { x, y, z } = this.map.getFreeCameraOptions().position
+          this.scene.activeCamera.position =
+            BABYLON.Vector3.TransformCoordinates(
+              new BABYLON.Vector3(x, y, z),
+              this.scene.activeCamera.getProjectionMatrix().clone().invert()
+            )
           this.scene.render(false)
         } else {
           const rotationX = new THREE.Matrix4().makeRotationAxis(
