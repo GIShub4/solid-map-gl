@@ -31,6 +31,7 @@ description: List of example links run in SolidJS playground
 - [Add Image Source](https://stackblitz.com/edit/solid-map-gl-image-source?embed=1&file=src%2Findex.tsx)
 - [Add Image](https://stackblitz.com/edit/solid-map-gl-image?embed=1&file=src%2Findex.tsx)
 - [Add Video](https://stackblitz.com/edit/solid-map-gl-video?embed=1&file=src%2Findex.tsx)
+- [Use ProtoMaps](https://stackblitz.com/edit/solid-map-gl-protomaps?file=src%2Findex.tsx)
   {% endtab %}
 
 {% tab title="Layer" %}

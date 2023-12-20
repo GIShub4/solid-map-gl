@@ -92,7 +92,7 @@ export const Layer: Component<Props> = (props) => {
   props.id = props.id || props.customLayer?.id || createUniqueId()
 
   const debug = (text, value?) => {
-    ctx.map.debug &&
+    ;(ctx.map.debug || ctx.map.debugEvents) &&
       console.debug('%c[MapGL]', 'color: #10b981', text, value || '')
   }
 
@@ -121,7 +121,8 @@ export const Layer: Component<Props> = (props) => {
       ctx.map.on(event, props.id, (evt) => {
         evt.clickOnLayer = true
         props[item](evt)
-        debug(`Layer '${event}' event on '${props.id}':`, evt)
+        ctx.map.debugEvent &&
+          debug(`Layer '${event}' event on '${props.id}':`, evt)
       })
     }
   })

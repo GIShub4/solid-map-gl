@@ -27,6 +27,7 @@ declare global {
 
 export type Map = mapboxgl.Map & {
   debug: boolean
+  debugEvents: boolean
   sourceIdList: string[]
   layerIdList: string[]
 }
@@ -88,6 +89,8 @@ type Props = {
   apikey?: string
   //** Debug Message Mode */
   debug?: boolean
+  //** Debug Events */
+  debugEvents?: boolean
   ref?: HTMLDivElement
   /** Children within the Map Container */
   children?: any
@@ -111,10 +114,9 @@ export const MapGL: Component<Props> = (props) => {
   )
   const [internal, setInternal] = createSignal(false)
 
-  const debug = (text, value?) => {
-    props.debug &&
-      console.debug('%c[MapGL]', 'color: #0ea5e9', text, value || '')
-  }
+  const debug = (text, value?) =>
+    (props.debug || props.debugEvents) &&
+    console.debug('%c[MapGL]', 'color: #0ea5e9', text, value || '')
 
   const getStyle = (light, dark) => {
     const style = darkMode() && dark ? dark : light
@@ -152,6 +154,7 @@ export const MapGL: Component<Props> = (props) => {
     } as MapboxOptions)
 
     map.debug = props.debug
+    map.debugEvents = props.debugEvents
     map.sourceIdList = []
     map.layerIdList = []
     window.MapLib = mapLib
@@ -159,24 +162,25 @@ export const MapGL: Component<Props> = (props) => {
     // Hook up events
     mapEvents.forEach((item) => {
       const prop = props[item]
-      let isFirstMessage = true
       if (prop) {
         const event = item.slice(2).toLowerCase()
         if (typeof prop === 'function') {
           map.on(event, (evt) => {
-            if (evt.clickOnLayer) return
-            prop(evt)
-            isFirstMessage && debug(`Map '${event}' event:`, evt)
-            isFirstMessage = false
+            setTimeout(() => {
+              if (evt.clickOnLayer) return
+              prop(evt)
+              props.debugEvents && debug(`Map '${event}' event:`, evt)
+            }, 0)
           })
         } else {
           Object.keys(prop).forEach((layerId) => {
             map.on(event as any, layerId, (evt) => {
-              if (evt.clickOnLayer) return
-              prop[layerId](evt)
-              isFirstMessage &&
-                debug(`Map '${event}' event on '${layerId}':`, evt)
-              isFirstMessage = false
+              setTimeout(() => {
+                if (evt.clickOnLayer) return
+                prop[layerId](evt)
+                props.debugEvents &&
+                  debug(`Map '${event}' event on '${layerId}':`, evt)
+              }, 0)
             })
           })
         }
