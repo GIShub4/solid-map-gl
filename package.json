@@ -56,16 +56,16 @@
     "@solidjs/testing-library": "^0.8.4",
     "@testing-library/jest-dom": "^6.1.5",
     "@types/mapbox-gl": "^2.7.19",
-    "@vitest/coverage-v8": "^1.0.4",
+    "@vitest/coverage-v8": "^1.1.0",
     "jsdom": "^23.0.1",
     "jsdom-worker": "^0.3.0",
-    "rollup": "^4.9.0",
+    "rollup": "^4.9.1",
     "rollup-plugin-import-css": "^3.3.5",
     "rollup-preset-solid": "^2.0.1",
     "typescript": "^5.3.3",
     "vite": "^5.0.10",
     "vite-plugin-solid": "^2.8.0",
-    "vitest": "^1.0.4"
+    "vitest": "^1.1.0"
   },
   "peerDependencies": {
     "@babylonjs/core": "^6.24.0",
