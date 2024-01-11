@@ -239,7 +239,12 @@ export const MapGL: Component<Props> = (props) => {
           pitch: map.getPitch(),
           bearing: map.getBearing(),
           inTransit: true,
-          bounds: null,
+          bounds: props.viewport?.center?.lat
+            ? map.getBounds()
+            : [
+              [map.getBounds().getNorthEast().lng, map.getBounds().getNorthEast().lat],
+              [map.getBounds().getSouthWest().lng, map.getBounds().getSouthWest().lat]
+            ]
         }
         setInternal(true)
         !event.viewport && props.onViewportChange?.(viewport)
