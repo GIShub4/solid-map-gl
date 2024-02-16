@@ -152,7 +152,10 @@ export const Camera: Component<Props> = (props) => {
   }
 
   const rotateViewport = (): void => {
-    if (!props.rotateViewport || userInteraction()) return
+    if (!props.rotateViewport || userInteraction()) {
+      ctx.map.stop()
+      return
+    }
     const rotateViewport = props.rotateViewport as RotateViewportOptions
     const secPerRev = rotateViewport?.secPerRev || 60
     const bearing = props.reverse

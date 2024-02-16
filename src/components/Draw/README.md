@@ -6,14 +6,13 @@ description: Draw Component
 
 ## Props
 
-| Name    | Type                                                                                     | Description                                                                                      |
-| ------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| lib\*    | object | Draw Library from `import` |
-| options | object | [Draw Options](https://github.com/mapbox/mapbox-gl-draw/blob/main/docs/API.md#options) |
-| position| string | 'top-left' \| 'top-right' \| 'bottom-left' \| 'bottom-right' |
-| getInstance | function | access to the Draw Object to run [API Methods](https://github.com/mapbox/mapbox-gl-draw/blob/main/docs/API.md#api-methods)
-| on[Event] | function | Called when event is fired at draw control
-
+| Name        | Type     | Description                                                                                                                |
+| ----------- | -------- | -------------------------------------------------------------------------------------------------------------------------- |
+| lib\*       | object   | Draw Library from `import`                                                                                                 |
+| options     | object   | [Draw Options](https://github.com/mapbox/mapbox-gl-draw/blob/main/docs/API.md#options)                                     |
+| position    | string   | 'top-left' \| 'top-right' \| 'bottom-left' \| 'bottom-right'                                                               |
+| getInstance | function | access to the Draw Object to run [API Methods](https://github.com/mapbox/mapbox-gl-draw/blob/main/docs/API.md#api-methods) |
+| on[Event]   | function | Called when event is fired at draw control                                                                                 |
 
 _\*required_
 
@@ -47,7 +46,7 @@ const App: Component = () => {
           }
         }}
         onCreate={event => console.log(event)}
-        getControl={draw => draw.add({ type: 'Point', coordinates: [0, 0] })}
+        getInstance={draw => draw.add({ type: 'Point', coordinates: [0, 0] })}
       />
     </MapGL>
   );

@@ -2,22 +2,24 @@
 
 ## Props
 
-| Name             | Type      | Description                                                                                  |
-| ---------------- | --------- | -------------------------------------------------------------------------------------------- |
-| mapLib           | module    | Pass [MapLibre](https://maplibre.org/) package to use instead of Mapbox library              |
-| style            | string    | CSS style for map container                                                                  |
-| class            | string    | CSS class for map container                                                                  |
-| classList        | string\[] | SolidJS classList attached to map container                                                  |
-| viewport         | object    | Current viewport of the map, contains: `latitude, longitude, zoom, ...`                      |
-| onViewportChange | Viewport  | Set the map viewport                                                                         |
-| options          | object    | [Mapbox map parameter](https://docs.mapbox.com/mapbox-gl-js/api/map/#map-parameters)         |
-| transitionType   | string    | flyTo^, easeTo, jumpTo                                                                       |
-| on\[Event]       | Event     | Any [Map Event](https://docs.mapbox.com/mapbox-gl-js/api/map/#map-events) - eg.: onMouseMove |
-| onUserInteraction| boolean   | Event Listeners for user interactions with the map                                           |
-| cursorStyle      | string    | Map cursor                                                                                   |
-| darkStyle        | object \| string    | Map style when application or browser is in dark mode                              |
-| debug            | boolean    | Enable debug messages                                                                        |
-| apikey           | string    | apikey for vectortile services                                                               |
+| Name              | Type                            | Description                                                                                  |
+| ----------------- | ------------------------------- | -------------------------------------------------------------------------------------------- |
+| mapLib            | module                          | Pass [MapLibre](https://maplibre.org/) package to use instead of Mapbox library              |
+| style             | string                          | CSS style for map container                                                                  |
+| class             | string                          | CSS class for map container                                                                  |
+| classList         | string\[]                       | SolidJS classList attached to map container                                                  |
+| viewport          | object                          | Current viewport of the map, contains: `latitude, longitude, zoom, ...`                      |
+| onViewportChange  | Viewport                        | Set the map viewport                                                                         |
+| options           | object                          | [Mapbox map parameter](https://docs.mapbox.com/mapbox-gl-js/api/map/#map-parameters)         |
+| config            | { importID, configName, value } | Sets configuration in Mapbox Standard Style                                                  |
+| transitionType    | string                          | flyTo^, easeTo, jumpTo                                                                       |
+| on\[Event]        | Event                           | Any [Map Event](https://docs.mapbox.com/mapbox-gl-js/api/map/#map-events) - eg.: onMouseMove |
+| onUserInteraction | boolean                         | Event Listeners for user interactions with the map                                           |
+| cursorStyle       | string                          | Map cursor                                                                                   |
+| darkStyle         | object \| string                | Map style when application or browser is in dark mode                                        |
+| disableResize     | boolean                         | disable listener for resizing map container                                                  |
+| debug             | boolean                         | Enable debug messages                                                                        |
+| apikey            | string                          | apikey for vectortile services                                                               |
 
 _\*required_\
 _^default_
@@ -29,9 +31,9 @@ _^default_
 By default, `MapGL` component renders in a static mode. That means that the user cannot interact with the map.
 
 ```jsx
-import { Component } from "solid-js";
-import MapGL from "solid-map-gl";
-import 'mapbox-gl/dist/mapbox-gl.css';
+import { Component } from 'solid-js'
+import MapGL from 'solid-map-gl'
+import 'mapbox-gl/dist/mapbox-gl.css'
 
 const App: Component = () => (
   <MapGL
@@ -41,7 +43,7 @@ const App: Component = () => (
       zoom: 11,
     }}
   ></MapGL>
-);
+)
 ```
 
 ### **Interactive Map**

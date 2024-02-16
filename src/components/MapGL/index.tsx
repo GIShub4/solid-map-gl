@@ -61,6 +61,17 @@ type Props = {
    * @see https://docs.mapbox.com/mapbox-gl-js/api/map/#map-parameters
    */
   options?: MapboxOptions
+  config?: {
+    importID?: string
+    configName:
+      | 'showPlaceLabels'
+      | 'showRoadLabels'
+      | 'showPointOfInterestLabels'
+      | 'showTransitLabels'
+      | 'lightPreset'
+      | 'font'
+    value: boolean | 'dusk' | 'dawn' | 'day' | 'night' | any[]
+  }
   /** Type for pan, move and zoom transitions */
   transitionType?: 'flyTo' | 'easeTo' | 'jumpTo'
   /** Event listener for Viewport updates */
@@ -129,7 +140,7 @@ export const MapGL: Component<Props> = (props) => {
             //@ts-ignore
             props.apikey || import.meta.env.VITE_VECTOR_API_KEY
           ) || style
-      : style || { version: 8, sources: {}, layers: [] }
+      : style || 'mapbox://styles/mapbox/standard'
   }
 
   onMount(async () => {
@@ -215,13 +226,15 @@ export const MapGL: Component<Props> = (props) => {
       mutationObserver.observe(document.body, { attributes: true })
 
       // Listen to map container size changes
-      // if (!props.disableResize) {
-      //   resizeObserver = new ResizeObserver(() => {
-      //     map?.resize()
-      //     debug('Map resized')
-      //   })
-      //   resizeObserver.observe(mapRef as Element)
-      // }
+      if (!props.disableResize) {
+        resizeObserver = new ResizeObserver(() => {
+          setTimeout(() => {
+            map?.resize()
+          }, 0)
+          debug('Map resized')
+        })
+        resizeObserver.observe(mapRef as Element)
+      }
 
       // Update Viewport
       map.on('move', (event) => {
@@ -240,6 +253,20 @@ export const MapGL: Component<Props> = (props) => {
           bearing: map.getBearing(),
           inTransit: true,
           bounds: null,
+          //   !internal()
+          //     ? props.viewport?.center?.lat
+          //       ? map.getBounds()
+          //       : [
+          //           [
+          //             map.getBounds().getNorthEast().lng,
+          //             map.getBounds().getNorthEast().lat,
+          //           ],
+          //           [
+          //             map.getBounds().getSouthWest().lng,
+          //             map.getBounds().getSouthWest().lat,
+          //           ],
+          //         ]
+          //     : null,
         }
         setInternal(true)
         !event.viewport && props.onViewportChange?.(viewport)
@@ -263,6 +290,8 @@ export const MapGL: Component<Props> = (props) => {
           ...vp,
           ...(vp.bounds
             ? map.cameraForBounds(vp.bounds, {
+                bearing: vp?.bearing,
+                pitch: vp?.pitch,
                 padding: vp?.padding,
               })
             : null),
@@ -273,6 +302,15 @@ export const MapGL: Component<Props> = (props) => {
       { defer: true }
     )
   )
+
+  // Update Configuration
+  createEffect(() => {
+    const { importID, configName, value } = props.config || {}
+    if (!map || !configName || !value) return
+    //@ts-ignore
+    map.setConfigProperty(importID || 'basemap', configName, value)
+    debug(`Set Config (${importID}:${configName}) to:`, value)
+  })
 
   // Update Projection
   createEffect(() => {
@@ -358,25 +396,24 @@ export const MapGL: Component<Props> = (props) => {
   })
 
   return (
-    <>
-      <div
-        ref={mapRef}
-        id={props.id}
-        class={props?.class}
-        classList={props?.classList}
-        style={
-          props?.class || props?.classList
-            ? null
-            : props.style || {
-                position: 'absolute',
-                inset: 0,
-                'z-index': -1,
-              }
-        }
-      />
+    <div
+      ref={mapRef}
+      id={props.id}
+      class={props?.class}
+      classList={props?.classList}
+      style={
+        props?.class || props?.classList
+          ? null
+          : props.style || {
+              position: 'absolute',
+              inset: 0,
+              'z-index': -1,
+            }
+      }
+    >
       {mapLoaded() && (
         <MapProvider map={mapLoaded()}>{props.children}</MapProvider>
       )}
-    </>
+    </div>
   )
 }

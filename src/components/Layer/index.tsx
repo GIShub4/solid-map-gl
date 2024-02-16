@@ -37,6 +37,8 @@ type Props = {
   /** A boolean that determines whether the layer is visible or not. */
   sourceId?: string
   /** A string that specifies the ID of the source that the layer uses for its data. */
+  slot?: string
+  /** A string that specifies the slot to which the layer belongs. */
   beforeType?:
     | 'background'
     | 'fill'
@@ -102,6 +104,7 @@ export const Layer: Component<Props> = (props) => {
       ...updateStyle(props.style),
       id: props.id,
       source: sourceId,
+      slot: props.slot,
       metadata: {
         smg: { beforeType: props.beforeType, beforeId: props.beforeId },
       },

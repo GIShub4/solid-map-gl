@@ -6,9 +6,9 @@ description: Terrain Layer Component
 
 ## Props
 
-| Name         | Type    | Description                                                                     |
-| ------------ | ------- | ------------------------------------------------------------------------------- |
-| exaggeration | number  | [Terrain style specs](https://docs.mapbox.com/mapbox-gl-js/style-spec/terrain/) |
+| Name         | Type   | Description                                                                     |
+| ------------ | ------ | ------------------------------------------------------------------------------- |
+| exaggeration | number | [Terrain style specs](https://docs.mapbox.com/mapbox-gl-js/style-spec/terrain/) |
 
 _\*required_
 
