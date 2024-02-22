@@ -4,153 +4,154 @@ import {
   onMount,
   onCleanup,
   Component,
-  createUniqueId,
   on,
-} from 'solid-js'
-import { MapProvider } from '../MapProvider'
-import { mapEvents } from '../../events'
-import { vectorStyleList } from '../../mapStyles'
-import type { mapEventTypes } from '../../events'
-import type mapboxgl from 'mapbox-gl'
-import type { MapboxOptions } from 'mapbox-gl/src/ui/map'
-import type { LngLatLike } from 'mapbox-gl/src/geo/lng_lat.js'
-import type { LngLatBounds } from 'mapbox-gl/src/geo/lng_lat_bounds.js'
-import type { PaddingOptions } from 'mapbox-gl/src/geo/edge_insets.js'
-import type { StyleSpecification } from 'mapbox-gl/src/style-spec/types.js'
-import type { JSX } from 'solid-js'
+} from "solid-js";
+import { MapProvider } from "../MapProvider";
+import { mapEvents } from "../../events";
+import { vectorStyleList } from "../../mapStyles";
+import type { mapEventTypes } from "../../events";
+import type mapboxgl from "mapbox-gl";
+import type { MapboxOptions } from "mapbox-gl/src/ui/map";
+import type { LngLatLike } from "mapbox-gl/src/geo/lng_lat.js";
+import type { LngLatBounds } from "mapbox-gl/src/geo/lng_lat_bounds.js";
+import type { PaddingOptions } from "mapbox-gl/src/geo/edge_insets.js";
+import type { StyleSpecification } from "mapbox-gl/src/style-spec/types.js";
+import type { JSX } from "solid-js";
 
 declare global {
   interface Window {
-    MapLib?: any
+    MapLib?: any;
   }
 }
 
 export type Map = mapboxgl.Map & {
-  debug: boolean
-  debugEvents: boolean
-  sourceIdList: string[]
-  layerIdList: string[]
-}
+  debug: boolean;
+  debugEvents: boolean;
+  sourceIdList: string[];
+  layerIdList: string[];
+};
 
 export type Viewport = {
-  id?: string
-  point?: { x: number; y: number }
-  center?: LngLatLike
-  bounds?: LngLatBounds
-  zoom?: number
-  pitch?: number
-  bearing?: number
-  padding?: PaddingOptions
-  inTransit?: boolean
-}
+  id?: string;
+  point?: { x: number; y: number };
+  center?: LngLatLike;
+  bounds?: LngLatBounds;
+  zoom?: number;
+  pitch?: number;
+  bearing?: number;
+  padding?: PaddingOptions;
+  inTransit?: boolean;
+};
 
 type Props = {
   /** ID for the map container element */
-  id?: string
+  id?: string;
   /** Map Container CSS Style */
-  style?: JSX.CSSProperties
+  style?: JSX.CSSProperties;
   /** Map Container CSS Class */
-  class?: string
+  class?: string;
   /** SolidJS Class List for Map Container */
   classList?: {
-    [k: string]: boolean | undefined
-  }
+    [k: string]: boolean | undefined;
+  };
   /** Current Map View */
-  viewport?: Viewport
+  viewport?: Viewport;
   /** Mapbox Options
    * @see https://docs.mapbox.com/mapbox-gl-js/api/map/#map-parameters
    */
-  options?: MapboxOptions
+  options?: MapboxOptions;
+  /** Mapbox Style Configuration
+   * @see https://docs.mapbox.com/mapbox-gl-js/guides/styles/#configure-a-style
+   */
   config?: {
-    importID?: string
-    configName:
-      | 'showPlaceLabels'
-      | 'showRoadLabels'
-      | 'showPointOfInterestLabels'
-      | 'showTransitLabels'
-      | 'lightPreset'
-      | 'font'
-    value: boolean | 'dusk' | 'dawn' | 'day' | 'night' | any[]
-  }
+    id?: string;
+    lightPreset?: "dawn" | "day" | "dusk" | "night";
+    showPlaceLabels?: boolean;
+    showRoadLabels?: boolean;
+    showPointOfInterestLabels?: boolean;
+    showTransitLabels?: boolean;
+    font?: string[];
+    [key: string]: boolean | string | string[];
+  };
   /** Type for pan, move and zoom transitions */
-  transitionType?: 'flyTo' | 'easeTo' | 'jumpTo'
+  transitionType?: "flyTo" | "easeTo" | "jumpTo";
   /** Event listener for Viewport updates */
-  onViewportChange?: (viewport: Viewport) => void
+  onViewportChange?: (viewport: Viewport) => void;
   /** Event listener for User Interaction */
-  onUserInteraction?: (user: boolean) => void
+  onUserInteraction?: (user: boolean) => void;
   /** Displays Map Tile Borders */
-  showTileBoundaries?: boolean
+  showTileBoundaries?: boolean;
   /** Displays Wireframe if Terrain is visible */
-  showTerrainWireframe?: boolean
+  showTerrainWireframe?: boolean;
   /** Displays Borders if Padding is set */
-  showPadding?: boolean
+  showPadding?: boolean;
   /** Displays Label Collision Boxes */
-  showCollisionBoxes?: boolean
+  showCollisionBoxes?: boolean;
   /** Displays all feature outlines even if normally not drawn by style rules */
-  showOverdrawInspector?: boolean
+  showOverdrawInspector?: boolean;
   /** Mouse Cursor Style */
-  cursorStyle?: string
+  cursorStyle?: string;
   //** Dark Map Style */
-  darkStyle?: StyleSpecification | string
+  darkStyle?: StyleSpecification | string;
   //** Disable automatic map resize */
-  disableResize?: boolean
+  disableResize?: boolean;
   //** MapLibre library */
-  mapLib?: any
+  mapLib?: any;
   //** APIkey for vector service */
-  apikey?: string
+  apikey?: string;
   //** Debug Message Mode */
-  debug?: boolean
+  debug?: boolean;
   //** Debug Events */
-  debugEvents?: boolean
-  ref?: HTMLDivElement
+  debugEvents?: boolean;
+  ref?: HTMLDivElement;
   /** Children within the Map Container */
-  children?: any
-} & mapEventTypes
+  children?: any;
+} & mapEventTypes;
 
 /** Creates a new Map Container */
 export const MapGL: Component<Props> = (props) => {
-  props.id ??= createUniqueId()
+  // props.id ??= createUniqueId()
 
-  let map: Map
-  let mapRef: HTMLDivElement
-  let resizeObserver: ResizeObserver
-  let mutationObserver: MutationObserver
+  let map: Map;
+  let mapRef: HTMLDivElement;
+  let resizeObserver: ResizeObserver;
+  let mutationObserver: MutationObserver;
 
-  const [mapLoaded, setMapLoaded] = createSignal(null)
+  const [mapLoaded, setMapLoaded] = createSignal(null);
   const [darkMode, setDarkMode] = createSignal(
-    (typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-color-scheme: dark)').matches) ||
-      (typeof document !== 'undefined' &&
-        document.body.classList.contains('dark'))
-  )
-  const [internal, setInternal] = createSignal(false)
+    (typeof window !== "undefined" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches) ||
+      (typeof document !== "undefined" &&
+        document.body.classList.contains("dark")),
+  );
+  const [internal, setInternal] = createSignal(false);
 
-  const debug = (text, value?) =>
+  const debug = (text: string, value?: any) =>
     (props.debug || props.debugEvents) &&
-    console.debug('%c[MapGL]', 'color: #0ea5e9', text, value || '')
+    console.debug("%c[MapGL]", "color: #0ea5e9", text, value || "");
 
-  const getStyle = (light, dark) => {
-    const style = darkMode() && dark ? dark : light
-    return typeof style === 'string' || style instanceof String
+  const getStyle = (light: any, dark: any) => {
+    const style = darkMode() && dark ? dark : light;
+    return typeof style === "string" || style instanceof String
       ? style
-          ?.split(':')
+          ?.split(":")
           .reduce((p, c) => p && p[c], vectorStyleList)
           ?.replace(
-            '{apikey}',
+            "{apikey}",
             //@ts-ignore
-            props.apikey || import.meta.env.VITE_VECTOR_API_KEY
+            props.apikey || import.meta.env.VITE_VECTOR_API_KEY,
           ) || style
-      : style || 'mapbox://styles/mapbox/standard'
-  }
+      : style;
+  };
 
   onMount(async () => {
-    let mapLib = props.mapLib || (await import('mapbox-gl'))
-    if (!mapLib.Map) mapLib = window['maplibregl'] || window['mapboxgl']
+    let mapLib = props.mapLib || (await import("mapbox-gl"));
+    if (!mapLib.Map) mapLib = window["maplibregl"] || window["mapboxgl"];
 
-    if (typeof mapLib.supported === 'function' && !mapLib.supported())
-      throw new Error('Mapbox GL not supported')
+    if (typeof mapLib.supported === "function" && !mapLib.supported())
+      throw new Error("Mapbox GL not supported");
 
-    debug(`Map (v${mapLib.version}) loading...`)
+    debug(`Map (v${mapLib.version}) loading...`);
     map = new mapLib.Map({
       accessToken:
         //@ts-ignore
@@ -162,82 +163,94 @@ export const MapGL: Component<Props> = (props) => {
       container: mapRef,
       style: getStyle(props.options?.style, props.darkStyle),
       fitBoundsOptions: { padding: props.viewport?.padding },
-    } as MapboxOptions)
+    } as MapboxOptions);
 
-    map.debug = props.debug
-    map.debugEvents = props.debugEvents
-    map.sourceIdList = []
-    map.layerIdList = []
-    window.MapLib = mapLib
+    map.debug = props.debug;
+    map.debugEvents = props.debugEvents;
+    map.sourceIdList = [];
+    map.layerIdList = [];
+    window.MapLib = mapLib;
 
     // Hook up events
     mapEvents.forEach((item) => {
-      const prop = props[item]
+      const prop = props[item];
       if (prop) {
-        const event = item.slice(2).toLowerCase()
-        if (typeof prop === 'function') {
+        const event = item.slice(2).toLowerCase();
+        if (typeof prop === "function") {
           map.on(event, (evt) => {
             setTimeout(() => {
-              if (evt.clickOnLayer) return
-              prop(evt)
-              props.debugEvents && debug(`Map '${event}' event:`, evt)
-            }, 0)
-          })
+              if (evt.clickOnLayer) return;
+              prop(evt);
+              props.debugEvents && debug(`Map '${event}' event:`, evt);
+            }, 0);
+          });
         } else {
           Object.keys(prop).forEach((layerId) => {
             map.on(event as any, layerId, (evt) => {
               setTimeout(() => {
-                if (evt.clickOnLayer) return
-                prop[layerId](evt)
+                if (evt.clickOnLayer) return;
+                prop[layerId](evt);
                 props.debugEvents &&
-                  debug(`Map '${event}' event on '${layerId}':`, evt)
-              }, 0)
-            })
-          })
+                  debug(`Map '${event}' event on '${layerId}':`, evt);
+              }, 0);
+            });
+          });
         }
       }
-    })
+    });
 
-    map.once('load', () => {
-      setMapLoaded(map)
-      debug('Map loaded')
+    map.once("load", () => {
+      setMapLoaded(map);
+      debug("Map loaded");
 
       // Handle User Interaction
-      ;['mousedown', 'touchstart', 'wheel'].forEach((event) =>
-        map.on(event, (evt) => !evt.rotate && props.onUserInteraction?.(true))
-      )
-      ;['moveend', 'mouseup', 'touchend'].forEach((event) =>
-        map.on(event, (evt) => !evt.rotate && props.onUserInteraction?.(false))
-      )
+      ["mousedown", "touchstart", "wheel"].forEach((event) =>
+        map.on(event, (evt) => !evt.rotate && props.onUserInteraction?.(true)),
+      );
+      ["moveend", "mouseup", "touchend"].forEach((event) =>
+        map.on(event, (evt) => !evt.rotate && props.onUserInteraction?.(false)),
+      );
 
       // Listen to dark theme changes
       const darkTheme =
-        typeof window !== 'undefined' &&
-        window?.matchMedia('(prefers-color-scheme: dark)')
-      darkTheme?.addEventListener('change', () => {
-        setDarkMode(darkTheme.matches)
-        debug('Set dark theme to:', darkTheme.matches?.toString())
-      })
+        typeof window !== "undefined" &&
+        window?.matchMedia("(prefers-color-scheme: dark)");
+      darkTheme?.addEventListener("change", () => {
+        setDarkMode(darkTheme.matches);
+        debug("Set dark theme to:", darkTheme.matches?.toString());
+      });
       mutationObserver = new MutationObserver(() => {
-        const darkTheme = document.body.classList.contains('dark')
-        setDarkMode(darkTheme)
-        debug('Set theme to:', darkTheme)
-      })
-      mutationObserver.observe(document.body, { attributes: true })
+        const darkTheme = document.body.classList.contains("dark");
+        setDarkMode(darkTheme);
+        debug("Set theme to:", darkTheme);
+      });
+      mutationObserver.observe(document.body, { attributes: true });
 
       // Listen to map container size changes
       if (!props.disableResize) {
         resizeObserver = new ResizeObserver(() => {
           setTimeout(() => {
-            map?.resize()
-          }, 0)
-          debug('Map resized')
-        })
-        resizeObserver.observe(mapRef as Element)
+            map?.resize();
+          }, 0);
+          debug("Map resized");
+        });
+        resizeObserver.observe(mapRef as Element);
       }
 
+      // Update Configuration
+      createEffect(() => {
+        for (const key in props.config) {
+          if (!key || key === "id") continue;
+          const id = props.config?.id || "basemap";
+          const value = props.config[key];
+          //@ts-ignore
+          map?.setConfigProperty(id, key, value);
+          debug(`Set Config (${id}:${key}) to:`, value);
+        }
+      });
+
       // Update Viewport
-      map.on('move', (event) => {
+      map.on("move", (event) => {
         const viewport: Viewport = {
           ...props.viewport,
           id: props.id,
@@ -267,25 +280,25 @@ export const MapGL: Component<Props> = (props) => {
           //           ],
           //         ]
           //     : null,
-        }
-        setInternal(true)
-        !event.viewport && props.onViewportChange?.(viewport)
-      })
+        };
+        setInternal(true);
+        !event.viewport && props.onViewportChange?.(viewport);
+      });
 
-      map.on('moveend', (event) => {
+      map.on("moveend", (event) => {
         !event.rotate &&
-          props.onViewportChange?.({ ...props.viewport, inTransit: false })
-        setInternal(false)
-      })
-    })
-  })
+          props.onViewportChange?.({ ...props.viewport, inTransit: false });
+        setInternal(false);
+      });
+    });
+  });
 
   // Hook up viewport event
   createEffect(
     on(
       () => props.viewport,
       (vp) => {
-        if (props.id !== vp?.id || internal()) return
+        if (props.id !== vp?.id || internal()) return;
         const viewport = {
           ...vp,
           ...(vp.bounds
@@ -295,105 +308,99 @@ export const MapGL: Component<Props> = (props) => {
                 padding: vp?.padding,
               })
             : null),
-        }
-        map.stop()[props.transitionType || 'flyTo'](viewport)
-        debug(`Update Viewport (${props.transitionType || 'flyTo'}):`, viewport)
+        };
+        map.stop()[props.transitionType || "flyTo"](viewport);
+        debug(
+          `Update Viewport (${props.transitionType || "flyTo"}):`,
+          viewport,
+        );
       },
-      { defer: true }
-    )
-  )
-
-  // Update Configuration
-  createEffect(() => {
-    const { importID, configName, value } = props.config || {}
-    if (!map || !configName || !value) return
-    //@ts-ignore
-    map.setConfigProperty(importID || 'basemap', configName, value)
-    debug(`Set Config (${importID}:${configName}) to:`, value)
-  })
+      { defer: true },
+    ),
+  );
 
   // Update Projection
   createEffect(() => {
-    const proj = props.options?.projection
-    if (!map || !proj) return
-    map.setProjection(proj)
-    debug('Set Projection to:', proj)
-  })
+    const proj = props.options?.projection;
+    if (!map || !proj) return;
+    map.setProjection(proj);
+    debug("Set Projection to:", proj);
+  });
 
   // Update Cursor
   createEffect(() => {
-    const cur = props.cursorStyle
-    if (!map || !cur) return
-    map.getCanvas().style.cursor = cur
-    debug('Set Cursor to:', cur)
-  })
+    const cur = props.cursorStyle;
+    if (!map || !cur) return;
+    map.getCanvas().style.cursor = cur;
+    debug("Set Cursor to:", cur);
+  });
 
   const insertLayers = (list, layers) => {
     layers.forEach((layer) => {
       const index = list.findIndex((i) =>
         layer.metadata.smg.beforeType
           ? i.type === layer.metadata.smg.beforeType
-          : i.id === layer.metadata.smg.beforeId
-      )
+          : i.id === layer.metadata.smg.beforeId,
+      );
       list =
         index === -1
           ? [...list, layer]
-          : [...list.slice(0, index), layer, ...list.slice(index + 1)]
-    })
-    return list
-  }
+          : [...list.slice(0, index), layer, ...list.slice(index + 1)];
+    });
+    return list;
+  };
 
   // Update map style
   createEffect((prev) => {
-    const style = getStyle(props.options?.style, props.darkStyle)
+    const style = getStyle(props.options?.style, props.darkStyle);
     if (map?.isStyleLoaded() && prev !== style) {
-      const oldStyle = map.getStyle()
+      const oldStyle = map.getStyle();
       const oldLayers = oldStyle.layers.filter((l) =>
-        map.layerIdList.includes(l.id)
-      )
+        map.layerIdList.includes(l.id),
+      );
       const oldSources = Object.keys(oldStyle.sources)
         .filter((s) => map.sourceIdList.includes(s))
-        .reduce((obj, key) => ({ ...obj, [key]: oldStyle.sources[key] }), {})
+        .reduce((obj, key) => ({ ...obj, [key]: oldStyle.sources[key] }), {});
 
-      map.setStyle(style)
-      map.once('styledata', () => {
-        if (!oldLayers) return
-        const newStyle = map.getStyle()
+      map.setStyle(style);
+      map.once("styledata", () => {
+        if (!oldLayers) return;
+        const newStyle = map.getStyle();
         map.setStyle({
           ...newStyle,
           sources: { ...newStyle.sources, ...oldSources },
           layers: insertLayers(newStyle.layers, oldLayers),
           fog: oldStyle.fog,
           terrain: oldStyle.terrain,
-        })
-        debug('Set Mapstyle to:', style)
-      })
+        });
+        debug("Set Mapstyle to:", style);
+      });
     }
-    return style
-  }, props.options?.style)
+    return style;
+  }, props.options?.style);
 
   // Update debug features
-  ;[
-    'showTileBoundaries',
-    'showTerrainWireframe',
-    'showCollisionBoxes',
-    'showPadding',
-    'showOverdrawInspector',
+  [
+    "showTileBoundaries",
+    "showTerrainWireframe",
+    "showCollisionBoxes",
+    "showPadding",
+    "showOverdrawInspector",
   ].forEach((item) => {
     createEffect(() => {
-      const prop = props[item]
-      if (!map || !prop) return
-      map[item] = prop
-      debug(`Set ${item} to:`, prop)
-    })
-  })
+      const prop = props[item];
+      if (!map || !prop) return;
+      map[item] = prop;
+      debug(`Set ${item} to:`, prop);
+    });
+  });
 
   onCleanup(() => {
-    resizeObserver?.disconnect()
-    mutationObserver?.disconnect()
-    map?.remove()
-    debug('Map removed')
-  })
+    resizeObserver?.disconnect();
+    mutationObserver?.disconnect();
+    map?.remove();
+    debug("Map removed");
+  });
 
   return (
     <div
@@ -405,15 +412,17 @@ export const MapGL: Component<Props> = (props) => {
         props?.class || props?.classList
           ? null
           : props.style || {
-              position: 'absolute',
+              position: "absolute",
               inset: 0,
-              'z-index': -1,
+              "z-index": -1,
             }
       }
     >
       {mapLoaded() && (
-        <MapProvider map={mapLoaded()}>{props.children}</MapProvider>
+        <MapProvider map={mapLoaded()}>
+          <div style={{ position: "relative" }}>{props.children}</div>
+        </MapProvider>
       )}
     </div>
-  )
-}
+  );
+};

@@ -104,7 +104,7 @@ export const Layer: Component<Props> = (props) => {
       ...updateStyle(props.style),
       id: props.id,
       source: sourceId,
-      slot: props.slot,
+      slot: props.slot || '',
       metadata: {
         smg: { beforeType: props.beforeType, beforeId: props.beforeId },
       },

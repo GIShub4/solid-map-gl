@@ -5,14 +5,17 @@ const hereBase = 'https://assets.vector.hereapi.com/styles/'
 
 export const vectorStyleList: object = {
   mb: {
+    standard: `${mapBase}/standard`,
     light: `${mapBase}/light-v11`,
     dark: `${mapBase}/dark-v11`,
     street: `${mapBase}/streets-v12`,
     outdoor: `${mapBase}/outdoors-v12`,
     sat: `${mapBase}/satellite-v9`,
     sat_street: `${mapBase}/satellite-streets-v12`,
-    nav: `${mapBase}/navigation-guidance-day-v4`,
-    nav_night: `${mapBase}/navigation-guidance-night-v4`,
+    nav_base: `${mapBase}/navigation-guidance-day-v4`,
+    nav_base_night: `${mapBase}/navigation-guidance-night-v4`,
+    nav: `${mapBase}/navigation-day-v1`,
+    nav_night: `${mapBase}/navigation-night-v1`,
     basic: `${mapBase}/cjf4m44iw0uza2spb3q0a7s41`,
     monochrome: `${mapBase}/cjv6rzz4j3m4b1fqcchuxclhb`,
     leshine: `${mapBase}/cjcunv5ae262f2sm9tfwg8i0w`,
@@ -24,7 +27,7 @@ export const vectorStyleList: object = {
     frank: `${mapBase}-map-design/ckshxkppe0gge18nz20i0nrwq`,
     minimo: `${mapBase}-map-design/cksjc2nsq1bg117pnekb655h1`,
     decimal: `${mapBase}-map-design/ck4014y110wt61ctt07egsel6`,
-    standard: `${mapBase}-map-design/ckr0svm3922ki18qntevm857n`,
+    stand: `${mapBase}-map-design/ckr0svm3922ki18qntevm857n`,
     blueprint: `${mapBase}-map-design/cks97e1e37nsd17nzg7p0308g`,
     bubble: `${mapBase}-map-design/cksysy2nl62zp17quosctdtcc`,
     pencil: `${mapBase}-map-design/cks9iema71es417mlrft4go2k`,
