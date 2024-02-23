@@ -65,7 +65,7 @@ type Props = {
    */
   config?: {
     id?: string;
-    lightPreset?: "dawn" | "day" | "dusk" | "night";
+    lightPreset?: "dawn" | "day" | "dusk" | "night" | string;
     showPlaceLabels?: boolean;
     showRoadLabels?: boolean;
     showPointOfInterestLabels?: boolean;
@@ -74,7 +74,7 @@ type Props = {
     [key: string]: boolean | string | string[];
   };
   /** Type for pan, move and zoom transitions */
-  transitionType?: "flyTo" | "easeTo" | "jumpTo";
+  transitionType?: "flyTo" | "easeTo" | "jumpTo" | string;
   /** Event listener for Viewport updates */
   onViewportChange?: (viewport: Viewport) => void;
   /** Event listener for User Interaction */
@@ -110,8 +110,6 @@ type Props = {
 
 /** Creates a new Map Container */
 export const MapGL: Component<Props> = (props) => {
-  // props.id ??= createUniqueId()
-
   let map: Map;
   let mapRef: HTMLDivElement;
   let resizeObserver: ResizeObserver;
@@ -420,7 +418,8 @@ export const MapGL: Component<Props> = (props) => {
     >
       {mapLoaded() && (
         <MapProvider map={mapLoaded()}>
-          <div style={{ position: "relative" }}>{props.children}</div>
+          <style>{`.overlay{position:relative;width:100%;height:100%;pointer-events:none}.overlay>*{pointer-events:auto}`}</style>
+          <div class="overlay">{props.children}</div>
         </MapProvider>
       )}
     </div>
