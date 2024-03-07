@@ -1,20 +1,22 @@
-import { onCleanup, createEffect, VoidComponent } from 'solid-js'
-import { useMapContext } from '../MapProvider'
-import type { Fog } from 'mapbox-gl'
+import { onCleanup, createEffect, VoidComponent } from "solid-js";
+import { useMapContext } from "../MapProvider";
+import type { Fog } from "mapbox-gl";
 
-type Props = {
+interface AtmosphereProps {
   /** Fog/Atmosphere Specifications */
-  style?: Fog
+  style?: Fog;
 }
 
-export const Atmosphere: VoidComponent<Props> = (props: Props) => {
-  const [ctx] = useMapContext()
+export const Atmosphere: VoidComponent<AtmosphereProps> = (props) => {
+  const [ctx] = useMapContext();
 
   // Add or Update Atmosphere Layer
-  createEffect(() => ctx.map.setFog(props.style || {}))
+  createEffect(() => ctx.map.setFog(props.style || {}));
 
   // Remove Atmosphere Layer
-  onCleanup(() => ctx.map.setFog(null))
+  onCleanup(() => {
+    if (ctx.map.getFog()) ctx.map.setFog(null);
+  });
 
-  return null
-}
+  return null;
+};
