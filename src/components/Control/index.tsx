@@ -3,6 +3,7 @@ import {
   createEffect,
   onCleanup,
   splitProps,
+  untrack,
   VoidComponent,
 } from "solid-js";
 import { useMapContext } from "../MapProvider";
@@ -36,6 +37,7 @@ type Props = {
 
 export const Control: VoidComponent<Props> = (props) => {
   const [ctx] = useMapContext();
+  const [update, create] = splitProps(props, ["position"]);
   const [control, setControl] = createSignal<any>(null);
 
   const controlClasses = new Map<ControlType, any>([
@@ -48,24 +50,28 @@ export const Control: VoidComponent<Props> = (props) => {
     ["terrain", window.MapLib.TerrainControl],
   ]);
 
-  // Initialize Control
+  // Add Control
   createEffect(() => {
-    const currentControl = control();
-    if (currentControl && ctx.map.hasControl(currentControl)) {
-      ctx.map.removeControl(currentControl);
-    }
-    const newControl =
-      props.custom ||
-      new (controlClasses.get(props.type || "navigation"))(props.options);
-    setControl(newControl);
-    ctx.map.addControl(newControl, props.position);
+    untrack(
+      () =>
+        control() &&
+        ctx.map.hasControl(control()) &&
+        ctx.map.removeControl(control()),
+    );
+    setControl(
+      create.custom ||
+        new (controlClasses.get(create.type || "navigation"))(create.options),
+    );
+  });
+
+  // Update Position
+  createEffect(() => {
+    ctx.map.hasControl(control()) && ctx.map.removeControl(control());
+    ctx.map.addControl(control(), update.position);
   });
 
   onCleanup(() => {
-    const currentControl = control();
-    if (currentControl && ctx.map.hasControl(currentControl)) {
-      ctx.map.removeControl(currentControl);
-    }
+    ctx.map.hasControl(control()) && ctx.map.removeControl(control());
   });
 
   return null;
