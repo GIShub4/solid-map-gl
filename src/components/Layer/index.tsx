@@ -91,8 +91,9 @@ const updateStyle = (oldStyle) => {
 
 export const Layer: Component<Props> = (props) => {
   const [ctx] = useMapContext();
-  const sourceId: string = props.style?.source || useSourceId();
-  props.id = props.id || props.customLayer?.id || createUniqueId();
+  const sourceId: string =
+    props.sourceId || props.style?.source || useSourceId();
+  const layerId: string = props.id || props.customLayer?.id || createUniqueId();
 
   const debug = (text, value?) => {
     (ctx.map.debug || ctx.map.debugEvents) &&
@@ -103,7 +104,7 @@ export const Layer: Component<Props> = (props) => {
   ctx.map.addLayer(
     props.customLayer || {
       ...updateStyle(props.style),
-      id: props.id,
+      id: layerId,
       source: sourceId,
       slot: props.slot || "",
       metadata: {
@@ -114,19 +115,19 @@ export const Layer: Component<Props> = (props) => {
       ? ctx.map.getStyle().layers.find((l) => l.type === props.beforeType)?.id
       : props.beforeId,
   );
-  ctx.map.layerIdList.push(props.id);
+  ctx.map.layerIdList.push(layerId);
   if (props.customLayer) ctx.map.fire("load");
-  debug("Add Layer:", props.id);
+  debug("Add Layer:", layerId);
 
   // Hook up events
   layerEvents.forEach((item) => {
     if (props[item]) {
       const event = item.slice(2).toLowerCase();
-      ctx.map.on(event, props.id, (evt) => {
+      ctx.map.on(event, layerId, (evt) => {
         evt.clickOnLayer = true;
         props[item](evt);
         ctx.map.debugEvent &&
-          debug(`Layer '${event}' event on '${props.id}':`, evt);
+          debug(`Layer '${event}' event on '${layerId}':`, evt);
       });
     }
   });
@@ -138,21 +139,21 @@ export const Layer: Component<Props> = (props) => {
 
     if (style.layout !== prev?.layout)
       diff(style.layout, prev?.layout).forEach(([key, value]) =>
-        ctx.map.setLayoutProperty(props.id, key, value, { validate: false }),
+        ctx.map.setLayoutProperty(layerId, key, value, { validate: false }),
       );
 
     if (style.paint !== prev?.paint)
       diff(style.paint, prev?.paint).forEach(([key, value]) =>
-        ctx.map.setPaintProperty(props.id, key, value, { validate: false }),
+        ctx.map.setPaintProperty(layerId, key, value, { validate: false }),
       );
 
     if (style.minzoom !== prev?.minzoom || style.maxzoom !== prev?.maxzoom)
-      ctx.map.setLayerZoomRange(props.id, style.minzoom, style.maxzoom);
+      ctx.map.setLayerZoomRange(layerId, style.minzoom, style.maxzoom);
 
     if (style.filter !== prev?.filter)
-      ctx.map.setFilter(props.id, style.filter, { validate: false });
+      ctx.map.setFilter(layerId, style.filter, { validate: false });
 
-    debug("Update Layer Style:", props.id);
+    debug("Update Layer Style:", layerId);
     return style;
   }, updateStyle(props.style));
 
@@ -161,12 +162,12 @@ export const Layer: Component<Props> = (props) => {
     if (props.visible === prev) return;
 
     ctx.map.setLayoutProperty(
-      props.id,
+      layerId,
       "visibility",
       props.visible ? "visible" : "none",
       { validate: false },
     );
-    debug(`Update Visibility (${props.id}):`, props.visible.toString());
+    debug(`Update Visibility (${layerId}):`, props.visible.toString());
     return props.visible;
   }, props.visible);
 
@@ -175,8 +176,8 @@ export const Layer: Component<Props> = (props) => {
     if (!props.filter) return;
 
     !ctx.map.isStyleLoaded() && (await ctx.map.once("styledata"));
-    ctx.map.setFilter(props.id, props.filter);
-    debug(`Update Filter (${props.id}):`, props.filter);
+    ctx.map.setFilter(layerId, props.filter);
+    debug(`Update Filter (${layerId}):`, props.filter);
   });
 
   // Update Feature State
@@ -200,9 +201,7 @@ export const Layer: Component<Props> = (props) => {
   });
 
   //Remove Layer
-  onCleanup(
-    () => ctx.map?.getLayer(props.id) && ctx.map?.removeLayer(props.id),
-  );
+  onCleanup(() => ctx.map?.getLayer(layerId) && ctx.map?.removeLayer(layerId));
 
   return props.children;
 };

@@ -1,16 +1,16 @@
-export { MapGL as default } from './components/MapGL'
-export { MapProvider, useMapContext } from './components/MapProvider'
-export { Source, useSourceId } from './components/Source'
-export { Layer } from './components/Layer'
-export { Layer3D } from './components/Layer3D'
-export { Atmosphere } from './components/Atmosphere'
-export { Terrain } from './components/Terrain'
-export { Control } from './components/Control'
-export { Marker } from './components/Marker'
-export { Popup } from './components/Popup'
-export { MGL_Image as Image, patternList } from './components/Image'
-export { Camera } from './components/Camera'
-export { Light } from './components/Light'
-export { Draw } from './components/Draw'
-export type { Viewport } from './components/MapGL'
-export type { Color } from './components/Image'
+export { MapGL as default } from "./components/MapGL";
+export { MapProvider, useMapContext } from "./components/MapProvider";
+export { Source, useSourceId } from "./components/Source";
+export { Layer } from "./components/Layer";
+export { Layer3D, useScene } from "./components/Layer3D";
+export { Atmosphere } from "./components/Atmosphere";
+export { Terrain } from "./components/Terrain";
+export { Control } from "./components/Control";
+export { Marker } from "./components/Marker";
+export { Popup } from "./components/Popup";
+export { MGL_Image as Image, patternList } from "./components/Image";
+export { Camera } from "./components/Camera";
+export { Light } from "./components/Light";
+export { Draw } from "./components/Draw";
+export type { Viewport } from "./components/MapGL";
+export type { Color } from "./components/Image";
