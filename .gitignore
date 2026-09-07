@@ -6,6 +6,9 @@
 # dependencies
 /node_modules
 
+# stage 0 spike scratch workspace (throwaway, see UPGRADE_PLAN.md Section 8)
+/spike
+
 # misc
 .env
 .DS_Store

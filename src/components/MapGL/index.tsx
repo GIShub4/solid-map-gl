@@ -71,6 +71,8 @@ type Props = {
     showRoadLabels?: boolean;
     showPointOfInterestLabels?: boolean;
     showTransitLabels?: boolean;
+    showLandmarkIcons?: boolean;
+    showLandmarkIconLabels?: boolean;
     font?: string[];
     [key: string]: boolean | string | string[];
   };
@@ -238,6 +240,7 @@ export const MapGL: Component<Props> = (props) => {
 
       // Update Configuration
       createEffect(() => {
+        // console.log(props.config);
         for (const key in props.config) {
           if (!key || key === "id") continue;
           const id = props.config?.id || "basemap";

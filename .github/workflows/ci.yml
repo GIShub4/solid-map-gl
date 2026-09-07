@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm test -- --run
+
+      # Dependency updates (any semver size, per maintainer decision
+      # 2026-09-07) auto-merge automatically once this job succeeds — see
+      # auto-merge.yml. If one breaks the build/tests instead, auto-merge
+      # never fires, but a red check alone is easy to miss among several
+      # open dependency PRs, so ping explicitly.
+      - name: Notify on dependency-update failure
+        if: >-
+          ${{ failure() && github.event_name == 'pull_request' &&
+              github.actor == 'dependabot[bot]' }}
+        run: |
+          gh label create "dependency-tests-failing" --color B60205 \
+            --description "Automated dependency update broke CI" 2>/dev/null || true
+          gh pr edit "$PR_URL" --add-label "dependency-tests-failing"
+          gh pr comment "$PR_URL" --body "@${{ github.repository_owner }} CI failed on this automated dependency update — it will **not** be auto-merged. Please investigate."
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
