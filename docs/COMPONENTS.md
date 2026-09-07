@@ -3,8 +3,8 @@
 Technical reference for every exported component in `solid-map-gl`, generated from the source in
 `src/components/`. This complements the tutorial-style docs in `docs/start.md`, `docs/styles.md`,
 `docs/examples.md`, and each component's own `README.md` (which are wired into the published
-GitBook via `SUMMARY.md`). For architectural background (context flow, `window.MapLib`, style
-diffing, event wiring) see `CLAUDE.md` at the repo root.
+GitBook via `SUMMARY.md`). For architectural background (context flow, `ctx.mapLib`/`ctx.isMapLibre`,
+style diffing, event wiring) see `CLAUDE.md` at the repo root.
 
 All components except `MapGL` must be rendered as a descendant of `<MapGL>`, since they read the
 map instance via `useMapContext()`.
@@ -25,6 +25,7 @@ map instance via `useMapContext()`.
 - [Light](#light)
 - [Camera](#camera)
 - [Draw](#draw)
+- [DeckOverlay](#deckoverlay)
 - [Supporting modules](#supporting-modules)
 
 ---
@@ -53,7 +54,7 @@ components can sit on top of the canvas.
 | `viewport` | `Viewport` | Current viewport: `center`, `zoom`, `pitch`, `bearing`, `bounds`, `padding`, `point`, `inTransit` |
 | `onViewportChange` | `(viewport: Viewport) => void` | Called on every map move; drives controlled viewport state |
 | `options` | `MapboxOptions` | Passed straight to `new mapboxgl.Map()` |
-| `config` | `object` | Mapbox Standard Style config properties (`lightPreset`, `showPlaceLabels`, ...), applied via `setConfigProperty` |
+| `config` | `object` | Mapbox Standard/Standard Satellite config properties (`lightPreset`, `showPlaceLabels`, `theme`, 20+ `color*` overrides, ...), applied via `setConfigProperty`. Mapbox-only — feature-detected and a no-op (with a `debug()` log) on MapLibre, which has no equivalent |
 | `transitionType` | `"flyTo" \| "easeTo" \| "jumpTo"` | Camera transition used when `viewport` changes externally (default `flyTo`) |
 | `onUserInteraction` | `(user: boolean) => void` | Fires `true`/`false` around user-driven mouse/touch/wheel interaction |
 | `showTileBoundaries` / `showTerrainWireframe` / `showPadding` / `showCollisionBoxes` / `showOverdrawInspector` | `boolean` | Debug overlays, mapped 1:1 to the same `map.*` boolean flags |
@@ -93,14 +94,30 @@ const App = () => (
 
 `src/components/MapProvider/index.tsx` — internal plumbing, exported for advanced use.
 
-A tiny `solid-js/store`-backed context holding `{ map }`. `MapGL` renders this automatically;
-you normally never instantiate it yourself. Exposes `useMapContext()`, which every other
-component calls to reach `ctx.map` (the live `mapboxgl.Map`/`maplibregl.Map` instance, extended
-with `debug`, `debugEvents`, `sourceIdList`, `layerIdList`).
+A `solid-js/store`-backed context holding `{ map, mapLib, isMapLibre }`. `MapGL` renders this
+automatically, passing the map instance it created plus whichever Mapbox/MapLibre module it
+resolved (`props.mapLib`, or its dynamic `import("mapbox-gl")`) and a computed `isMapLibre` flag;
+you normally never instantiate `<MapProvider>` yourself. The store is created fresh inside the
+component on every render (not module-scoped), so multiple `<MapGL>` instances — even ones mixing
+Mapbox and MapLibre on the same page — each get an isolated context value instead of clobbering a
+shared global (this replaced the old `window.MapLib` singleton, which had exactly that collision
+bug). Exposes `useMapContext()`, which every other component calls to reach:
+
+- `ctx.map` — the live `mapboxgl.Map`/`maplibregl.Map` instance, extended with `debug`,
+  `debugEvents`, `sourceIdList`, `layerIdList`, `isMapLibre`.
+- `ctx.mapLib` — the resolved Mapbox/MapLibre module itself, used to construct classes
+  (`ctx.mapLib.Marker`, `ctx.mapLib.NavigationControl`, `ctx.mapLib.MercatorCoordinate`, ...) —
+  the direct replacement for the old `window.MapLib` global.
+- `ctx.isMapLibre` — boolean, `true` when the active library is MapLibre. Computed once in
+  `MapGL` by checking `typeof mapLib.Map.prototype.setConfigProperty !== "function"` (Mapbox
+  Standard Style's `setConfigProperty` has no MapLibre equivalent, so its absence is a stable,
+  structural way to tell the two libraries apart regardless of how `mapLib` was obtained).
 
 ```ts
 const [ctx] = useMapContext();
 ctx.map.flyTo({ center: [0, 0] });
+const marker = new ctx.mapLib.Marker().setLngLat([0, 0]).addTo(ctx.map);
+if (ctx.isMapLibre) { /* ... */ }
 ```
 
 ---
@@ -221,11 +238,12 @@ Mercator-space world matrix so 3D content can be authored in real-world meters a
 `src/components/Control/index.tsx`
 
 Thin wrapper over `map.addControl`/`removeControl`. Resolves the concrete control class from
-`window.MapLib` (`NavigationControl`, `ScaleControl`, `AttributionControl`, `GeolocateControl`,
+`ctx.mapLib` (`NavigationControl`, `ScaleControl`, `AttributionControl`, `GeolocateControl`,
 `FullscreenControl`, `LogoControl`, `TerrainControl`) based on `type`, or uses `custom` if you
 already have a control instance (e.g. `@mapbox/mapbox-gl-traffic`,
-`@mapbox/mapbox-gl-language`). Re-adds the control whenever `type`/`options`/`custom` change, and
-separately re-adds (without recreating) when only `position` changes.
+`@mapbox/mapbox-gl-language`). Re-adds the control whenever `type`/`options`/`custom` change; the
+position-tracking half of this (re-add at the new position without recreating the control instance,
+plus cleanup) is shared with `DeckOverlay` via `src/lib/createMapControl.ts`'s `useControlPosition`.
 
 ### Props
 
@@ -282,7 +300,7 @@ images).
 
 `src/components/Marker/index.tsx`
 
-Wraps `window.MapLib.Marker`, optionally paired with a `window.MapLib.Popup`. Uses `splitProps`
+Wraps `ctx.mapLib.Marker`, optionally paired with a `ctx.mapLib.Popup`. Uses `splitProps`
 to separate props that force a full marker/popup recreation (`options`, `popup`) from ones that
 just update the existing instance (`lngLat`, `children`, `showPopup`, `draggable`).
 
@@ -314,7 +332,7 @@ just update the existing instance (`lngLat`, `children`, `showPopup`, `draggable
 
 `src/components/Popup/index.tsx`
 
-Wraps `window.MapLib.Popup` directly on the map (no marker). Either `lngLat` or `trackPointer`
+Wraps `ctx.mapLib.Popup` directly on the map (no marker). Either `lngLat` or `trackPointer`
 is required — with `trackPointer`, the popup follows the mouse cursor instead of sitting at a
 fixed location.
 
@@ -344,7 +362,7 @@ fixed location.
 
 Wraps `map.setTerrain`. If no `Source` is nested (via `useSourceId()`) and no `source` prop is
 given, automatically creates a hidden `raster-dem` source pointing at Mapbox's or MapLibre's
-default terrain tiles (chosen via `ctx.map.isMapLibre`). Removes the terrain (`setTerrain(null)`)
+default terrain tiles (chosen via `ctx.isMapLibre`). Removes the terrain (`setTerrain(null)`)
 on cleanup.
 
 ### Props
@@ -374,19 +392,25 @@ Equivalent explicit form:
 
 `src/components/Atmosphere/index.tsx`
 
-Wraps `map.setFog`/`getFog`. All properties are optional; an empty `style` (or omitting the prop)
-uses the current map style's default atmosphere.
+On Mapbox, wraps `map.setFog`/`getFog`. On MapLibre — which has its own, differently-shaped `sky`
+style-spec object rather than Mapbox's `Fog` — wraps `map.setSky`/`getSky` instead, branching on
+`ctx.isMapLibre`. All properties are optional; an empty `style` (or omitting the prop) uses the
+current map style's default atmosphere.
 
 ### Props
 
 | Name | Type | Description |
 | --- | --- | --- |
-| `style` | [`Fog`](https://docs.mapbox.com/mapbox-gl-js/style-spec/atmosphere) | Fog/atmosphere spec — `color`, `horizonBlend`, `intensity`, etc. |
+| `style` | [`FogSpecification`](https://docs.mapbox.com/mapbox-gl-js/style-spec/atmosphere) (Mapbox) \| `MapLibreSky` (MapLibre) | Fog spec (`color`, `horizon-blend`, `star-intensity`, ...) on Mapbox; sky spec (`sky-color`, `horizon-color`, `fog-color`, `atmosphere-blend`, ...) on MapLibre — genuinely different shapes, not interchangeable |
 
 ### Example
 
 ```jsx
-<Atmosphere style={{ color: "white", horizonBlend: 0.1, intensity: 0.5 }} />
+// Mapbox
+<Atmosphere style={{ color: "white", "horizon-blend": 0.1, "star-intensity": 0.5 }} />
+
+// MapLibre
+<Atmosphere style={{ "sky-color": "white", "horizon-color": "#fff", "atmosphere-blend": 0.5 }} />
 ```
 
 ---
@@ -445,8 +469,12 @@ while the user is interacting with the map (tracked via `mousedown`/`touchstart`
 
 `src/components/Draw/index.tsx`
 
-Wraps `@mapbox/mapbox-gl-draw` (or any API-compatible `lib`) as a Mapbox control. Merges in a set
-of custom draw modes from `src/components/Draw/modes/`, plus custom styling from
+Wraps `@mapbox/mapbox-gl-draw` (or any API-compatible `lib`) as a Mapbox control. On MapLibre
+(`ctx.isMapLibre`), patches `lib.constants.classes` to MapLibre's `maplibregl-*` class names
+before instantiating — mapbox-gl-draw reads Mapbox's class names internally for keyboard shortcuts
+(Delete/Backspace/1/2/3) and the control wrapper's native-look styling; mouse-driven drawing itself
+works unpatched either way (see `STAGE0_FINDINGS.md`). Merges in a set of custom draw modes from
+`src/components/Draw/modes/`, plus custom styling from
 `drawingStyles.jsx` layered on top of the library's own theme. Three of the modes
 (`point`/`line_string`/`polygon`) *replace* the library's built-in `draw_point`/`draw_line_string`/
 `draw_polygon` modes so `showLength`/`showArea` work through the control's normal toolbar buttons
@@ -481,6 +509,40 @@ gives you the raw draw control for imperative API calls (`draw.add`, `draw.delet
   options={{ controls: { combine_features: false, uncombine_features: false } }}
   onCreate={(event) => console.log(event)}
   getInstance={(draw) => draw.add({ type: "Point", coordinates: [0, 0] })}
+/>
+```
+
+---
+
+## DeckOverlay
+
+`src/components/DeckOverlay/index.tsx`
+
+Adds a [deck.gl](https://deck.gl/) overlay as a map control, mirroring `Control`'s
+add/update/remove lifecycle via the same `useControlPosition` primitive
+(`src/lib/createMapControl.ts`). `solid-map-gl` never imports `@deck.gl/*` itself, not even as an
+optional peer — you supply the overlay **class** (not an instance), matching whichever base
+library `MapGL` resolved to: `MapboxOverlay` from `@deck.gl/mapbox` for Mapbox, `MapLibreOverlay`
+from `@deck.gl/maplibre` for MapLibre (check `ctx.isMapLibre` if you need to pick dynamically —
+these are two separate packages, not one that covers both). The overlay is constructed once and
+subsequent prop changes are forwarded reactively via `overlay.setProps(...)`, never recreating it.
+
+### Props
+
+| Name | Type | Description |
+| --- | --- | --- |
+| `overlay`\* | `new (props: any) => any` | The deck.gl overlay class — `MapboxOverlay` or `MapLibreOverlay` |
+| `props` | `object` | Props forwarded to the overlay, e.g. `{ layers, interleaved }` |
+
+### Example
+
+```jsx
+import { MapboxOverlay } from "@deck.gl/mapbox";
+import { ScatterplotLayer } from "@deck.gl/layers";
+
+<DeckOverlay
+  overlay={MapboxOverlay}
+  props={{ layers: [new ScatterplotLayer({ data, getPosition: (d) => d.coordinates })] }}
 />
 ```
 

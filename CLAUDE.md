@@ -69,14 +69,22 @@ itself; Solid's reactivity is only used to know *when* to call the imperative Ma
   `components/Draw/modes/` (point, multi_point, line_string, polygon, radius, rectangle,
   rectangle_assisted) and length/area labeling via `@turf/*` in `modes/measurements.ts`.
 
-### Mapbox vs. MapLibre — the `window.MapLib` global
+### Mapbox vs. MapLibre — `ctx.mapLib` / `ctx.isMapLibre`
 
-`MapGL` imports `mapbox-gl` dynamically unless `props.mapLib` is passed, and stores whichever
-library actually ends up in use on `window.MapLib`. Every other component (`Control`, `Marker`,
-`Popup`, `Layer3D`) reads classes off `window.MapLib` (e.g. `window.MapLib.Popup`,
-`window.MapLib.NavigationControl`) instead of importing `mapbox-gl` directly, so the same
-component code works against either library. Don't reintroduce direct `mapbox-gl` imports for
-runtime classes in leaf components — only types should come from `mapbox-gl`'s type defs.
+`MapGL` imports `mapbox-gl` dynamically unless `props.mapLib` is passed, computes `isMapLibre` by
+checking `typeof mapLib.Map.prototype.setConfigProperty !== "function"` (Standard Style's
+`setConfigProperty` is Mapbox-only, so its absence is a stable way to tell the libraries apart
+regardless of how `mapLib` was obtained), and passes both `mapLib` and `isMapLibre` into
+`MapProvider`'s per-instance context. Every other component (`Control`, `Marker`, `Popup`,
+`Camera`, `Layer3D`) reads classes off `ctx.mapLib` (e.g. `ctx.mapLib.Popup`,
+`ctx.mapLib.NavigationControl`) instead of importing `mapbox-gl` directly, so the same component
+code works against either library — this replaced an old `window.MapLib` global that broke
+multi-map pages mixing both libraries, since a single global can't hold two values at once.
+`ctx.isMapLibre` gates the handful of genuinely divergent behaviors (`Atmosphere`'s `setFog` vs.
+`setSky`, `Terrain`'s DEM defaults, `Draw`'s MapLibre class-name patch, `Layer`'s Mapbox-only
+`slot`). Don't reintroduce direct `mapbox-gl` imports for runtime classes in leaf components —
+only types should come from `mapbox-gl`'s own top-level type exports (not deep `mapbox-gl/src/...`
+paths, which don't resolve against any currently-published `mapbox-gl` release).
 
 ### Style/basemap shorthands
 

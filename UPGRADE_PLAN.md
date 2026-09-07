@@ -368,21 +368,21 @@ Legend: 🟢 looks current, no action needed · 🟡 needs a scoped update · �
 
 | Component | Status | Notes |
 | --- | --- | --- |
-| `MapGL` | 🟡 | 3.5/3.3/3.9/5.2/11.4 **done** (Stage 1) — remaining: deep `mapbox-gl/src/*` type imports need revalidation against the v3.5 TS rewrite (Section 5.1, Stage 2). `config` prop's typed property list is missing most of the current Standard/Standard Satellite schema (Section 10, Stage 2). |
-| `MapProvider` | 🟡 | Structurally fine as-is; extend the existing `createStore` with two new keys, `mapLib`/`isMapLibre` (Section 4.1) — `createSignal` was considered and rejected 2026-09-07 (Section 2.3) to avoid breaking `ctx.map`'s public property-access shape. |
-| `Source` | 🟢 | 3.4/3.8 **done** (Stage 1) — no longer caches the source reference across restyles, and the `isSourceLoaded` guard no longer drops reactive updates. Source-spec handling (geojson/vector/raster/image) otherwise unchanged and current. |
-| `Layer` | 🟡 | Style diff logic is sound and not Mapbox-v3-broken, but `src/styles.ts`'s `layoutStyles` list should be refreshed against the current style spec (v3 added layer types, e.g. `model`, and possibly new layout props not in the current list — anything missing gets misbucketed into `paint`). Already has a `slot` prop, which is good — needs documentation clarifying it's the *only* way to position against Mapbox Standard's own built-in layers (Section 10), distinct from `beforeId`/`beforeType` which remain valid for ordering the wrapper's own layers. |
-| `DeckOverlay` *(proposed, doesn't exist yet)* | 🆕 | New component to support deck.gl interop (Section 12) — thin `Control`-lifecycle wrapper accepting an already-constructed `MapboxOverlay`/`MapLibreOverlay` class as a prop, no new dependency needed. |
+| `MapGL` | 🟢 | 3.5/3.3/3.9/5.2/11.4 **done** (Stage 1); 5.1/10.1 **done** (Stage 2) — deep type imports replaced with top-level `mapbox-gl` exports, `config`'s typed property list now covers the full Standard/Standard Satellite schema. Computes and propagates `isMapLibre`/`mapLib`. |
+| `MapProvider` | 🟢 | **Done** (Stage 2) — `createStore` extended with `mapLib`/`isMapLibre`; also moved from a module-scoped singleton to a store created fresh per `<MapProvider>` render, fixing a real multi-map context-collision bug beyond just `window.MapLib` (see Stage 2 checklist above). |
+| `Source` | 🟡 | 3.4/3.8 **done** (Stage 1) — no longer caches the source reference across restyles, and the `isSourceLoaded` guard no longer drops reactive updates. 5.1 **done** (Stage 2) — deep type import replaced; internal duck-typing across source `type`s now explicit (`anySource()`) instead of silently `any` via a broken import. |
+| `Layer` | 🟡 | Style diff logic is sound and not Mapbox-v3-broken, but `src/styles.ts`'s `layoutStyles` list should be refreshed against the current style spec (v3 added layer types, e.g. `model`, and possibly new layout props not in the current list — anything missing gets misbucketed into `paint`). `slot` **done** (Stage 2) — now omitted entirely on MapLibre instead of always sent as `""`; still needs documentation clarifying it's the *only* way to position against Mapbox Standard's own built-in layers (Section 10), distinct from `beforeId`/`beforeType`. 5.1 **done** (Stage 2) — deep type imports replaced; the flat/bucketed style object now has its own honest `FlatLayerStyle` type instead of misusing `StyleSpecification`. |
+| `DeckOverlay` | 🟢 | **Done** (Stage 2) — `src/components/DeckOverlay/index.tsx`, built on the new `useControlPosition` primitive (Section 13.4). Consumer supplies the overlay class (`MapboxOverlay`/`MapLibreOverlay`); no `@deck.gl/*` dependency added. |
 | `Layer3D` | 🟡 | Functionally plausible but the file is ~60% commented-out dead experimental code (lines ~170-380) for an incomplete Babylon camera-sync attempt — should be finished or deleted before further investment. WebGL2-only assumption on MapLibre needs verification (4.2). Uses `window.MapLib.MercatorCoordinate` (4.1 fix applies). |
-| `Control` | 🟡❔ | 3.6 **done** (Stage 1) — docs no longer claim `"traffic"`/`"language"` are valid `type`s, `custom` documented as the path for them instead. `TerrainControl` on MapLibre needs verification (4.2). |
-| `Image` | 🟡 | Works, but uses the legacy callback form of `loadImage` (Section 2.1) — modernize to the Promise form when touched. No Mapbox/MapLibre divergence found here. |
+| `Control` | 🟢❔ | 3.6 **done** (Stage 1) — docs no longer claim `"traffic"`/`"language"` are valid `type`s, `custom` documented as the path for them instead. 5.1/13.4 **done** (Stage 2) — deep type imports replaced; position-update lifecycle now shares `useControlPosition` with `DeckOverlay`. `TerrainControl` on MapLibre needs verification (4.2, still open). |
+| `Image` | 🟢 | 5.1 **done** (Stage 2) — deep type import replaced (`StyleImageMetadata` derived structurally, since mapbox-gl doesn't actually export it). 2.1 **investigated and explicitly not done** — mapbox-gl's shipped `loadImage` (verified against v3.30) has no promise form; the plan's premise here was wrong, callback form kept on purpose (see Stage 2 checklist above). No Mapbox/MapLibre divergence found. |
 | `Marker` | 🟢❔ | No breaking API changes found. Verify `MarkerOptions`/drag event parity holds on current MapLibre (no negative signal found, just not exhaustively checked). |
 | `Popup` | 🟢❔ | Same as `Marker`; specifically verify `trackPointer()` exists and behaves the same on current MapLibre. |
-| `Terrain` | 🔴 | 3.1 — `isMapLibre` never set, MapLibre branch is dead. Everything else (raster-dem shape, `setTerrain` API) is current on both libraries. |
-| `Atmosphere` | 🔴 | Correct for Mapbox (fog is the current, non-deprecated API) but has **no MapLibre-specific path** for MapLibre's diverged `setSky()`/sky-property-shape (Section 2.2/4.1). This is the "did they change how sky/atmosphere works" concern — yes, on MapLibre's side, they did. Also: `Fog` type could be widened to include newer Mapbox-only fields (`vertical-range`, `star-intensity`). |
+| `Terrain` | 🟢 | 3.1 **done** (Stage 2) — `ctx.isMapLibre` is now real and set, so the MapLibre DEM-defaults branch actually triggers. Everything else (raster-dem shape, `setTerrain` API) is current on both libraries. |
+| `Atmosphere` | 🟢 | 4.1 **done** (Stage 2) — branches on `ctx.isMapLibre` between `setFog()`/`getFog()` (Mapbox, `FogSpecification`) and `setSky()`/`getSky()` (MapLibre, new `MapLibreSky` type). Also fixed an unrelated pre-existing bug found along the way: the `style` prop's type import name (`Fog`) never actually existed in mapbox-gl's types. |
 | `Light` | 🔴 | 3.3 — dropped on base-style swap. MapLibre parity unverified (4.2). |
 | `Camera` | 🟢❔ | Free camera API confirmed stable/shared across both libraries. `rotateGlobe` defaults should be spot-checked against current globe fog/atmosphere behavior, low priority. Minor tech debt: user-interaction tracking logic is duplicated near-verbatim between `MapGL` and `Camera`. |
-| `Draw` | 🟡 | 3.2 **done** (measurement modes finished and wired in, Stage 1) — remaining: Section 2.2/4.1 (MapLibre needs the `constants.classes` patch for keyboard shortcuts/control styling, Stage 2). |
+| `Draw` | 🟢 | 3.2 **done** (measurement modes finished and wired in, Stage 1). 4.1 **done** (Stage 2) — the MapLibre `constants.classes` patch is now applied automatically, gated on `ctx.isMapLibre`, before instantiating. |
 
 ### 5.1 Type-import risk (cross-cutting, affects `MapGL`, `Layer`, `Control`, `Layer3D`, `Marker`, `Popup`)
 
@@ -667,24 +667,81 @@ the fix is, so you can stop after any stage and still be strictly better off tha
   bug-fix stage); left for whichever later stage takes on build tooling.
 
 ### Stage 2 — API modernization / capability layer (Section 4)
-- 3.1 + 3.7 Replace the `window.MapLib` global and the nonexistent `isMapLibre` flag with a real,
-  context-carried `{ mapLib, isMapLibre }` (or equivalent), fixing both the dead Terrain branch
-  and the multi-map-global-collision issue in one pass.
-- 4.1 Add the `Atmosphere` MapLibre `setSky()` branch with its own prop shape.
-- 4.1 Add the `Draw`-on-MapLibre class-name patch (or document the requirement clearly if you
-  decide not to automate it).
-- 5.1 Replace all deep `mapbox-gl/src/...` type imports with top-level `mapbox-gl` exports; drop
-  `@types/mapbox-gl` if redundant.
-- 2.1 Modernize `Image`'s `loadImage` usage to the Promise form (small, low-risk, bundle it here).
-- 10.1-10.2 Expand `MapGL`'s `config` prop type to the full Standard/Standard Satellite schema,
-  and guard it (and `slot`) behind the same "Mapbox-only, no-op on MapLibre" capability check as
-  `setConfigProperty` (Section 10) — MapLibre has no equivalent and none is planned upstream.
-- 12.4 Add the `DeckOverlay` component once the capability layer (`isMapLibre`) exists, since its
-  docs/behavior branch on which base library is active (Section 12).
-- 13.4 Extract a shared `createMapControl`-style primitive (Solid equivalent of react-map-gl's
-  `useControl` hook — Section 13.5) and refactor `Control`, `Marker`, `Popup`, and the new
-  `DeckOverlay` to build on it instead of each hand-rolling the same add/update/remove-control
-  lifecycle.
+
+**Done 2026-09-07.** All items below shipped:
+
+- ~~3.1 + 3.7 Replace the `window.MapLib` global and the nonexistent `isMapLibre` flag with a real,
+  context-carried `{ mapLib, isMapLibre }`~~ — **done.** `MapGL` computes `isMapLibre` once
+  (`typeof mapLib.Map.prototype.setConfigProperty !== "function"` — Standard Style's
+  `setConfigProperty` is Mapbox-only, so its absence reliably identifies MapLibre regardless of how
+  `mapLib` was obtained) and passes `mapLib`/`isMapLibre` into `MapProvider`. Fixed a second,
+  related bug found while doing this: `MapProvider`'s `createStore` was module-scoped (a single
+  singleton shared by every `<MapGL>` on the page), so even `ctx.map` itself — not just the old
+  `window.MapLib` global — silently collided across multiple map instances; the store is now
+  created fresh inside each `MapProvider` render, giving every `<MapGL>` (including ones mixing
+  Mapbox and MapLibre) a genuinely isolated context. `Control`, `Marker`, `Popup`, `Camera`,
+  `Layer3D` all read classes off `ctx.mapLib` now instead of `window.MapLib`. `Terrain`'s dead
+  branch (3.1) now reads `ctx.isMapLibre` and actually triggers.
+- ~~4.1 Add the `Atmosphere` MapLibre `setSky()` branch with its own prop shape~~ — **done.**
+  `Atmosphere` branches on `ctx.isMapLibre` between `map.setFog()`/`getFog()` (Mapbox) and
+  `map.setSky()`/`getSky()` (MapLibre), with a new exported `MapLibreSky` type for the latter's
+  distinct kebab-case property set (`sky-color`, `horizon-color`, `fog-color`,
+  `atmosphere-blend`, ...). Along the way, fixed a pre-existing, unrelated bug: `Atmosphere`'s
+  `style` prop was typed as `Fog`, a name mapbox-gl's real types never exported (only
+  `FogSpecification` exists) — silently never actually type-checked before now.
+- ~~4.1 Add the `Draw`-on-MapLibre class-name patch~~ — **done**, exactly as scoped down by
+  `STAGE0_FINDINGS.md`: a one-line `Object.assign(props.lib.constants.classes, {...})` to
+  MapLibre's `maplibregl-*` class names, gated on `ctx.isMapLibre`, before `new props.lib(...)`.
+- ~~5.1 Replace all deep `mapbox-gl/src/...` type imports with top-level `mapbox-gl` exports; drop
+  `@types/mapbox-gl` if redundant~~ — **done.** Added `mapbox-gl` itself as a real devDependency
+  (previously only a loose peer dep; the actual installed/type-checked version was a stale 3.1.2
+  transitive resolution) so real, current top-level types are available, then replaced every deep
+  import across `MapGL`, `Control`, `Layer`, `Source`, `Image` with top-level names
+  (`MapboxOptions`, `LngLatLike`, `LngLatBounds`, `PaddingOptions`, `StyleSpecification`,
+  `FilterSpecification`, `CustomLayerInterface`, `SourceSpecification`,
+  `{Navigation,Scale,Attribution,Fullscreen,Geolocate}ControlOptions`, `StyleImageInterface`).
+  `@types/mapbox-gl` dropped — confirmed redundant by a clean `tsc --noEmit` with it removed.
+  `Image`'s `StyleImageMetadata` isn't actually exported by mapbox-gl's real types, so it's now
+  derived structurally (`NonNullable<Parameters<Map["addImage"]>[2]>`) instead of importing an
+  internal name. Switching to real, strict types surfaced several previously-invisible problems
+  (silently `any`-typed before, since the deep imports never actually resolved): `Layer`'s flat,
+  bucketed style object was never a real `StyleSpecification`/`LayerSpecification` — introduced a
+  local `FlatLayerStyle = Record<string, any>` type instead of misusing a Mapbox type that doesn't
+  describe this library's own flat-prop convention; `Source`'s generic, runtime-`type`-dispatched
+  duck-typing doesn't fit `SourceSpecification`'s discriminated union — added a small `anySource()`
+  escape hatch at the exact points that need it rather than trying to statically narrow the union;
+  `Light`'s `Light` and `Atmosphere`'s `Fog` type-import names don't exist (see above) — fixed to
+  `LightSpecification`/`FogSpecification`; and a real, one-character latent bug, `Layer`'s
+  `ctx.map.debugEvent` (missing the `s`), always falsy and never actually logging, fixed to
+  `debugEvents`.
+- ~~2.1 Modernize `Image`'s `loadImage` usage to the Promise form~~ — **investigated, not done, and
+  should not be done.** Traced mapbox-gl's actual shipped implementation (v3.30): `loadImage(url,
+  callback)` unconditionally requires the callback and never returns a promise when it's
+  omitted — calling it with one argument throws `TypeError: i is not a function` at runtime. The
+  "promise form" this line was based on doesn't exist in any currently-published mapbox-gl version;
+  the plan's research claim here was wrong. Left `Image`'s callback-based `_loadImage` unchanged,
+  with a comment recording why, so a future session doesn't reintroduce this regression.
+- ~~10.1-10.2 Expand `MapGL`'s `config` prop type to the full Standard/Standard Satellite schema,
+  and guard it (and `slot`) behind the same "Mapbox-only, no-op on MapLibre" capability check~~ —
+  **done.** `config`'s type now covers the full property list from Section 10.1 (3D/pedestrian
+  toggles, `theme`/`themeData`, POI label tuning, ~20 `color*` overrides). `config` itself was
+  already guarded in Stage 1 (3.5); `Layer`'s `slot` is now also omitted entirely when
+  `ctx.isMapLibre`, instead of always being sent as `""`.
+- ~~12.4 Add the `DeckOverlay` component~~ — **done.** New `src/components/DeckOverlay/index.tsx`,
+  matching the Section 12.3 design exactly: consumer passes the overlay **class**
+  (`MapboxOverlay`/`MapLibreOverlay`), never an instance; `solid-map-gl` imports none of
+  `@deck.gl/*`, not even as an optional peer. Exported from `src/index.ts`, with a `README.md` and
+  a `docs/COMPONENTS.md`/`SUMMARY.md` entry per the new-component checklist in `CLAUDE.md`.
+- ~~13.4 Extract a shared `createMapControl`-style primitive~~ — **done, in a deliberately smaller
+  form than originally scoped.** Added `src/lib/createMapControl.ts`'s `useControlPosition(control,
+  position?)`, covering the actual shared surface between `Control` and `DeckOverlay`: keep an
+  `IControl` added at a given position (remove + re-add, never recreate) and remove it on cleanup.
+  `Control` now calls it instead of hand-rolling the same position-update effect. **`Marker`/`Popup`
+  were deliberately not forced onto this primitive** — their lifecycle is `.addTo(map)`/`.remove()`
+  on a non-`IControl` object, with additional nested effects (a nested nested popup driven by the
+  marker), not `addControl`/`removeControl`/`hasControl` — sharing the primitive would have meant
+  either overloading it with a second, `IControl`-incompatible mode, or forcing an awkward fit for
+  low reward. They still consume the capability layer directly (`ctx.mapLib.Marker`/`ctx.mapLib.Popup`).
 
 ### Stage 3 — Test suite (Section 7)
 - Build the local hand-rolled map mock (`src/testUtils/mockMap.ts`).
@@ -726,13 +783,11 @@ the fix is, so you can stop after any stage and still be strictly better off tha
    start of Stage 3 to see if tests/coverage are already gated in CI or need to be added.
 5. ~~**Container CSS breaking change (Section 11)**~~ — **RESOLVED 2026-09-07:** confirmed, ship
    as documented in Section 11.4/`MIGRATION.md` #1.
-6. **`DeckOverlay` shape (Section 12):** confirm the "consumer passes in the overlay *class*
-   (`MapboxOverlay`/`MapLibreOverlay`) as a prop, wrapper never imports `@deck.gl/*` itself" design
-   — this keeps zero new dependencies (not even optional peers) but means the wrapper can't
-   validate the class matches the active base library at compile time, only document it. Fine
-   with that trade-off, or would you rather add `@deck.gl/mapbox`/`@deck.gl/maplibre` as optional
-   peers (like `@babylonjs/core`/`three` already are for `Layer3D`) and have the component pick
-   the right one internally based on `isMapLibre`?
+6. ~~**`DeckOverlay` shape (Section 12)**~~ — **RESOLVED (Stage 2 implementation, 2026-09-07):**
+   built as originally proposed — consumer passes the overlay *class* as a prop, wrapper never
+   imports `@deck.gl/*`, zero new dependencies (not even optional peers). Revisit the
+   optional-peers alternative later only if the lack of compile-time class/library-match checking
+   turns out to be a real pain point in practice.
 7. **Long-term architecture (Section 13):** `react-map-gl` abandoned the single-package/`mapLib`-
    prop model this library currently uses, in favor of separate per-library build entry points
    with precise per-library types. That's a bigger lift (build-tooling work, probably paired with

@@ -12,24 +12,22 @@ import { mapEvents } from "../../events";
 import { vectorStyleList } from "../../mapStyles";
 import type { mapEventTypes } from "../../events";
 import type mapboxgl from "mapbox-gl";
-import type { MapboxOptions } from "mapbox-gl/src/ui/map";
-import type { LngLatLike } from "mapbox-gl/src/geo/lng_lat.js";
-import type { LngLatBounds } from "mapbox-gl/src/geo/lng_lat_bounds.js";
-import type { PaddingOptions } from "mapbox-gl/src/geo/edge_insets.js";
-import type { StyleSpecification } from "mapbox-gl/src/style-spec/types.js";
+import type {
+  MapboxOptions,
+  LngLatLike,
+  LngLatBounds,
+  PaddingOptions,
+  StyleSpecification,
+} from "mapbox-gl";
 import type { JSX } from "solid-js";
-
-declare global {
-  interface Window {
-    MapLib?: any;
-  }
-}
 
 export type Map = mapboxgl.Map & {
   debug: boolean;
   debugEvents: boolean;
   sourceIdList: string[];
   layerIdList: string[];
+  /** Whether this map instance is backed by MapLibre GL JS rather than Mapbox GL JS */
+  isMapLibre: boolean;
 };
 
 export type Viewport = {
@@ -61,7 +59,7 @@ type Props = {
    * @see https://docs.mapbox.com/mapbox-gl-js/api/map/#map-parameters
    */
   options?: MapboxOptions;
-  /** Mapbox Style Configuration
+  /** Mapbox Standard / Standard Satellite style configuration — Mapbox-only, no-op on MapLibre.
    * @see https://docs.mapbox.com/mapbox-gl-js/guides/styles/#configure-a-style
    */
   config?: {
@@ -71,10 +69,47 @@ type Props = {
     showRoadLabels?: boolean;
     showPointOfInterestLabels?: boolean;
     showTransitLabels?: boolean;
+    showRoadsAndTransit?: boolean;
     showLandmarkIcons?: boolean;
     showLandmarkIconLabels?: boolean;
+    showPedestrianRoads?: boolean;
+    show3dObjects?: boolean;
+    show3dBuildings?: boolean;
+    show3dTrees?: boolean;
+    show3dLandmarks?: boolean;
+    show3dFacades?: boolean;
+    showAdminBoundaries?: boolean;
+    showIndoor?: boolean;
+    showIndoorLabels?: boolean;
+    theme?: "default" | "faded" | "monochrome" | "custom" | string;
+    themeData?: string;
+    colorModePointOfInterestLabels?: "default" | "single" | string;
+    backgroundPointOfInterestLabels?: "circle" | "none" | string;
+    densityPointOfInterestLabels?: 1 | 2 | 3 | 4 | 5 | number;
+    fuelingStationModePointOfInterestLabels?: string;
+    colorPlaceLabels?: string;
+    colorRoadLabels?: string;
+    colorCommercial?: string;
+    colorEducation?: string;
+    colorMedical?: string;
+    colorIndustrial?: string;
+    colorGreenspace?: string;
+    colorWater?: string;
+    colorLand?: string;
+    colorAdminBoundaries?: string;
+    colorPointOfInterestLabels?: string;
+    colorMotorways?: string;
+    colorTrunks?: string;
+    colorRoads?: string;
+    colorBuildings?: string;
+    colorBuildingHighlight?: string;
+    colorBuildingSelect?: string;
+    colorPlaceLabelHighlight?: string;
+    colorPlaceLabelSelect?: string;
+    colorIndoorLabelSelect?: string;
+    colorIndoorLabelHighlight?: string;
     font?: string[];
-    [key: string]: boolean | string | string[];
+    [key: string]: boolean | string | number | string[];
   };
   /** Type for pan, move and zoom transitions */
   transitionType?: "flyTo" | "easeTo" | "jumpTo" | string;
@@ -117,6 +152,8 @@ export const MapGL: Component<Props> = (props) => {
   let mapRef: HTMLDivElement;
   let resizeObserver: ResizeObserver;
   let mutationObserver: MutationObserver;
+  let mapLib: any;
+  let isMapLibre = false;
 
   const [mapLoaded, setMapLoaded] = createSignal(null);
   const [darkMode, setDarkMode] = createSignal(
@@ -146,11 +183,15 @@ export const MapGL: Component<Props> = (props) => {
   };
 
   onMount(async () => {
-    let mapLib = props.mapLib || (await import("mapbox-gl"));
+    mapLib = props.mapLib || (await import("mapbox-gl"));
     if (!mapLib.Map) mapLib = window["maplibregl"] || window["mapboxgl"];
 
     if (typeof mapLib.supported === "function" && !mapLib.supported())
       throw new Error("Mapbox GL not supported");
+
+    // Mapbox Standard Style's setConfigProperty is Mapbox-only — its absence is a stable,
+    // structural way to tell the two libraries apart regardless of how mapLib was obtained.
+    isMapLibre = typeof mapLib.Map?.prototype?.setConfigProperty !== "function";
 
     debug(`Map (v${mapLib.version}) loading...`);
     map = new mapLib.Map({
@@ -171,7 +212,7 @@ export const MapGL: Component<Props> = (props) => {
     map.debugEvents = props.debugEvents;
     map.sourceIdList = [];
     map.layerIdList = [];
-    window.MapLib = mapLib;
+    map.isMapLibre = isMapLibre;
 
     // Hook up events
     mapEvents.forEach((item) => {
@@ -421,7 +462,7 @@ export const MapGL: Component<Props> = (props) => {
       style={{ width: "100%", height: "100%", ...props.style }}
     >
       {mapLoaded() && (
-        <MapProvider map={mapLoaded()}>
+        <MapProvider map={mapLoaded()} mapLib={mapLib} isMapLibre={isMapLibre}>
           <style>{`.overlay{position:relative;width:100%;height:100%;pointer-events:none}.overlay>*{pointer-events:auto}`}</style>
           <div class="overlay">{props.children}</div>
         </MapProvider>

@@ -98,7 +98,7 @@ export const Camera: Component<Props> = (props) => {
     target: LngLatLike
   ) => {
     const camera = ctx.map.getFreeCameraOptions()
-    camera.position = window.MapLib.MercatorCoordinate.fromLngLat(
+    camera.position = ctx.mapLib.MercatorCoordinate.fromLngLat(
       [lng, lat],
       alt
     )

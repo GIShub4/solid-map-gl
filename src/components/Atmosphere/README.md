@@ -12,9 +12,9 @@ The component accepts the following properties (props):
 
 | Name  | Type   | Description                                                            | Default |
 | ----- | ------ | ---------------------------------------------------------------------- | ------- |
-| style | object | An object specifying the style properties of the atmosphere element according to Mapbox's [Atmosphere style specification](https://docs.mapbox.com/mapbox-gl-js/style-spec/atmosphere). | `{}` (The default atmosphere style used by the map style) |
+| style | object | On Mapbox: [Fog specification](https://docs.mapbox.com/mapbox-gl-js/style-spec/atmosphere) (`color`, `horizon-blend`, `star-intensity`, ...). On MapLibre, which has its own differently-shaped `sky` spec: `sky-color`, `horizon-color`, `fog-color`, `atmosphere-blend`, etc. — not interchangeable with Mapbox's shape. | `{}` (The default atmosphere style used by the map style) |
 
-> Note: All properties are optional. If omitted, the map's default atmosphere style will be applied.
+> Note: All properties are optional. If omitted, the map's default atmosphere style will be applied. Which shape applies depends on the active base library (Mapbox vs. MapLibre).
 
 ## Example
 
@@ -33,11 +33,12 @@ const App: Component = () => {
     pitch: 100       // Map pitch in degrees
   } as Viewport);
 
-  // Define the style for the atmosphere effect
+  // Define the style for the atmosphere effect (Mapbox Fog shape — see the MapLibre Sky shape
+  // in the Props table above if you're targeting MapLibre instead)
   const atmosphereStyle = {
-    color: 'white',        // The color of the fog
-    horizonBlend: 0.1,     // Blend factor of the fog over the horizon line
-    intensity: 0.5         // The intensity of the fog
+    color: 'white',          // The color of the fog
+    'horizon-blend': 0.1,    // Blend factor of the fog over the horizon line
+    'star-intensity': 0.5    // The intensity of stars shown at high pitch/zoomed out
   };
 
   // Render the map with the Atmosphere component

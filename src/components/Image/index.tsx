@@ -6,10 +6,11 @@ import {
   untrack,
 } from 'solid-js'
 import { useMapContext } from '../MapProvider'
-import type {
-  StyleImageInterface,
-  StyleImageMetadata,
-} from 'mapbox-gl/src/style/style_image'
+import type { StyleImageInterface, Map as MapboxMap } from 'mapbox-gl'
+
+// `StyleImageMetadata` isn't part of mapbox-gl's public type exports; derive it structurally
+// from `addImage`'s own options parameter instead of depending on an internal type name.
+type StyleImageMetadata = NonNullable<Parameters<MapboxMap['addImage']>[2]>
 
 const PATTERN = {
   diagonal_l: { size: 20, path: 'M20 0 0 20M-10 10 10-10M10 30 30 10' },
@@ -127,6 +128,9 @@ export const MGL_Image: VoidComponent<Props> = props => {
       image = new XMLSerializer().serializeToString(image)
     }
     if (typeof image !== 'string') return callback(image)
+    // mapbox-gl's currently-shipped implementation (verified against v3.30) still requires the
+    // callback unconditionally and never returns a promise when it's omitted — the promise form
+    // some docs describe isn't actually present in this version, so stay on the callback API.
     ctx.map.loadImage(image, async (error, imageData) => {
       if (error) {
         if (typeof image == 'string' && image?.trimEnd().endsWith('.svg')) {

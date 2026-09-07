@@ -27,6 +27,20 @@ type Props = {
 export const Draw: VoidComponent<Props> = (props: Props) => {
   const [ctx] = useMapContext();
 
+  // MapLibre stopped using Mapbox's CSS class names internally; mapbox-gl-draw reads them via
+  // this static, so on MapLibre keyboard shortcuts (Delete/Backspace/1/2/3) and native-looking
+  // control styling silently don't work unless patched before instantiating (mouse-driven
+  // drawing itself is unaffected — see STAGE0_FINDINGS.md).
+  if (ctx.isMapLibre && props.lib.constants?.classes) {
+    Object.assign(props.lib.constants.classes, {
+      CANVAS: "maplibregl-canvas",
+      CONTROL_BASE: "maplibregl-ctrl",
+      CONTROL_PREFIX: "maplibregl-ctrl-",
+      CONTROL_GROUP: "maplibregl-ctrl-group",
+      ATTRIBUTION: "maplibregl-ctrl-attrib",
+    });
+  }
+
   // Add Draw Control
   // draw_point/draw_line_string/draw_polygon override the built-in modes so
   // showLength/showArea work through the control's own toolbar buttons;

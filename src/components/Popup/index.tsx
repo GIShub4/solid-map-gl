@@ -33,7 +33,7 @@ export const Popup: Component<Props> = (props: Props) => {
   createEffect(() => {
     if (!ctx.map) return;
     popup?.remove();
-    popup = new window.MapLib.Popup({
+    popup = new ctx.mapLib.Popup({
       closeOnClick: false,
       focusAfterOpen: false,
       ...create.options,

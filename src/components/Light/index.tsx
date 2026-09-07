@@ -1,6 +1,6 @@
 import { onCleanup, createEffect, VoidComponent } from 'solid-js'
 import { useMapContext } from '../MapProvider'
-import type { Light as LightSpecification } from 'mapbox-gl'
+import type { LightSpecification } from 'mapbox-gl'
 
 type Props = {
   /** Light Specifications */

@@ -18,6 +18,7 @@
 * [Light](src/components/Light/README.md)
 * [Camera](src/components/Camera/README.md)
 * [Draw](src/components/Draw/README.md)
+* [DeckOverlay](src/components/DeckOverlay/README.md)
 
 ***
 

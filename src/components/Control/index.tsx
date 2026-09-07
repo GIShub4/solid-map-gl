@@ -1,17 +1,13 @@
-import {
-  createSignal,
-  createEffect,
-  onCleanup,
-  splitProps,
-  untrack,
-  VoidComponent,
-} from "solid-js";
+import { createSignal, createEffect, splitProps, untrack, VoidComponent } from "solid-js";
 import { useMapContext } from "../MapProvider";
-import type { Options as AttributionOptions } from "mapbox-gl/src/ui/control/attribution_control";
-import type { Options as FullscreenOptions } from "mapbox-gl/src/ui/control/fullscreen_control";
-import type { Options as GeolocateOptions } from "mapbox-gl/src/ui/control/geolocate_control";
-import type { Options as NavigationOptions } from "mapbox-gl/src/ui/control/navigation_control";
-import type { Options as ScaleOptions } from "mapbox-gl/src/ui/control/scale_control";
+import { useControlPosition } from "../../lib/createMapControl";
+import type {
+  AttributionControlOptions,
+  FullscreenControlOptions,
+  GeolocateControlOptions,
+  NavigationControlOptions,
+  ScaleControlOptions,
+} from "mapbox-gl";
 
 type ControlType =
   | "navigation"
@@ -25,11 +21,11 @@ type ControlType =
 type Props = {
   type?: ControlType;
   options?:
-    | NavigationOptions
-    | ScaleOptions
-    | AttributionOptions
-    | FullscreenOptions
-    | GeolocateOptions
+    | NavigationControlOptions
+    | ScaleControlOptions
+    | AttributionControlOptions
+    | FullscreenControlOptions
+    | GeolocateControlOptions
     | object;
   custom?: any;
   position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
@@ -41,13 +37,13 @@ export const Control: VoidComponent<Props> = (props) => {
   const [control, setControl] = createSignal<any>(null);
 
   const controlClasses = new Map<ControlType, any>([
-    ["navigation", window.MapLib.NavigationControl],
-    ["scale", window.MapLib.ScaleControl],
-    ["attribution", window.MapLib.AttributionControl],
-    ["geolocate", window.MapLib.GeolocateControl],
-    ["fullscreen", window.MapLib.FullscreenControl],
-    ["logo", window.MapLib.LogoControl],
-    ["terrain", window.MapLib.TerrainControl],
+    ["navigation", ctx.mapLib.NavigationControl],
+    ["scale", ctx.mapLib.ScaleControl],
+    ["attribution", ctx.mapLib.AttributionControl],
+    ["geolocate", ctx.mapLib.GeolocateControl],
+    ["fullscreen", ctx.mapLib.FullscreenControl],
+    ["logo", ctx.mapLib.LogoControl],
+    ["terrain", ctx.mapLib.TerrainControl],
   ]);
 
   // Add Control
@@ -64,15 +60,8 @@ export const Control: VoidComponent<Props> = (props) => {
     );
   });
 
-  // Update Position
-  createEffect(() => {
-    ctx.map.hasControl(control()) && ctx.map.removeControl(control());
-    ctx.map.addControl(control(), update.position);
-  });
-
-  onCleanup(() => {
-    ctx.map.hasControl(control()) && ctx.map.removeControl(control());
-  });
+  // Update Position (shared with DeckOverlay)
+  useControlPosition(control, () => update.position);
 
   return null;
 };

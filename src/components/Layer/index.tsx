@@ -4,15 +4,17 @@ import { useSourceId } from "../Source";
 import { layerEvents } from "../../events";
 import { baseStyle, layoutStyles } from "../../styles";
 import type { layerEventTypes } from "../../events";
-import type {
-  FilterSpecification,
-  StyleSpecification,
-} from "mapbox-gl/src/style-spec/types.js";
-import type { CustomLayerInterface } from "mapbox-gl/src/style/style_layer/custom_style_layer";
+import type { FilterSpecification, CustomLayerInterface } from "mapbox-gl";
+
+// `style` accepts a mix of base layer keys (`type`, `filter`, `minzoom`/`maxzoom`,
+// `source-layer`) and flat paint/layout properties (e.g. `fillColor` or `fill-color`), which
+// `updateStyle()` buckets into real `paint`/`layout` objects — never a literal `LayerSpecification`
+// or `StyleSpecification`, so those mapbox-gl types don't actually describe this shape.
+type FlatLayerStyle = Record<string, any>;
 
 const diff = (
-  newProps: StyleSpecification = {},
-  prevProps: StyleSpecification = {},
+  newProps: FlatLayerStyle = {},
+  prevProps: FlatLayerStyle = {},
 ): [string, any][] => {
   const keys = new Set([...Object.keys(newProps), ...Object.keys(prevProps)]);
   return [...keys].reduce((acc, key: string) => {
@@ -27,7 +29,7 @@ const diff = (
 type Props = {
   id?: string;
   /** A string that uniquely identifies the layer. If not provided, a unique ID will be generated. */
-  style?: StyleSpecification;
+  style?: FlatLayerStyle;
   /** A Mapbox Style Specification object that defines the visual appearance of the layer. */
   customLayer?: CustomLayerInterface;
   /** An object that implements the `CustomLayerInterface` interface, which allows you to create custom layers using WebGL. */
@@ -54,7 +56,7 @@ type Props = {
   /** A string that specifies the type of layer before which the current layer should be inserted. */
   beforeId?: string;
   /** A string that specifies the ID of the layer before which the current layer should be inserted. */
-  featureState?: { id: number | string; state: object };
+  featureState?: { id: number | string; state: Record<string, any> };
   /** An object that specifies the state of a feature in the layer. The object consists of an ID (either a number or a string) and an object containing the state. */
   children?: any;
   /** Any content that should be rendered within the layer. */
@@ -65,7 +67,7 @@ const newKey = (key, type) =>
     ? ""
     : type + "-") + key.replace(/[A-Z]/g, (s) => "-" + s.toLowerCase());
 
-const updateStyle = (oldStyle) => {
+const updateStyle = (oldStyle: FlatLayerStyle): FlatLayerStyle => {
   if (!oldStyle) return;
   let layout = {};
   let paint = {};
@@ -86,7 +88,7 @@ const updateStyle = (oldStyle) => {
     Object.entries(oldStyle.layout).forEach(
       ([key, value]) => (layout[newKey(key, oldStyle.type)] = value),
     );
-  return { ...style, paint, layout } as StyleSpecification;
+  return { ...style, paint, layout };
 };
 
 export const Layer: Component<Props> = (props) => {
@@ -102,15 +104,16 @@ export const Layer: Component<Props> = (props) => {
 
   // Add Layer
   ctx.map.addLayer(
-    props.customLayer || {
+    (props.customLayer || {
       ...updateStyle(props.style),
       id: layerId,
       source: sourceId,
-      slot: props.slot || "",
+      // `slot` is Mapbox Standard-Style-only — MapLibre has no equivalent (UPGRADE_PLAN.md 10.3)
+      ...(ctx.isMapLibre ? {} : { slot: props.slot || "" }),
       metadata: {
         smg: { beforeType: props.beforeType, beforeId: props.beforeId },
       },
-    },
+    }) as any,
     props.beforeType
       ? ctx.map.getStyle().layers.find((l) => l.type === props.beforeType)?.id
       : props.beforeId,
@@ -126,25 +129,25 @@ export const Layer: Component<Props> = (props) => {
       ctx.map.on(event, layerId, (evt) => {
         evt.clickOnLayer = true;
         props[item](evt);
-        ctx.map.debugEvent &&
+        ctx.map.debugEvents &&
           debug(`Layer '${event}' event on '${layerId}':`, evt);
       });
     }
   });
 
   // Update Style
-  createEffect((prev: StyleSpecification) => {
+  createEffect((prev: FlatLayerStyle) => {
     const style = updateStyle(props.style);
     if (style === prev) return;
 
     if (style.layout !== prev?.layout)
       diff(style.layout, prev?.layout).forEach(([key, value]) =>
-        ctx.map.setLayoutProperty(layerId, key, value, { validate: false }),
+        ctx.map.setLayoutProperty(layerId, key as any, value, { validate: false }),
       );
 
     if (style.paint !== prev?.paint)
       diff(style.paint, prev?.paint).forEach(([key, value]) =>
-        ctx.map.setPaintProperty(layerId, key, value, { validate: false }),
+        ctx.map.setPaintProperty(layerId, key as any, value, { validate: false }),
       );
 
     if (style.minzoom !== prev?.minzoom || style.maxzoom !== prev?.maxzoom)

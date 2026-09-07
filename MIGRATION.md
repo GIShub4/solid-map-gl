@@ -121,7 +121,24 @@ Question 1).
 your drawn UI will now show measurement labels — remove the props if you don't want that. No
 migration needed otherwise.
 
-### 6. `Control` `type="traffic"` / `type="language"` removed from the documented `type` union
+### 6. `Atmosphere`'s `style` prop shape now distinguishes Mapbox `Fog` from MapLibre `Sky`
+
+**Before:** `style` was typed as Mapbox's `Fog` shape only, and on MapLibre the component always
+called `map.setFog(...)`, which either no-oped or threw — MapLibre has no `setFog`/`Fog` concept.
+
+**After:** `style` is typed as `FogSpecification | MapLibreSky` (a new exported type), and
+`Atmosphere` branches on `ctx.isMapLibre` to call `map.setFog(...)` (Mapbox) or `map.setSky(...)`
+(MapLibre) with the correct shape for the active library.
+
+**Why:** Mapbox's `Fog` spec and MapLibre's diverged `Sky` spec use different property names
+entirely — see `UPGRADE_PLAN.md` Section 2.2/10.
+
+**Migrate:** Mapbox-only users see no runtime change. MapLibre users who were previously passing
+Mapbox-shaped `Fog` properties (which had no effect) need to switch to MapLibre's `sky` property
+names (`sky-color`, `horizon-color`, `fog-color`, `atmosphere-blend`, ...) to get real atmosphere
+styling.
+
+### 7. `Control` `type="traffic"` / `type="language"` removed from the documented `type` union
 
 **Before:** `Control/README.md` documented `type="traffic"`/`type="language"` (with install
 instructions for `@mapbox/mapbox-gl-traffic`/`@mapbox/mapbox-gl-language`), but `Control`'s actual
@@ -136,21 +153,6 @@ Traffic/language controls (and any other control without a built-in `type`) go t
 **Migrate:** if you were somehow relying on `type="traffic"`/`type="language"` throwing, that
 behavior is unchanged (still not a valid `type`). If you want a working traffic/language control,
 install the relevant package and pass an instance via `custom`, which already worked today.
-
----
-
-## Breaking changes pending a decision (tracked in `UPGRADE_PLAN.md` Open Questions)
-
-These will be breaking in one of two possible ways, depending on a decision not yet made:
-
-### 7. `Atmosphere`'s `style` prop shape
-
-Mapbox's `Fog` spec and MapLibre's diverged `Sky` spec use different property names entirely (see
-`UPGRADE_PLAN.md` Section 2.2/10). Supporting MapLibre's atmosphere styling for real (rather than
-silently no-oping, which is what happens today) will likely change `style`'s TypeScript type to
-distinguish the two shapes. Mapbox-only users should see no runtime change; MapLibre users who were
-previously passing Mapbox-shaped `Fog` properties (which had no effect) will need to switch to the
-correct MapLibre-shaped properties to get real atmosphere/sky styling.
 
 ---
 
