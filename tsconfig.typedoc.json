@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Isolate the API-doc program from ambient globals pulled in by test
+    // tooling (@testing-library/jest-dom's `expect` augmentation, etc.) —
+    // those aren't part of solid-map-gl's public surface and, left
+    // unrestricted, collide with lib.dom's own types (see CLAUDE.md gotchas).
+    "types": []
+  }
+}

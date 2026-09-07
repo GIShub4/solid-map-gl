@@ -220,9 +220,9 @@ export const MapGL: Component<Props> = (props) => {
       if (prop) {
         const event = item.slice(2).toLowerCase();
         if (typeof prop === "function") {
-          map.on(event, (evt) => {
+          map.on(event as any, (evt) => {
             setTimeout(() => {
-              if (evt.clickOnLayer) return;
+              if ((evt as any).clickOnLayer) return;
               prop(evt);
               props.debugEvents && debug(`Map '${event}' event:`, evt);
             }, 0);
@@ -231,7 +231,7 @@ export const MapGL: Component<Props> = (props) => {
           Object.keys(prop).forEach((layerId) => {
             map.on(event as any, layerId, (evt) => {
               setTimeout(() => {
-                if (evt.clickOnLayer) return;
+                if ((evt as any).clickOnLayer) return;
                 prop[layerId](evt);
                 props.debugEvents &&
                   debug(`Map '${event}' event on '${layerId}':`, evt);
@@ -248,10 +248,16 @@ export const MapGL: Component<Props> = (props) => {
 
       // Handle User Interaction
       ["mousedown", "touchstart", "wheel"].forEach((event) =>
-        map.on(event, (evt) => !evt.rotate && props.onUserInteraction?.(true)),
+        map.on(
+          event as any,
+          (evt: any) => !evt.rotate && props.onUserInteraction?.(true),
+        ),
       );
       ["moveend", "mouseup", "touchend"].forEach((event) =>
-        map.on(event, (evt) => !evt.rotate && props.onUserInteraction?.(false)),
+        map.on(
+          event as any,
+          (evt: any) => !evt.rotate && props.onUserInteraction?.(false),
+        ),
       );
 
       // Listen to dark theme changes
@@ -308,7 +314,7 @@ export const MapGL: Component<Props> = (props) => {
             x: (event as any).originalEvent?.x,
             y: (event as any).originalEvent?.y,
           },
-          center: props.viewport?.center?.lat
+          center: (props.viewport?.center as any)?.lat
             ? map.getCenter()
             : [map.getCenter().lng, map.getCenter().lat],
           zoom: map.getZoom(),
@@ -332,10 +338,10 @@ export const MapGL: Component<Props> = (props) => {
           //     : null,
         };
         setInternal(true);
-        !event.viewport && props.onViewportChange?.(viewport);
+        !(event as any).viewport && props.onViewportChange?.(viewport);
       });
 
-      map.on("moveend", (event) => {
+      map.on("moveend", (event: any) => {
         !event.rotate &&
           props.onViewportChange?.({ ...props.viewport, inTransit: false });
         setInternal(false);

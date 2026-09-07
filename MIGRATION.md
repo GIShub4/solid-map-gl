@@ -167,10 +167,19 @@ install the relevant package and pass an instance via `custom`, which already wo
   and crashed under other bundlers when no explicit `apikey`/`accessToken` was passed. If you rely
   on this today with Vite, it's recommended (not yet required) to switch to passing `apikey`/
   `options.accessToken` explicitly.
-- **Build output (`dist/`) structure may change** if/when the build moves from
-  `rollup-preset-solid` to `tsup-preset-solid` (`UPGRADE_PLAN.md` Section 6/8 Stage 4). The public
-  `import ... from "solid-map-gl"` entry point is not expected to change; only undocumented deep
-  imports like `solid-map-gl/dist/...` could be affected.
+- **Build output (`dist/`) structure changed** — the build moved from `rollup-preset-solid` to
+  `tsup-preset-solid` (`UPGRADE_PLAN.md` Section 6/8 Stage 4). `dist/` is now three flat, fully
+  bundled files (`index.js`, `index.jsx`, `index.d.ts`) instead of the old `dist/esm/`,
+  `dist/source/**` (a whole per-file, untransformed source tree for the `"solid"` export
+  condition), and `dist/types/**` directories. The public `import ... from "solid-map-gl"` entry
+  point, and the `"solid"`/`"types"`/default `exports` conditions it resolves through, are
+  unaffected — only undocumented deep imports like `solid-map-gl/dist/esm/...` could break.
+  `mapbox-gl/dist/mapbox-gl.css`'s import (pulled in by `MapGL`) is now left as an external,
+  passed-through `import` statement for the consumer's own bundler to resolve, rather than being
+  snapshotted into solid-map-gl's own bundled CSS output at whatever `mapbox-gl` version happened
+  to be installed at publish time — this always reflects whichever `mapbox-gl`/`maplibre-gl` the
+  consumer actually has installed, and needs no migration for anyone already satisfying the
+  `mapbox-gl`/`maplibre-gl` peer dependency (which every consumer already must).
 
 ## New, purely additive functionality (not breaking, mentioned for context)
 

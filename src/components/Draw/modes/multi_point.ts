@@ -1,10 +1,10 @@
-const MultiPointMode = {};
+const MultiPointMode: any = {};
 
 // When the mode starts this function will be called.
 // The `opts` argument comes from `draw.changeMode('lotsofpoints', {count:7})`.
 // The value returned should be an object and will be passed to all other lifecycle functions
 MultiPointMode.onSetup = function (opts) {
-  var state = {};
+  var state: any = {};
   state.count = opts.count || 0;
   return state;
 };

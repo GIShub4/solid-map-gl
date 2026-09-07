@@ -13,13 +13,16 @@ imperative `mapboxgl.Map` calls, not a re-imagined abstraction.
 Published to npm as `solid-map-gl`. User-facing docs live at
 https://gis-hub.gitbook.io/solid-map-gl (source: `README.md`, `SUMMARY.md`, `docs/`, and each
 component's own `README.md`). See `docs/COMPONENTS.md` in this repo for a single-file technical
-reference to every component, intended for contributors/agents rather than end users.
+reference to every component, intended for contributors/agents rather than end users. `docs/api/`
+is generated API-reference Markdown (`pnpm docs:api`, via `typedoc`/`typedoc-plugin-markdown`,
+config in `typedoc.json`/`tsconfig.typedoc.json`) — regenerate it by hand after changing exported
+components' JSDoc/prop types and commit the result; it isn't wired into CI.
 
 ## Tech stack
 
 - SolidJS (fine-grained reactivity — `createSignal`, `createEffect`, `createStore`, `onCleanup`)
 - TypeScript, `jsx: preserve` with `jsxImportSource: solid-js`
-- Build: Rollup via `rollup-preset-solid` (`rollup.config.js`), entry `src/index.ts`
+- Build: esbuild via `tsup`/`tsup-preset-solid` (`tsup.config.ts`), entry `src/index.tsx`
 - Tests: Vitest + `@solidjs/testing-library`, jsdom environment (`vite.config.ts`, `src/vitest.ts`).
   Component tests render against a hand-rolled mock map (`src/testUtils/mockMap.ts`'s
   `createMockMap`/`createMockMapLib`/`createMockDrawLib`, wired up via
@@ -37,12 +40,13 @@ reference to every component, intended for contributors/agents rather than end u
 ```
 pnpm test            # run vitest
 pnpm coverage         # vitest run --coverage
-pnpm build            # rollup -c -> dist/
-pnpm watch            # rollup -c -w
+pnpm build            # tsup -> dist/
+pnpm watch            # tsup --watch
+pnpm docs:api         # typedoc -> docs/api/
 ```
 
-There is no lint script; TypeScript declarations are emitted separately
-(`tsconfig.json`, `emitDeclarationOnly`) and consumed by rollup-preset-solid.
+There is no lint script; TypeScript declarations are emitted as part of `pnpm build` (tsup's own
+dts step, driven by `tsconfig.json`), not via a standalone `tsc` invocation.
 
 ## Architecture
 
@@ -133,7 +137,7 @@ components rather than adding a new logging mechanism.
 - JSDoc comments on prop fields are used for editor hover docs — keep them one line, describing
   the *field*, not implementation history.
 - New components need: `src/components/<Name>/index.tsx`, a matching `README.md` (gitbook style,
-  used by `SUMMARY.md`), an export from `src/index.ts`, and an entry in `docs/COMPONENTS.md`.
+  used by `SUMMARY.md`), an export from `src/index.tsx`, and an entry in `docs/COMPONENTS.md`.
 
 ## Gotchas
 
@@ -144,5 +148,16 @@ components rather than adding a new logging mechanism.
 - `Layer`'s style diffing assumes flat camelCase-ish keys get bucketed into `paint`/`layout` via
   `newKey()`/`layoutStyles` — when adding new Mapbox style properties, check
   `src/styles.ts::layoutStyles` needs updating or the property will incorrectly land in `paint`.
-- `git status` currently shows `src/index.tsx` deleted / `src/index.ts` untracked and a few other
-  modified files — check `git status` before assuming a clean tree.
+- The library entry point is `src/index.tsx`, not `.ts` — `tsup-preset-solid` only generates the
+  `"solid"` export condition (the raw-JSX passthrough SolidStart needs) for entries whose filename
+  literally ends in `.tsx`/`.jsx`; it doesn't inspect whether the file's own content has JSX. The
+  file itself has no JSX in it, only re-exports — don't rename it back to `.ts`, that silently
+  drops the `"solid"` condition from a future `pnpm build`'s regenerated `package.json` exports.
+- `tsup`'s own `getProductionDeps`/`pkg.type` package.json reads (used to auto-externalize
+  dependencies and to pick the `.js` vs `.mjs` output extension) have been observed returning a
+  stale/empty read at build time regardless of `package.json`'s actual contents — `tsup.config.ts`
+  works around both by passing `external` and `outExtension` explicitly rather than relying on
+  tsup's own package.json introspection. If a future `pnpm build` starts silently bundling
+  `mapbox-gl`/`maplibre-gl`/`three`/`@babylonjs/core` into `dist/` again (check `dist/` file sizes —
+  they should be tens of KB, not MB) or emits `dist/index.mjs` instead of `dist/index.js`, look here
+  first.

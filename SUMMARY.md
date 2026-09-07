@@ -24,3 +24,4 @@
 
 * [🗺 Styles](docs/styles.md)
 * [⚙ Examples](docs/examples.md)
+* [📖 API Reference](docs/api/README.md)

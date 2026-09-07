@@ -87,10 +87,10 @@ export const Camera: Component<Props> = (props) => {
   // Handle User Interaction
   const [userInteraction, setUserInteraction] = createSignal(false)
   ;['mousedown', 'touchstart', 'wheel'].forEach((event) =>
-    ctx.map.on(event, (evt) => !evt.rotate && setUserInteraction(true))
+    ctx.map.on(event as any, (evt: any) => !evt.rotate && setUserInteraction(true))
   )
   ;['moveend', 'mouseup', 'touchend'].forEach((event) =>
-    ctx.map.on(event, (evt) => !evt.rotate && setUserInteraction(false))
+    ctx.map.on(event as any, (evt: any) => !evt.rotate && setUserInteraction(false))
   )
 
   const updateCameraPosition = async (

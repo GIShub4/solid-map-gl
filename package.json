@@ -26,23 +26,24 @@
   "files": [
     "dist"
   ],
-  "source": "dist/index/index.jsx",
-  "main": "dist/esm/index.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/types/index.d.ts",
+  "source": "./dist/index.jsx",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": {
-      "solid": "./dist/source/index.jsx",
-      "default": "./dist/esm/index.js",
-      "types": "./dist/types/index.d.ts"
+    "solid": "./dist/index.jsx",
+    "import": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     }
   },
   "scripts": {
-    "build": "rollup -c",
-    "watch": "rollup -c -w",
-    "pub": "rollup -c && npm version patch && npm publish",
+    "build": "tsup",
+    "watch": "tsup --watch",
+    "pub": "tsup && npm version patch && npm publish",
     "test": "vitest",
-    "coverage": "vitest run --coverage"
+    "coverage": "vitest run --coverage",
+    "docs:api": "typedoc"
   },
   "repository": {
     "type": "git",
@@ -53,16 +54,17 @@
     "not ie 11"
   ],
   "devDependencies": {
-    "@rollup/plugin-terser": "^0.4.4",
     "@solidjs/testing-library": "^0.8.10",
     "@testing-library/jest-dom": "^6.9.1",
     "@vitest/coverage-v8": "^4.0.18",
     "jsdom": "^28.1.0",
     "jsdom-worker": "^0.3.0",
     "mapbox-gl": "^3.30.0",
-    "rollup": "^4.57.1",
-    "rollup-plugin-import-css": "^4.2.0",
-    "rollup-preset-solid": "^3.0.0",
+    "maplibre-gl": "^6.7.0",
+    "tsup": "^8.5.1",
+    "tsup-preset-solid": "^2.2.0",
+    "typedoc": "^0.28.20",
+    "typedoc-plugin-markdown": "^4.13.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
     "vite-plugin-solid": "^2.11.10",
@@ -70,12 +72,19 @@
   },
   "peerDependencies": {
     "@babylonjs/core": "^6.24.0",
-    "mapbox-gl": "*",
-    "solid-js": "*",
+    "mapbox-gl": "^3.0.0",
+    "maplibre-gl": "^4.0.0 || ^5.0.0 || ^6.0.0",
+    "solid-js": "^1.8.0 <2.0.0",
     "three": "^0.157.0"
   },
   "peerDependenciesMeta": {
     "@babylonjs/core": {
+      "optional": true
+    },
+    "mapbox-gl": {
+      "optional": true
+    },
+    "maplibre-gl": {
       "optional": true
     },
     "three": {
@@ -88,5 +97,7 @@
     "@turf/centroid": "^7.3.4",
     "@turf/length": "^7.3.4",
     "@turf/midpoint": "^7.3.4"
-  }
+  },
+  "browser": {},
+  "typesVersions": {}
 }
