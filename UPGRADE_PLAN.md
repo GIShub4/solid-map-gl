@@ -429,7 +429,7 @@ Short answer: **mostly, with one clear tooling upgrade worth making.**
 | Build tool | `rollup-preset-solid` v3 via `rollup.config.js` | Hasn't published in ~1 year — stagnant, not dead, but the community has moved to **`tsup-preset-solid`** (solidjs-community, esbuild-based, actively maintained through 2025). It auto-generates the `exports` map (including the `"solid"` condition) instead of hand-maintaining it, and is what newer Solid map-wrapper libraries (e.g. `solid-maplibre`) now use. **Recommend migrating** (Stage 4 — low risk, do last). |
 | `package.json` `exports`/`"solid"` condition | Hand-written, matches the still-current pattern | Conceptually correct and required for Solid's compiler to see raw JSX in consumer apps. No design change needed — just let `tsup-preset-solid` generate it going forward instead of maintaining it by hand. |
 | Peer dependency ranges | `"mapbox-gl": "*"`, `"solid-js": "*"` | Too loose for a library whose components actively depend on version-specific APIs (`setConfigProperty` is v3+ only, WebGL2-only requirements, etc.). **Recommend pinning ranges**, e.g. `"mapbox-gl": "^3.0.0"`, `"maplibre-gl": "^4.0.0 || ^5.0.0"` (as an added, currently-missing explicit peer dep — right now MapLibre users satisfy the `mapbox-gl` peer dep with the `empty-npm-package` placeholder trick and there's no real acknowledgment of `maplibre-gl` as a legitimate peer in `package.json` at all), and `"solid-js": "^1.8.0 <2.0.0"` to fail loudly rather than silently break if Solid 2.0 ever becomes the resolved version. **This is now also a prerequisite for the automated dependency updates below** — Dependabot cannot propose a version bump for a peer dependency range that already matches everything, so `mapbox-gl`/`maplibre-gl`/`solid-js` won't generate any update PRs at all until these ranges are tightened. **On why not keep `"*"` to preserve "always support the latest release":** the maintainer's original intent behind `"*"` was that a user should never be blocked from a new Mapbox/MapLibre/Solid release just because this library hadn't been manually bumped to acknowledge it yet — a reasonable goal, but `"*"` is the wrong mechanism for it, for two reasons discussed and confirmed 2026-09-07: (1) `"*"` can't distinguish "too new to have been tested yet" from "too old to work at all" — it equally permits Mapbox GL JS v1.x, which lacks several APIs this library now depends on outright; (2) peer-dependency range mismatches are non-fatal **warnings**, not install-blocking errors, under npm 7+/pnpm/yarn — a capped range like `^3.0.0` does not actually prevent a consumer from installing/running `mapbox-gl@4`, it just surfaces an honest warning instead of silence. Combined with the weekly Dependabot automation, a capped range gets the *better* version of the original goal: a proposed, CI-tested bump shows up automatically within days of a new major shipping (flagged for manual review, per the maintainer's own choice on major-bump handling), rather than "*"'s actual historical track record — years of silent incompatibility discovered only via user bug reports, which is the exact problem this whole audit exists to fix. **Decision: use capped, lower-bounded ranges (not `"*"`, not unbounded-lower-only `>=3.0.0`)** — an unbounded-lower-only range would reintroduce the same blind spot as `"*"` for *future* majors specifically, since Dependabot has nothing to propose when there's no upper bound to bump. |
-| Automated dependency updates | Weekly `.github/dependabot.yml` + `.github/workflows/{ci,auto-merge}.yml` (implemented 2026-09-07, policy revised same day) | Every npm update — patch, minor, **or major** — auto-merges once the `ci.yml` build+test check passes; there is no manual-review hold for major bumps anymore (superseding the initial patch/minor-only, major-held design from earlier the same day — maintainer explicitly chose full automation gated purely on CI). If a bump breaks the build/tests, it is never merged and `ci.yml` posts a comment pinging the maintainer instead. `ci.yml` didn't exist before this change at all — the original `auto-merge.yml` merged patch bumps with **no test/build gate whatsoever**. **This policy's entire safety margin now rests on test coverage** — today that's just `MapGL/index.test.tsx` and `Terrain/index.test.tsx` (thin), not the full per-component suite Stage 3 describes. Until Stage 3 lands, a dependency update could pass CI while still silently breaking, e.g., `Source`'s restyle behavior (3.4) or `Atmosphere`'s fog/sky handling, since nothing currently exercises those paths. **Recommend treating Stage 3 as higher priority than its position in the stage ordering implies**, specifically because this automation now depends on it for real safety. See `MIGRATION.md` for the corresponding user-facing breaking-changes list this whole plan will eventually produce. |
+| Automated dependency updates | Weekly `.github/dependabot.yml` + `.github/workflows/{ci,auto-merge}.yml` (implemented 2026-09-07, policy revised same day) | Every npm update — patch, minor, **or major** — auto-merges once the `ci.yml` build+test check passes; there is no manual-review hold for major bumps anymore (superseding the initial patch/minor-only, major-held design from earlier the same day — maintainer explicitly chose full automation gated purely on CI). If a bump breaks the build/tests, it is never merged and `ci.yml` posts a comment pinging the maintainer instead. `ci.yml` didn't exist before this change at all — the original `auto-merge.yml` merged patch bumps with **no test/build gate whatsoever**. **This policy's entire safety margin rests on test coverage** — **Stage 3 (done 2026-09-07) landed the full per-component suite** (97 tests across every component plus `mapStyles`/`styles`/`events`, via the hand-rolled mock in `src/testUtils/mockMap.ts`), including regression tests for 3.1/3.4/3.5/3.6/3.8/3.9, so a dependency update that silently breaks e.g. `Source`'s restyle behavior or `Atmosphere`'s fog/sky handling now has a real chance of failing CI instead of merging unnoticed. See `MIGRATION.md` for the corresponding user-facing breaking-changes list this whole plan will eventually produce. |
 | Test runner | Vitest + jsdom + `@solidjs/testing-library` | Correct and current stack for pure-logic tests (see Section 7). |
 | TS config | `jsx: preserve`, `jsxImportSource: solid-js`, `declaration`-only emit | Still the correct pattern for a Solid library. No change needed. |
 | Turf.js dependency | `@turf/area`, `@turf/center-of-mass`, `@turf/centroid`, `@turf/length`, `@turf/midpoint` as hard `dependencies` (not peer/dev) for a feature (`Draw` measurements) that's currently dead code (3.2) | Once 3.2 is resolved (finish or drop the feature), revisit whether these belong as hard dependencies at all — if the feature is kept, fine as-is; if dropped, remove ~5 dependencies from every consumer's install. |
@@ -744,13 +744,55 @@ the fix is, so you can stop after any stage and still be strictly better off tha
   low reward. They still consume the capability layer directly (`ctx.mapLib.Marker`/`ctx.mapLib.Popup`).
 
 ### Stage 3 — Test suite (Section 7)
-- Build the local hand-rolled map mock (`src/testUtils/mockMap.ts`).
-- Write the per-component test list in Section 7.2, in this component order (roughly
-  simplest/highest-value first): `mapStyles`/`styles`/`events` (pure functions, no mock needed) →
-  `MapProvider` → `Source` → `Layer` → `Control` → `Terrain` → `Light` → `Atmosphere` → `Image` →
-  `Marker`/`Popup` → `Camera` → `MapGL` → `Layer3D` → `Draw`.
-- Wire `pnpm coverage` into CI if not already (check `.github/` — not yet audited in this pass,
-  worth a quick look when Stage 3 starts).
+
+**Done 2026-09-07.** All items below shipped:
+
+- ~~Build the local hand-rolled map mock (`src/testUtils/mockMap.ts`)~~ — **done.**
+  `createMockMap()` builds a real class-instance (not a plain-object-literal) fake `Map`, matching
+  a real `mapboxgl.Map`/`maplibregl.Map`'s prototype chain closely enough that
+  `solid-js/store`'s `createStore` treats it as an opaque leaf and never recursively proxies it —
+  a plain object literal would get deep-proxied by `MapProvider`'s store and throw "Cannot mutate
+  a Store directly" the moment a component did `ctx.map.sourceIdList.push(...)`, which several
+  components do unconditionally. `createMockMapLib()` provides chainable `Marker`/`Popup` fakes
+  (each instance tracked on the class's own `.instances` array so a test can grab "the one this
+  render created"), inert `NavigationControl`/`ScaleControl`/etc. classes, a `MercatorCoordinate`
+  stub, and a constructable `Map` whose instances double as `props.mapLib` for real `<MapGL>`
+  integration tests (it fires `load` on the next microtask, after the same-tick handler
+  registration `MapGL`'s `onMount` does). `createMockDrawLib()` provides a minimal
+  `@mapbox/mapbox-gl-draw`-shaped `lib` (empty `.modes`, `.lib.theme`, `.constants.classes`) —
+  sufficient because `Draw`'s custom modes only ever spread `lib.modes.draw_*` at construction
+  time, never call into it eagerly. `src/testUtils/renderWithMap.tsx` wraps `@solidjs/testing-library`'s
+  `render()` in a `<MapProvider>` backed by a fresh mock map/mapLib per call, mirroring how every
+  real component is only ever mounted under `<MapGL>`.
+- ~~Write the per-component test list in Section 7.2~~ — **done**, in the specified order, plus
+  `DeckOverlay` (added in Stage 2, after Section 7.2 was originally written, so it was missing
+  from this list — added alongside `Control` since both share `useControlPosition`). Every
+  regression test named in Section 7.2 is implemented and passing: 3.4/3.8 (`Source`), 3.9/3.5
+  (`MapGL`), 3.1 (`Terrain`), 3.6 (`Control`). `Camera`'s `lerp`/`slerp`/`easeQuad` are exercised
+  only indirectly through `rotateGlobe`/`rotateViewport` behavior tests, not as standalone
+  pure-function tests — they're module-private and Stage 3 is scoped to testing, not exporting
+  internals purely for test access. `Layer3D`'s tests assert the custom-layer wiring
+  (`type`/`renderingMode`/`beforeId`/cleanup) but deliberately never invoke the real `onAdd`/`render`
+  methods — doing so constructs a real `THREE.WebGLRenderer`/`BABYLON.Engine` against a fake GL
+  context and reliably throws in jsdom, which Section 7.2 already flags as out of scope
+  ("skip asserting actual Babylon/Three render output").
+- ~~Wire `pnpm coverage` into CI~~ — **done.** `.github/workflows/ci.yml`'s build-and-test job now
+  runs `pnpm coverage` instead of `pnpm test -- --run` (both run the suite once; coverage also
+  generates the `text`/`html-spa` reports). No prior CI audit was needed — `ci.yml` already existed
+  from the dependency-automation work (Section 6) and simply wasn't running coverage yet.
+- Two test-infrastructure gaps surfaced and got fixed along the way, both real jsdom-environment
+  omissions rather than anything specific to the new mock: `src/vitest.ts`'s `window.matchMedia`
+  stub only implemented the deprecated `addListener`/`removeListener` pair, not
+  `addEventListener`/`removeEventListener` — `MapGL`'s dark-mode-change listener uses the latter
+  and threw as soon as any test let `load` fire; and jsdom has no `ResizeObserver` at all, which
+  `MapGL` also constructs unconditionally once loaded (unless `disableResize`). Both are now
+  stubbed globally in `src/vitest.ts`. Separately, `MapGL/index.test.tsx`'s two pre-existing smoke
+  tests were switched from real `mapbox-gl` to the mock `mapLib` — real `mapbox-gl`'s
+  `supported()` reliably returns `false` in jsdom (no real WebGL context), which was throwing
+  asynchronously from those tests' dangling (never-awaited) `onMount` promise chains; harmless in
+  isolation since the process exited before it surfaced, but a real "unhandled rejection" once
+  later tests in the same file kept the event loop alive long enough for it to resolve. This is
+  exactly Section 7.1's own rationale for the hand-rolled mock in the first place.
 
 ### Stage 4 — Build tooling modernization (Section 6)
 - Migrate `rollup.config.js`/`rollup-preset-solid` → `tsup-preset-solid`, letting it regenerate
@@ -779,8 +821,9 @@ the fix is, so you can stop after any stage and still be strictly better off tha
    all, should `MapGL`'s `config` prop stay Mapbox-only (documented as such), or is it worth
    investigating whether MapLibre's newer style-spec work has grown *anything* config-like since
    this research pass that could be mapped to it?
-4. **CI:** I haven't yet looked at `.github/` workflows in this pass — worth a quick check at the
-   start of Stage 3 to see if tests/coverage are already gated in CI or need to be added.
+4. ~~**CI:**~~ — **RESOLVED (Stage 3, 2026-09-07):** `.github/workflows/ci.yml` already existed
+   (from the Section 6 dependency-automation work) and was running `pnpm test -- --run`; it now
+   runs `pnpm coverage` instead, so coverage reports generate on every push/PR too.
 5. ~~**Container CSS breaking change (Section 11)**~~ — **RESOLVED 2026-09-07:** confirmed, ship
    as documented in Section 11.4/`MIGRATION.md` #1.
 6. ~~**`DeckOverlay` shape (Section 12)**~~ — **RESOLVED (Stage 2 implementation, 2026-09-07):**

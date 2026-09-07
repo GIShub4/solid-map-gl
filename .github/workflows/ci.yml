@@ -24,7 +24,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-      - run: pnpm test -- --run
+      - run: pnpm coverage
 
       # Dependency updates (any semver size, per maintainer decision
       # 2026-09-07) auto-merge automatically once this job succeeds — see

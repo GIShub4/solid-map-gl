@@ -20,7 +20,15 @@ reference to every component, intended for contributors/agents rather than end u
 - SolidJS (fine-grained reactivity — `createSignal`, `createEffect`, `createStore`, `onCleanup`)
 - TypeScript, `jsx: preserve` with `jsxImportSource: solid-js`
 - Build: Rollup via `rollup-preset-solid` (`rollup.config.js`), entry `src/index.ts`
-- Tests: Vitest + `@solidjs/testing-library`, jsdom environment (`vite.config.ts`, `src/vitest.ts`)
+- Tests: Vitest + `@solidjs/testing-library`, jsdom environment (`vite.config.ts`, `src/vitest.ts`).
+  Component tests render against a hand-rolled mock map (`src/testUtils/mockMap.ts`'s
+  `createMockMap`/`createMockMapLib`/`createMockDrawLib`, wired up via
+  `src/testUtils/renderWithMap.tsx`'s `renderWithMap()`) instead of a real `mapbox-gl`/`maplibre-gl`
+  instance — real map construction depends on a real WebGL context, which jsdom doesn't have. The
+  mock map is built on a class instance rather than a plain object literal so `solid-js/store`
+  treats it as an opaque leaf (matching a real `mapboxgl.Map`'s non-plain prototype chain) instead
+  of recursively proxying it, which would break the several components that do
+  `ctx.map.sourceIdList.push(...)`-style direct array mutation.
 - Peer deps: `mapbox-gl` or `maplibre-gl` (either works, `@babylonjs/core` and `three` optional)
 - Turf.js (`@turf/*`) used only inside `Draw`'s measurement modes
 
