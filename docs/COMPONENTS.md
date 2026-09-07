@@ -446,16 +446,20 @@ while the user is interacting with the map (tracked via `mousedown`/`touchstart`
 `src/components/Draw/index.tsx`
 
 Wraps `@mapbox/mapbox-gl-draw` (or any API-compatible `lib`) as a Mapbox control. Merges in a set
-of custom draw modes from `src/components/Draw/modes/` — `point`, `multi_point`, `line_string`,
-`polygon`, `radius`, `rectangle`, `rectangle_assisted` — plus custom styling from
-`drawingStyles.jsx` layered on top of the library's own theme. `showLength`/`showArea` turn on
-live measurement labels computed with Turf.js (`modes/measurements.ts`: `getLength` uses
-`@turf/length` + `@turf/midpoint`; `getArea` uses `@turf/area` + `@turf/center-of-mass`, both
-formatted with `Intl.NumberFormat` and localized imperial/metric units based on
-`navigator.language`). All `drawEvents` (`onCreate`, `onDelete`, `onUpdate`,
-`onSelectionchange`, `onModechange`, ...) are wired to the underlying `draw.*` Mapbox GL Draw
-events and cleaned up on unmount. `getInstance` gives you the raw draw control for imperative API
-calls (`draw.add`, `draw.deleteAll`, etc.).
+of custom draw modes from `src/components/Draw/modes/`, plus custom styling from
+`drawingStyles.jsx` layered on top of the library's own theme. Three of the modes
+(`point`/`line_string`/`polygon`) *replace* the library's built-in `draw_point`/`draw_line_string`/
+`draw_polygon` modes so `showLength`/`showArea` work through the control's normal toolbar buttons
+with no extra setup; four more (`multi_point`, `radius`, `rectangle`, `rectangle_assisted`) have no
+built-in equivalent and are opt-in via `draw.changeMode("radius")` etc. (see `Draw/README.md`).
+`showLength`/`showArea` turn on live measurement labels computed with Turf.js
+(`modes/measurements.ts`: `getLength` uses `@turf/length` + `@turf/midpoint`; `getArea` uses
+`@turf/area` + `@turf/center-of-mass`, both formatted with `Intl.NumberFormat` and localized
+imperial/metric units based on `navigator.language`) — both return a GeoJSON `Feature` styled by
+`drawingStyles.jsx`'s `measure-label` layer (filters on `user_type === "measure"`). All
+`drawEvents` (`onCreate`, `onDelete`, `onUpdate`, `onSelectionchange`, `onModechange`, ...) are
+wired to the underlying `draw.*` Mapbox GL Draw events and cleaned up on unmount. `getInstance`
+gives you the raw draw control for imperative API calls (`draw.add`, `draw.deleteAll`, etc.).
 
 ### Props
 

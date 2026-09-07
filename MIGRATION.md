@@ -102,30 +102,46 @@ has no equivalent to Mapbox's Standard Style config system.
 `config` and the `slot` layer-positioning prop remain Mapbox-Standard-Style-only; see the expanded
 docs for the full, now much larger, list of supported `config` properties.
 
+### 5. `Draw`'s `showLength`/`showArea` props now actually work
+
+**Before:** these props existed but did nothing — the custom draw modes that would read them were
+imported but never wired into `Draw`'s `modes` map, so the feature never worked.
+
+**After:** `showLength`/`showArea` produce real, live length/area labels while drawing lines,
+polygons, and rectangles (via the control's normal toolbar buttons — no mode-name changes needed).
+`Draw` also now registers four extra opt-in modes with no built-in equivalent: `multi_point`,
+`radius`, `rectangle`, `rectangle_assisted` (activate via `draw.changeMode(...)`, see
+`Draw/README.md`).
+
+**Why:** this was always the documented, advertised behavior of `showLength`/`showArea` — finishing
+it (rather than deleting the dead code) was the decision made 2026-09-07 (`UPGRADE_PLAN.md` Open
+Question 1).
+
+**Migrate:** if your app was already passing `showLength`/`showArea` (which had no effect before),
+your drawn UI will now show measurement labels — remove the props if you don't want that. No
+migration needed otherwise.
+
+### 6. `Control` `type="traffic"` / `type="language"` removed from the documented `type` union
+
+**Before:** `Control/README.md` documented `type="traffic"`/`type="language"` (with install
+instructions for `@mapbox/mapbox-gl-traffic`/`@mapbox/mapbox-gl-language`), but `Control`'s actual
+`ControlType` union never included them — passing either value threw `new undefined(...)` at
+runtime.
+
+**After:** the docs now match the code — `type` only lists the controls that are actually
+implemented (`navigation`, `scale`, `attribution`, `fullscreen`, `geolocate`, `logo`, `terrain`).
+Traffic/language controls (and any other control without a built-in `type`) go through the existing
+`custom` prop instead: `<Control custom={new MapboxTraffic()} />`.
+
+**Migrate:** if you were somehow relying on `type="traffic"`/`type="language"` throwing, that
+behavior is unchanged (still not a valid `type`). If you want a working traffic/language control,
+install the relevant package and pass an instance via `custom`, which already worked today.
+
 ---
 
 ## Breaking changes pending a decision (tracked in `UPGRADE_PLAN.md` Open Questions)
 
 These will be breaking in one of two possible ways, depending on a decision not yet made:
-
-### 5. `Draw`'s `showLength`/`showArea` props
-
-These props exist today but do nothing — the custom draw modes that would read them were wired up
-but then commented out, so the feature has never worked. One of two things will happen:
-
-- **If the feature is finished:** `showLength`/`showArea` will start actually producing visible
-  measurement labels while drawing lines/polygons — a behavior change even though it's "just"
-  fixing something that was always broken, since your app's drawn UI will look different.
-- **If the feature is removed instead:** the props (and the ~1000 lines implementing them) will be
-  deleted entirely — a real breaking type/prop removal for anyone currently passing them (even
-  though passing them never did anything).
-
-### 6. `Control` `type="traffic"` / `type="language"`
-
-Currently documented in `Control`'s README but not implemented in code — passing either value
-throws today. This will either be implemented for real (additive, not breaking, but you'd need the
-relevant optional peer package installed) or removed from the documented `type` union (a breaking
-type change for anyone typed against it, though the runtime was already broken for this case).
 
 ### 7. `Atmosphere`'s `style` prop shape
 
@@ -153,8 +169,6 @@ correct MapLibre-shaped properties to get real atmosphere/sky styling.
   `rollup-preset-solid` to `tsup-preset-solid` (`UPGRADE_PLAN.md` Section 6/8 Stage 4). The public
   `import ... from "solid-map-gl"` entry point is not expected to change; only undocumented deep
   imports like `solid-map-gl/dist/...` could be affected.
-- **`@turf/*` dependencies may be dropped** if the `Draw` measurement feature (item 5 above) is
-  removed rather than finished — reduces install size, doesn't affect any documented API.
 
 ## New, purely additive functionality (not breaking, mentioned for context)
 

@@ -140,7 +140,7 @@ export const MapGL: Component<Props> = (props) => {
           ?.replace(
             "{apikey}",
             //@ts-ignore
-            props.apikey || import.meta.env.VITE_VECTOR_API_KEY,
+            props.apikey || import.meta.env?.VITE_VECTOR_API_KEY,
           ) || style
       : style;
   };
@@ -155,8 +155,9 @@ export const MapGL: Component<Props> = (props) => {
     debug(`Map (v${mapLib.version}) loading...`);
     map = new mapLib.Map({
       accessToken:
+        props.options?.accessToken ||
         //@ts-ignore
-        props.options?.accessToken || import.meta.env.VITE_MAPBOX_ACCESS_TOKEN,
+        import.meta.env?.VITE_MAPBOX_ACCESS_TOKEN,
       interactive: props.options?.interactive || !!props.onViewportChange,
       ...props.options,
       ...props.viewport,
@@ -240,13 +241,19 @@ export const MapGL: Component<Props> = (props) => {
 
       // Update Configuration
       createEffect(() => {
-        // console.log(props.config);
+        if (typeof (map as any)?.setConfigProperty !== "function") {
+          if (props.config && Object.keys(props.config).length) {
+            debug(
+              "Config prop is set but this map library has no setConfigProperty (Mapbox Standard Style only) — skipping",
+            );
+          }
+          return;
+        }
         for (const key in props.config) {
           if (!key || key === "id") continue;
           const id = props.config?.id || "basemap";
           const value = props.config[key];
-          //@ts-ignore
-          map?.setConfigProperty(id, key, value);
+          (map as any).setConfigProperty(id, key, value);
           debug(`Set Config (${id}:${key}) to:`, value);
         }
       });
@@ -347,7 +354,7 @@ export const MapGL: Component<Props> = (props) => {
       list =
         index === -1
           ? [...list, layer]
-          : [...list.slice(0, index), layer, ...list.slice(index + 1)];
+          : [...list.slice(0, index), layer, ...list.slice(index)];
     });
     return list;
   };
@@ -374,6 +381,7 @@ export const MapGL: Component<Props> = (props) => {
           layers: insertLayers(newStyle.layers, oldLayers),
           fog: oldStyle.fog,
           terrain: oldStyle.terrain,
+          light: oldStyle.light,
         });
         debug("Set Mapstyle to:", style);
       });
@@ -410,15 +418,7 @@ export const MapGL: Component<Props> = (props) => {
       id={props.id}
       class={props?.class}
       classList={props?.classList}
-      style={
-        props?.class || props?.classList
-          ? null
-          : props.style || {
-              position: "absolute",
-              inset: 0,
-              "z-index": -1,
-            }
-      }
+      style={{ width: "100%", height: "100%", ...props.style }}
     >
       {mapLoaded() && (
         <MapProvider map={mapLoaded()}>

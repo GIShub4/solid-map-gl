@@ -41,7 +41,7 @@ export const Source: Component<Props> = props => {
           s
             .replace(
               '{apikey}', //@ts-ignore
-              props.source.apikey || import.meta.env.VITE_RASTER_API_KEY
+              props.source.apikey || import.meta.env?.VITE_RASTER_API_KEY
             )
             .replace('{r}', window.devicePixelRatio > 1 ? '@2x' : ''),
         ],
@@ -63,13 +63,11 @@ export const Source: Component<Props> = props => {
   debug('Add Source:', props.id)
 
   // Update Data
-  const source = ctx.map.getSource(props.id)
   switch (props.source.type) {
     case 'geojson':
       createEffect(() => {
         const data = props.source.data
-        if (!ctx.map.isSourceLoaded(props.id)) return
-        source.setData(data || {})
+        ctx.map.getSource(props.id).setData(data || {})
         debug('Update GeoJSON Data:', props.id)
       })
       break
@@ -77,8 +75,7 @@ export const Source: Component<Props> = props => {
       createEffect(() => {
         const url = props.source.url
         const coords = props.source.coordinates
-        if (!ctx.map.isSourceLoaded(props.id)) return
-        source.updateImage(url, coords)
+        ctx.map.getSource(props.id).updateImage(url, coords)
         debug('Update Image Data:', props.id)
       })
       break
@@ -86,7 +83,7 @@ export const Source: Component<Props> = props => {
       createEffect(() => {
         const url = props.source.url
         const tiles = props.source.tiles
-        if (!ctx.map.isSourceLoaded(props.id)) return
+        const source = ctx.map.getSource(props.id)
         url ? source.setUrl(url) : source.setTiles(tiles)
         debug('Update Vector Data:', props.id)
       })
@@ -94,7 +91,7 @@ export const Source: Component<Props> = props => {
     case 'raster':
       createEffect(() => {
         const src = lookup(props.source.url)
-        if (!ctx.map.isSourceLoaded(props.id)) return
+        const source = ctx.map.getSource(props.id)
         src.url ? source.setUrl(src.url) : source.setTiles(src.tiles)
         debug('Update Raster Data:', props.id)
       })

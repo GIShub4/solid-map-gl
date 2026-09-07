@@ -12,33 +12,22 @@ The following table lists the props for the `Control` component:
 
 | Name     | Type   | Description                                                                                                                                    | Default Value |
 | -------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
-| type\*   | string | Specifies the type of control to add. Accepted values: `navigation`, `scale`, `attribution`, `fullscreen`, `geolocate`, `language`, `traffic`. | —             |
+| type\*   | string | Specifies the type of control to add. Accepted values: `navigation`, `scale`, `attribution`, `fullscreen`, `geolocate`, `logo`, `terrain`. Use `custom` (below) for anything else. | —             |
 | options  | object | Additional options for the control as documented in [Control Options](https://docs.mapbox.com/mapbox-gl-js/api/markers/).                      | {}            |
+| custom   | control instance | A pre-built control instance to use instead of `type` — e.g. `new MapboxTraffic()` from `@mapbox/mapbox-gl-traffic`, or any other class implementing Mapbox/MapLibre's `IControl` interface. | —             |
 | position | string | Determines the position of the control on the map. Choices: `top-left`, `top-right`, `bottom-left`, `bottom-right`.                            | `top-right`   |
 
 _\* indicates a required property._
 
-#### Optional Dependencies
+#### Controls without a built-in `type`
 
-To use some of the control types, you will need to install optional dependencies. Below are the instructions for installing these dependencies using `pnpm`.
+Controls like traffic (`@mapbox/mapbox-gl-traffic`) or language (`@mapbox/mapbox-gl-language`) aren't part of Mapbox/MapLibre's core control set, so there's no `type` shorthand for them. Install the package you need and pass an already-constructed instance via `custom`:
 
-{% tabs %}
-{% tab title="Traffic" %}
+```jsx
+import MapboxTraffic from "@mapbox/mapbox-gl-traffic";
 
+<Control custom={new MapboxTraffic()} position="top-left" />
 ```
-pnpm add @mapbox/mapbox-gl-traffic
-```
-
-{% endtab %}
-
-{% tab title="Language" %}
-
-```
-pnpm add @mapbox/mapbox-gl-language
-```
-
-{% endtab %}
-{% endtabs %}
 
 ## Example
 

@@ -46,8 +46,17 @@ export const getLength = (coordinates, meta?) => {
         }).format(lengthValue <= 1 ? lengthValue * 1000 : lengthValue);
 
   return {
-    label,
-    pos: midpoint(coordinates[0], coordinates[1]).geometry.coordinates,
+    type: "Feature",
+    properties: {
+      type: "measure",
+      value: label,
+      ...meta,
+    },
+    geometry: {
+      type: "Point",
+      coordinates: midpoint(coordinates[0], coordinates[1]).geometry
+        .coordinates,
+    },
   };
 };
 
@@ -80,7 +89,7 @@ export const getArea = (coordinates, meta?) => {
   return {
     type: "Feature",
     properties: {
-      meta: "measureLabel",
+      type: "measure",
       value: areaLabel,
       ...meta,
     },

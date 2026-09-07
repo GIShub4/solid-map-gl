@@ -10,14 +10,6 @@ import RadiusMode from "./modes/radius";
 import RectangleMode from "./modes/rectangle";
 import RectangleAssistedMode from "./modes/rectangle_assisted";
 import styles from "./drawingStyles";
-// import {
-//   draw_point,
-//   draw_line_string,
-//   draw_polygon,
-//   // draw_circle,
-//   draw_radius,
-//   draw_rectangle,
-// } from "./modes/index";
 
 type Props = {
   /** Draw Library */
@@ -35,25 +27,22 @@ type Props = {
 export const Draw: VoidComponent<Props> = (props: Props) => {
   const [ctx] = useMapContext();
 
-  // const modes = props.lib.modes;
-  // modes.point = PointMode;
-  // modes.multi_point = MultiPointMode;
-  // modes.line_string = LineStringeMode;
-  // modes.draw_polygon = PolygonMode;
-  // modes.radius = RadiusMode;
-  // modes.rectangle = RectangleMode;
-  // modes.rectangle_assisted = RectangleAssistedMode;
-
   // Add Draw Control
+  // draw_point/draw_line_string/draw_polygon override the built-in modes so
+  // showLength/showArea work through the control's own toolbar buttons;
+  // multi_point/radius/rectangle/rectangle_assisted have no built-in
+  // equivalent and are opt-in via draw.changeMode(...).
   const draw = new props.lib({
     styles: [...props.lib.lib.theme, ...styles],
     modes: {
       ...props.lib.modes,
-      // draw_point,
-      // draw_line_string,
-      // draw_polygon,
-      // draw_radius,
-      // draw_rectangle,
+      draw_point: PointMode(props.lib),
+      draw_line_string: LineStringeMode(props.lib),
+      draw_polygon: PolygonMode(props.lib),
+      multi_point: MultiPointMode,
+      radius: RadiusMode(props.lib),
+      rectangle: RectangleMode(props.lib),
+      rectangle_assisted: RectangleAssistedMode,
     },
     userProperties: {
       showLength: props.showLength || false,

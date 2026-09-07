@@ -368,13 +368,13 @@ Legend: 🟢 looks current, no action needed · 🟡 needs a scoped update · �
 
 | Component | Status | Notes |
 | --- | --- | --- |
-| `MapGL` | 🔴🟡 | 3.5 (config throws on MapLibre), 3.3/3.9 (style-swap merge incomplete + `insertLayers` off-by-one clobbers same-`beforeType` layers), deep `mapbox-gl/src/*` type imports need revalidation against the v3.5 TS rewrite (Section 5.1). `import.meta.env.VITE_*` access is Vite-only — see Section 5.2. `config` prop's typed property list is missing most of the current Standard/Standard Satellite schema (Section 10). Default container CSS (`position:absolute; inset:0; z-index:-1`, all-or-nothing override) is a confirmed anti-pattern (Section 11). |
+| `MapGL` | 🟡 | 3.5/3.3/3.9/5.2/11.4 **done** (Stage 1) — remaining: deep `mapbox-gl/src/*` type imports need revalidation against the v3.5 TS rewrite (Section 5.1, Stage 2). `config` prop's typed property list is missing most of the current Standard/Standard Satellite schema (Section 10, Stage 2). |
 | `MapProvider` | 🟡 | Structurally fine as-is; extend the existing `createStore` with two new keys, `mapLib`/`isMapLibre` (Section 4.1) — `createSignal` was considered and rejected 2026-09-07 (Section 2.3) to avoid breaking `ctx.map`'s public property-access shape. |
-| `Source` | 🔴 | 3.4 — stale cached source reference after restyle. 3.8 — `isSourceLoaded` guard silently drops reactive `setData`/`setUrl`/`setTiles`/`updateImage` calls, a distinct defect in the same file. Otherwise source-spec handling (geojson/vector/raster/image) is unchanged and current. |
+| `Source` | 🟢 | 3.4/3.8 **done** (Stage 1) — no longer caches the source reference across restyles, and the `isSourceLoaded` guard no longer drops reactive updates. Source-spec handling (geojson/vector/raster/image) otherwise unchanged and current. |
 | `Layer` | 🟡 | Style diff logic is sound and not Mapbox-v3-broken, but `src/styles.ts`'s `layoutStyles` list should be refreshed against the current style spec (v3 added layer types, e.g. `model`, and possibly new layout props not in the current list — anything missing gets misbucketed into `paint`). Already has a `slot` prop, which is good — needs documentation clarifying it's the *only* way to position against Mapbox Standard's own built-in layers (Section 10), distinct from `beforeId`/`beforeType` which remain valid for ordering the wrapper's own layers. |
 | `DeckOverlay` *(proposed, doesn't exist yet)* | 🆕 | New component to support deck.gl interop (Section 12) — thin `Control`-lifecycle wrapper accepting an already-constructed `MapboxOverlay`/`MapLibreOverlay` class as a prop, no new dependency needed. |
 | `Layer3D` | 🟡 | Functionally plausible but the file is ~60% commented-out dead experimental code (lines ~170-380) for an incomplete Babylon camera-sync attempt — should be finished or deleted before further investment. WebGL2-only assumption on MapLibre needs verification (4.2). Uses `window.MapLib.MercatorCoordinate` (4.1 fix applies). |
-| `Control` | 🔴 | 3.6 — `"traffic"`/`"language"` documented but not implemented. `TerrainControl` on MapLibre needs verification (4.2). |
+| `Control` | 🟡❔ | 3.6 **done** (Stage 1) — docs no longer claim `"traffic"`/`"language"` are valid `type`s, `custom` documented as the path for them instead. `TerrainControl` on MapLibre needs verification (4.2). |
 | `Image` | 🟡 | Works, but uses the legacy callback form of `loadImage` (Section 2.1) — modernize to the Promise form when touched. No Mapbox/MapLibre divergence found here. |
 | `Marker` | 🟢❔ | No breaking API changes found. Verify `MarkerOptions`/drag event parity holds on current MapLibre (no negative signal found, just not exhaustively checked). |
 | `Popup` | 🟢❔ | Same as `Marker`; specifically verify `trackPointer()` exists and behaves the same on current MapLibre. |
@@ -382,7 +382,7 @@ Legend: 🟢 looks current, no action needed · 🟡 needs a scoped update · �
 | `Atmosphere` | 🔴 | Correct for Mapbox (fog is the current, non-deprecated API) but has **no MapLibre-specific path** for MapLibre's diverged `setSky()`/sky-property-shape (Section 2.2/4.1). This is the "did they change how sky/atmosphere works" concern — yes, on MapLibre's side, they did. Also: `Fog` type could be widened to include newer Mapbox-only fields (`vertical-range`, `star-intensity`). |
 | `Light` | 🔴 | 3.3 — dropped on base-style swap. MapLibre parity unverified (4.2). |
 | `Camera` | 🟢❔ | Free camera API confirmed stable/shared across both libraries. `rotateGlobe` defaults should be spot-checked against current globe fog/atmosphere behavior, low priority. Minor tech debt: user-interaction tracking logic is duplicated near-verbatim between `MapGL` and `Camera`. |
-| `Draw` | 🔴 | 3.2 (dead measurement-mode feature) + Section 2.2/4.1 (broken on current MapLibre without a class-name patch) + `mapbox-gl-draw` currency unverified (4.2). Highest-effort component to bring current. |
+| `Draw` | 🟡 | 3.2 **done** (measurement modes finished and wired in, Stage 1) — remaining: Section 2.2/4.1 (MapLibre needs the `constants.classes` patch for keyboard shortcuts/control styling, Stage 2). |
 
 ### 5.1 Type-import risk (cross-cutting, affects `MapGL`, `Layer`, `Control`, `Layer3D`, `Marker`, `Popup`)
 
@@ -578,23 +578,93 @@ the fix is, so you can stop after any stage and still be strictly better off tha
   Babylon/Three path (Section 4.2) — still open for an early Stage 1/2 spike.
 
 ### Stage 1 — Correctness bugs (Section 3), no API redesign
-- 3.4 Fix `Source`'s stale cached reference (highest value — likely root cause of your remembered
-  rendering bug).
-- 3.8 Drop `Source`'s `isSourceLoaded` guard so reactive data updates are never silently dropped
-  (confirmed via a downstream bug report — bundle with 3.4 since it's the same file, but a
-  separate fix).
-- 3.3 Add `light` to `MapGL`'s style-swap merge object.
-- 3.9 Fix `insertLayers`'s off-by-one so it inserts before the matched layer instead of replacing
-  it (confirmed via the same downstream bug report — bundle with 3.3, same code path).
-- 3.5 Guard `config`/`setConfigProperty` behind a feature check so it no-ops instead of throwing.
-- 3.6 Resolve the `Control` `"traffic"`/`"language"` docs-vs-code drift (implement or remove).
-- 3.2 Decide: finish or delete the dead `Draw` measurement-mode code. Recommend deciding based on
-  Stage 0's Draw spike results — if Draw needs significant MapLibre rework anyway, that's a
-  natural point to also finish (or cut) the measurement modes.
-- 5.2 Remove/guard the Vite-only `import.meta.env` reads in `MapGL`/`Source`.
-- 11.4 Fix `MapGL`'s default container CSS — drop `position: absolute; inset: 0; z-index: -1` and the
-  all-or-nothing override behavior (Section 11). Independent of any Mapbox/MapLibre version
-  concern, confirmed anti-pattern, safe to fix early.
+
+**Done 2026-09-07.** All items below shipped:
+
+- ~~3.4 Fix `Source`'s stale cached reference~~ — **done.** `Source` no longer caches
+  `ctx.map.getSource(props.id)` once at creation; every reactive `setData`/`updateImage`/
+  `setUrl`/`setTiles` effect now calls `getSource` fresh, so a base-style swap can no longer leave
+  it mutating a detached `Style`'s source object.
+- ~~3.8 Drop `Source`'s `isSourceLoaded` guard~~ — **done.** The `if (!ctx.map.isSourceLoaded(...))
+  return` guard is removed from all four reactive update effects (geojson/image/vector/raster);
+  `setData`/`updateImage`/`setUrl`/`setTiles` are safe to call unconditionally per Mapbox/MapLibre's
+  own docs.
+- ~~3.3 Add `light` to `MapGL`'s style-swap merge object~~ — **done**
+  (`src/components/MapGL/index.tsx`'s restyle merge now includes `light: oldStyle.light` alongside
+  the existing `fog`/`terrain`).
+- ~~3.9 Fix `insertLayers`'s off-by-one~~ — **done.** The matched-index branch is now
+  `[...list.slice(0, index), layer, ...list.slice(index)]` (no `+ 1`), so re-inserting a consumer
+  layer no longer clobbers the layer it's anchored before.
+- ~~3.5 Guard `config`/`setConfigProperty` behind a feature check~~ — **done.** `MapGL`'s config
+  effect now checks `typeof map?.setConfigProperty === "function"` and `debug()`-logs + no-ops
+  instead of throwing on MapLibre.
+- ~~3.6 Resolve the `Control` `"traffic"`/`"language"` docs-vs-code drift~~ — **done, via the docs
+  side.** `Control/README.md` no longer lists `traffic`/`language` in the `type` union (they were
+  never implemented in `ControlType`) — it now documents the `custom` prop as the path for these
+  (matching `docs/COMPONENTS.md`, which already had this right).
+- ~~3.2 Decide: finish or delete the dead `Draw` measurement-mode code~~ — **decided and finished.**
+  `showLength`/`showArea` are wired into real, working draw modes (see below), resolving Section 9
+  Open Question 1.
+  - `Draw`'s `modes` map now overrides the built-in `draw_point`/`draw_line_string`/`draw_polygon`
+    with `PointMode`/`LineStringeMode`/`PolygonMode` (so `showLength`/`showArea` work through the
+    control's normal toolbar with no mode-name changes needed), and adds four modes with no
+    built-in equivalent (`multi_point`, `radius`, `rectangle`, `rectangle_assisted`), opt-in via
+    `draw.changeMode(...)`.
+  - Fixed real bugs found while wiring this in, beyond just uncommenting the registration:
+    `getLength` (`modes/measurements.ts`) returned a bare `{label, pos}` instead of a displayable
+    GeoJSON `Feature`, and its one caller that used `pos` directly (`line_string.ts`) passed the
+    coordinates transposed (`pos[1], pos[0]`) to `updateCoordinate(path, lng, lat)` — both fixed;
+    `getArea` set `properties.meta` instead of `properties.type`, so its output never matched
+    `drawingStyles.jsx`'s `measure-label` layer filter (`user_type === "measure"`) — fixed;
+    `radius.ts`'s `onStop` computed a `pointWithRadius` feature but never added it or fired
+    `draw.create` (the call was commented out) — now creates the point feature, fires `draw.create`,
+    and switches to `simple_select`; `radius.ts`/`rectangle.ts` were calling `getLength`/`getArea`
+    with a wrapped GeoJSON `Feature` instead of the raw coordinate array/rings the functions
+    actually expect — fixed; `rectangle.ts`'s `toDisplayFeatures` read `state.showLength`/
+    `state.showArea` (never set, since `changeMode` opts aren't threaded there) instead of
+    `this.drawConfig.userProperties.showLength`/`showArea` (the actual prop-driven value, matching
+    `polygon.ts`'s already-correct pattern) — fixed. Left `rectangle_assisted.ts`'s angle-projection
+    math untouched (out of scope — it doesn't implement measurement labels and wasn't part of the
+    dead-code/wiring bug).
+  - Deleted `modes/index.ts` (the second, entirely unused set of `draw_*` exports called out in
+    3.2 as leftover confusion — nothing imported it).
+  - Found and fixed two build-breaking issues that only exist because these imports are now
+    *actually used* (previously Babel's TypeScript preset silently elided the unused imports before
+    Rollup ever tried to resolve them, so these were latent, not caught by CI):
+    1. `point.ts`/`line_string.ts`/`polygon.ts`/`radius.ts`/`rectangle.ts` each did a bare
+       `import MapboxDraw from "@mapbox/mapbox-gl-draw"` at module scope just to read
+       `MapboxDraw.modes.draw_point`/etc. as a base to extend. `@mapbox/mapbox-gl-draw` isn't
+       declared anywhere in `package.json` (not a dependency, devDependency, or peer) — it's meant
+       to be supplied by the consumer via `<Draw lib={...}>`. A hard top-level import of it would
+       have made `@mapbox/mapbox-gl-draw` a mandatory install for *any* consumer of
+       `solid-map-gl`, even ones never using `<Draw>`, since `src/index.ts` eagerly re-exports
+       `Draw`. Fixed by converting these five files to factory functions (`export default (lib) =>
+       ({...})`) that derive their base mode from the `lib` prop `Draw/index.tsx` already receives,
+       instead of importing the package directly.
+    2. `rollup-preset-solid`'s bundled "fix-import-extensions" plugin rewrites every `"./..."`
+       relative import inside a `.tsx` file to end in `.jsx`, assuming co-located files always share
+       the importer's TSX-ness — wrong for `Draw/index.tsx`'s `"./modes/*"` imports, which are plain
+       `.ts` files, and previously never exercised because the same imports were elided by Babel
+       before Rollup tried to resolve them. `rollup.config.js` now filters this plugin out of the
+       preset's returned plugin list (nothing in this codebase relies on its extension rewriting —
+       it only ever matched single-dot `"./"` imports, and the only other place those exist,
+       `MapGL`'s `"../../events"`/`"../../mapStyles"`, use `"../"` and were never touched by it
+       either way).
+  - Updated `Draw/README.md` (added the missing `showLength`/`showArea` prop rows and an "Extra
+    draw modes" section) and `docs/COMPONENTS.md`'s Draw section to describe the actual
+    override-vs-opt-in mode design.
+- ~~5.2 Remove/guard the Vite-only `import.meta.env` reads in `MapGL`/`Source`~~ — **done** (switched
+  to `import.meta.env?.VITE_...` in both files, so a non-Vite bundler resolving `import.meta.env`
+  to `undefined` no longer crashes).
+- ~~11.4 Fix `MapGL`'s default container CSS~~ — **done**, scoped to exactly what the checklist
+  entry describes: the container no longer defaults to `position: absolute; inset: 0; z-index: -1`,
+  and `style={{ width: "100%", height: "100%", ...props.style }}` replaces the old all-or-nothing
+  `class/classList ? null : style` branch, so a consumer-supplied `style` now layers on top of the
+  sizing default instead of replacing it (and `class`/`classList` always apply regardless). Section
+  11.3's separate "move the `.overlay` pointer-events `<style>` tag to a real shipped stylesheet"
+  recommendation was intentionally **not** done here — it's not part of this checklist line, and
+  doing it would mean touching the build/CSS-export pipeline (out of scope for a no-API-redesign
+  bug-fix stage); left for whichever later stage takes on build tooling.
 
 ### Stage 2 — API modernization / capability layer (Section 4)
 - 3.1 + 3.7 Replace the `window.MapLib` global and the nonexistent `isMapLibre` flag with a real,
@@ -642,8 +712,9 @@ the fix is, so you can stop after any stage and still be strictly better off tha
 
 ## 9. Open questions for you before implementation starts
 
-1. **Draw measurement modes (3.2):** finish wiring them in, or cut the feature? This materially
-   changes Stage 1/3 scope for `Draw`.
+1. ~~**Draw measurement modes (3.2):** finish wiring them in, or cut the feature?~~ — **RESOLVED
+   2026-09-07: finish wiring them in.** Done as part of Stage 1 — see the Stage 1 checklist above
+   for what shipped and which additional bugs were fixed along the way.
 2. ~~**`window.MapLib` removal (3.7)**~~ — **RESOLVED 2026-09-07:** remove outright, no
    deprecation window. Replacement is `ctx.mapLib` via `MapProvider`'s context (see the decisions
    block at the top of this document and Section 4.1).
