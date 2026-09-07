@@ -25,6 +25,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
 
       # Dependency updates (any semver size, per maintainer decision
       # 2026-09-07) auto-merge automatically once this job succeeds — see

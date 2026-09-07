@@ -11,12 +11,36 @@ possible to the underlying Mapbox GL JS API — components are thin, declarative
 imperative `mapboxgl.Map` calls, not a re-imagined abstraction.
 
 Published to npm as `solid-map-gl`. User-facing docs live at
-https://gis-hub.gitbook.io/solid-map-gl (source: `README.md`, `SUMMARY.md`, `docs/`, and each
-component's own `README.md`). See `docs/COMPONENTS.md` in this repo for a single-file technical
-reference to every component, intended for contributors/agents rather than end users. `docs/api/`
-is generated API-reference Markdown (`pnpm docs:api`, via `typedoc`/`typedoc-plugin-markdown`,
-config in `typedoc.json`/`tsconfig.typedoc.json`) — regenerate it by hand after changing exported
-components' JSDoc/prop types and commit the result; it isn't wired into CI.
+https://gis-hub.gitbook.io/solid-map-gl (source: `docs/introduction.md`, `SUMMARY.md`, `docs/`, and
+each component's own `README.md`). See `docs/COMPONENTS.md` in this repo for a single-file
+technical reference to every component, intended for contributors/agents rather than end users.
+`docs/api/` is generated API-reference Markdown (`pnpm docs:api`, via `typedoc`/
+`typedoc-plugin-markdown`, config in `typedoc.json`/`tsconfig.typedoc.json`) — regenerate it by
+hand after changing exported components' JSDoc/prop types and commit the result; it isn't wired
+into CI.
+
+### Three separate READMEs, maintained by hand — not generated from one another
+
+GitHub, npm, and GitBook each read a different file, deliberately, because GitBook's `{% hint %}`/
+`{% tabs %}`/`{% content-ref %}`/`{% embed %}` blocks and YAML frontmatter aren't standard Markdown
+— GitHub/npm would render them as literal text instead of GitBook's rich blocks:
+
+- `.github/README.md` — shown on the GitHub repo page. GitHub prefers `.github/README.md` over a
+  root `README.md` if both exist, so this is the one to edit for the GitHub-facing description,
+  badges, Getting Started, Components table, and usage examples. Plain GFM; can use GitHub-native
+  `> [!NOTE]`/`[!TIP]`/`[!WARNING]`/`[!CAUTION]` alert blocks.
+- `README.md` (repo root) — shown on npmjs.com's package page (npm always packs root `README.md`
+  regardless of the `files` allowlist). Plain GFM, no GitHub-specific alert syntax (npm's renderer
+  shows it as a plain blockquote, degrades fine but isn't styled).
+- `docs/introduction.md` — GitBook's Introduction page (referenced from `SUMMARY.md`), the only one
+  of the three allowed to use GitBook's frontmatter/`{% %}` block syntax.
+
+There's no build step tying these together — there was a generator script for this and it was
+removed because these files are small and rarely change. When editing the shared parts (currently
+the intro paragraph and the Roadmap checklist), update all three by hand and keep them worded/ordered
+the same. `docs/start.md`/`docs/styles.md`/`docs/examples.md` also use GitBook-only syntax but are
+out of scope for this — they're only linked from the GitBook-rendered `docs/introduction.md` page,
+not shown standalone on GitHub's repo homepage or npm.
 
 ## Tech stack
 

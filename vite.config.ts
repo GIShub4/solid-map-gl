@@ -16,8 +16,8 @@ export default defineConfig({
     setupFiles: "./src/vitest.ts",
     coverage: {
       all: true,
-      include: ["src/"],
-      reporter: ["text", "html-spa"],
+      include: ["src/**/*.{ts,tsx}"],
+      reporter: ["text", "html-spa", "lcov"],
     },
   },
 
