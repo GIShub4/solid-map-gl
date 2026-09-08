@@ -46,3 +46,6 @@ updates:
           - "solid-js"
           - "@solidjs/*"
           - "vite-plugin-solid"
+      turf:
+        patterns:
+          - "@turf/*"
