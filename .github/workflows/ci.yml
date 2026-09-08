@@ -20,7 +20,8 @@ jobs:
           version: 12
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # jsdom >=30 requires Node ^22.22.2 || ^24.15.0 || >=26.0.0.
+          node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
