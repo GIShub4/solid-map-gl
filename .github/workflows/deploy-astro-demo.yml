@@ -36,7 +36,7 @@ jobs:
       - run: pnpm build
         env:
           PUBLIC_MAPBOX_ACCESS_TOKEN: ${{ secrets.PUBLIC_MAPBOX_ACCESS_TOKEN }}
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
           path: examples/with-astro/dist
