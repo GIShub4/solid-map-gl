@@ -55,7 +55,7 @@
   ],
   "devDependencies": {
     "@solidjs/testing-library": "^0.8.10",
-    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/jest-dom": "^7.0.1",
     "@vitest/coverage-v8": "^4.0.18",
     "jsdom": "^30.0.1",
     "jsdom-worker": "^0.3.0",
