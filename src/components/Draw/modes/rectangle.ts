@@ -1,12 +1,13 @@
-import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import { getArea, getLength } from "./measurements";
 
-const RectangleMode = {
-  ...MapboxDraw.modes.draw_line_string,
+// takes the draw library passed to <Draw lib={...}> so this file has no
+// static dependency on any specific @mapbox/mapbox-gl-draw install
+const RectangleMode = (lib) => ({
+  ...lib.modes.draw_line_string,
 
   // When the mode starts this function will be called.
   onSetup: function (opts) {
-    const props = MapboxDraw.modes.draw_line_string.onSetup.call(this, opts);
+    const props = lib.modes.draw_line_string.onSetup.call(this, opts);
 
     const rectangle = this.newFeature({
       type: "Feature",
@@ -77,7 +78,7 @@ const RectangleMode = {
     if (e.keyCode === 27) return this.changeMode("simple_select");
   },
   onStop: function (state) {
-    MapboxDraw.modes.draw_line_string.onStop.call(this, state);
+    lib.modes.draw_line_string.onStop.call(this, state);
 
     // check to see if we've deleted this feature
     if (this.getFeature(state.rectangle.id) === undefined) return;
@@ -94,7 +95,6 @@ const RectangleMode = {
     }
   },
   toDisplayFeatures: function (state, geojson, display) {
-    console.log(state);
     const isActivePolygon = geojson.properties.id === state.rectangle.id;
     geojson.properties.active = isActivePolygon ? "true" : "false";
     if (!isActivePolygon) return display(geojson);
@@ -105,45 +105,28 @@ const RectangleMode = {
     display(geojson);
 
     // create custom feature for the current pointer position
-    if (state.showLength) {
+    if (this.drawConfig.userProperties.showLength) {
       display(
         getLength(
-          {
-            type: "Feature",
-            geometry: {
-              type: "LineString",
-              coordinates: [
-                geojson.geometry.coordinates[0][0],
-                geojson.geometry.coordinates[0][1],
-              ],
-            },
-          },
+          [geojson.geometry.coordinates[0][0], geojson.geometry.coordinates[0][1]],
           { parent: state.rectangle.id, anchor: "bottom" },
         ),
       );
       display(
         getLength(
-          {
-            type: "Feature",
-            geometry: {
-              type: "LineString",
-              coordinates: [
-                geojson.geometry.coordinates[0][1],
-                geojson.geometry.coordinates[0][2],
-              ],
-            },
-          },
+          [geojson.geometry.coordinates[0][1], geojson.geometry.coordinates[0][2]],
           { parent: state.rectangle.id, anchor: "left" },
         ),
       );
     }
-    state.showArea && display(getArea(geojson, { parent: state.rectangle.id }));
+    this.drawConfig.userProperties.showArea &&
+      display(getArea(geojson.geometry.coordinates, { parent: state.rectangle.id }));
     return null;
   },
   onTrash: function (state) {
     this.deleteFeature([state.rectangle.id], { silent: true });
     this.changeMode("simple_select");
   },
-};
+});
 
 export default RectangleMode;

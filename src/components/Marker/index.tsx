@@ -50,7 +50,7 @@ export const Marker: Component<Props> = (props: Props) => {
   createEffect(() => {
     if (!ctx.map) return
     popup?.remove()
-    popup = new window.MapLib.Popup({
+    popup = new ctx.mapLib.Popup({
       closeOnClick: false,
       focusAfterOpen: false,
       ...create_popup.popup,
@@ -77,7 +77,7 @@ export const Marker: Component<Props> = (props: Props) => {
   createEffect(() => {
     if (!ctx.map) return
     marker?.remove()
-    marker = new window.MapLib.Marker(create_marker.options)
+    marker = new ctx.mapLib.Marker(create_marker.options)
       .on('dragstart', () => create_marker.onDragStart?.())
       .on('dragend', () => create_marker.onDragEnd?.())
       .on('drag', () => create_marker.onDrag?.(marker?.getLngLat().toArray()))

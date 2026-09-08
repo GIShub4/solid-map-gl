@@ -7,7 +7,7 @@ import {
   createUniqueId,
 } from 'solid-js'
 import { useMapContext } from '../MapProvider'
-import type { SourceSpecification } from 'mapbox-gl/src/style-spec/types.js'
+import type { SourceSpecification } from 'mapbox-gl'
 import { rasterStyleList } from '../../mapStyles'
 
 const SourceContext = createContext<string>()
@@ -31,23 +31,27 @@ export const Source: Component<Props> = props => {
       console.debug('%c[MapGL]', 'color: #ec4899', text, value || '')
   }
 
+  // Loosely typed on purpose: the source spec's fields genuinely differ per `type`, and this
+  // component dispatches on `type` at runtime rather than statically narrowing the union.
+  const anySource = () => props.source as any
+
   const lookup = url => {
     const s = url?.split(':').reduce((p, c) => p && p[c], rasterStyleList)
-    const source = s
+    const source: any = s
       ? {
-        ...props.source,
+        ...anySource(),
         url: '',
         tiles: [
           s
             .replace(
               '{apikey}', //@ts-ignore
-              props.source.apikey || import.meta.env.VITE_RASTER_API_KEY
+              anySource().apikey || import.meta.env?.VITE_RASTER_API_KEY
             )
             .replace('{r}', window.devicePixelRatio > 1 ? '@2x' : ''),
         ],
         attribution: rasterStyleList[url.split(':')[0]]._copy,
       }
-      : props.source
+      : anySource()
 
     source.tiles &&
       (source.tiles = ['a', 'b', 'c'].map(i =>
@@ -58,43 +62,40 @@ export const Source: Component<Props> = props => {
   }
 
   // Add Source
-  ctx.map.addSource(props.id, lookup(props.source.url))
+  ctx.map.addSource(props.id, lookup(anySource().url))
   ctx.map.sourceIdList.push(props.id)
   debug('Add Source:', props.id)
 
   // Update Data
-  const source = ctx.map.getSource(props.id)
-  switch (props.source.type) {
+  switch (anySource().type) {
     case 'geojson':
       createEffect(() => {
-        const data = props.source.data
-        if (!ctx.map.isSourceLoaded(props.id)) return
-        source.setData(data || {})
+        const data = anySource().data
+        ;(ctx.map.getSource(props.id) as any).setData(data || {})
         debug('Update GeoJSON Data:', props.id)
       })
       break
     case 'image':
       createEffect(() => {
-        const url = props.source.url
-        const coords = props.source.coordinates
-        if (!ctx.map.isSourceLoaded(props.id)) return
-        source.updateImage(url, coords)
+        const url = anySource().url
+        const coords = anySource().coordinates
+        ;(ctx.map.getSource(props.id) as any).updateImage(url, coords)
         debug('Update Image Data:', props.id)
       })
       break
     case 'vector':
       createEffect(() => {
-        const url = props.source.url
-        const tiles = props.source.tiles
-        if (!ctx.map.isSourceLoaded(props.id)) return
+        const url = anySource().url
+        const tiles = anySource().tiles
+        const source = ctx.map.getSource(props.id) as any
         url ? source.setUrl(url) : source.setTiles(tiles)
         debug('Update Vector Data:', props.id)
       })
       break
     case 'raster':
       createEffect(() => {
-        const src = lookup(props.source.url)
-        if (!ctx.map.isSourceLoaded(props.id)) return
+        const src = lookup(anySource().url)
+        const source = ctx.map.getSource(props.id) as any
         src.url ? source.setUrl(src.url) : source.setTiles(src.tiles)
         debug('Update Raster Data:', props.id)
       })

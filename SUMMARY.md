@@ -1,6 +1,6 @@
 # Table of contents
 
-* [Introduction](README.md)
+* [Introduction](docs/introduction.md)
 * [🚀 Getting Started](docs/start.md)
 
 ## Components
@@ -18,8 +18,10 @@
 * [Light](src/components/Light/README.md)
 * [Camera](src/components/Camera/README.md)
 * [Draw](src/components/Draw/README.md)
+* [DeckOverlay](src/components/DeckOverlay/README.md)
 
 ***
 
 * [🗺 Styles](docs/styles.md)
 * [⚙ Examples](docs/examples.md)
+* [📖 API Reference](docs/api/README.md)

@@ -1,5 +1,20 @@
 # Please see the documentation for all configuration options:
 # https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+#
+# Weekly automated dependency checks. Every npm update — patch, minor, or
+# major — is auto-merged by .github/workflows/auto-merge.yml as long as
+# .github/workflows/ci.yml passes. If a bump breaks the build/tests, it is
+# never merged and ci.yml pings the maintainer instead (maintainer decision
+# 2026-09-07 — see UPGRADE_PLAN.md Section 6 / "Automated dependency
+# updates"). The test suite is what's carrying the risk here: this policy is
+# only as safe as the coverage in Stage 3 of UPGRADE_PLAN.md actually is.
+#
+# NOTE: mapbox-gl, maplibre-gl, and solid-js are currently declared as
+# peerDependencies with an unbounded "*" range in package.json. Dependabot
+# cannot propose a version bump for a range that already matches everything —
+# these three will only start generating PRs once their peerDependency ranges
+# are tightened (UPGRADE_PLAN.md Section 6). Until then, this config mainly
+# keeps devDependencies current.
 
 version: 2
 
@@ -7,9 +22,27 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+    labels:
+      - "dependencies"
 
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+    labels:
+      - "dependencies"
+    groups:
+      # Grouped so a bump to one lands as one PR instead of several, but
+      # grouping only applies within the same semver-bump category (patch
+      # updates to both won't be merged with an unrelated major update).
+      map-libraries:
+        patterns:
+          - "mapbox-gl"
+          - "maplibre-gl"
+          - "@types/mapbox-gl"
+      solid:
+        patterns:
+          - "solid-js"
+          - "@solidjs/*"
+          - "vite-plugin-solid"

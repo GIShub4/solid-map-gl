@@ -12,5 +12,7 @@ export { MGL_Image as Image, patternList } from "./components/Image";
 export { Camera } from "./components/Camera";
 export { Light } from "./components/Light";
 export { Draw } from "./components/Draw";
+export { DeckOverlay } from "./components/DeckOverlay";
 export type { Viewport } from "./components/MapGL";
 export type { Color } from "./components/Image";
+export type { MapLibreSky } from "./components/Atmosphere";

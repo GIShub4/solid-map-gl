@@ -1,0 +1,21 @@
+{
+  "name": "solid-map-gl-example-with-astro",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/solid-js": "^7.0.2",
+    "astro": "^7.3.1",
+    "mapbox-gl": "^3.30.0",
+    "solid-js": "^1.9.15",
+    "solid-map-gl": "^1.13.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

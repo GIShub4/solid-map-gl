@@ -10,8 +10,16 @@
     "emitDeclarationOnly": true,
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "skipLibCheck": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "**/__tests__/*"]
+  "exclude": [
+    "node_modules",
+    "**/__tests__/*",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "src/testUtils",
+    "src/vitest.ts"
+  ]
 }

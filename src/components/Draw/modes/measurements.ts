@@ -16,7 +16,11 @@ export const getCoords = (coords) => {
   );
 };
 
-export const getLength = (coordinates, meta?) => {
+// Explicit `any` return types avoid TS2742 ("inferred type cannot be named
+// without a reference to .pnpm/@types+geojson/...") — these functions are
+// module-private (never exported from src/index.tsx), so a precise GeoJSON
+// return type isn't worth pulling `geojson` in as a direct dependency for.
+export const getLength = (coordinates, meta?): any => {
   // length calculation in kilometers or miles
   const lengthValue = length(
     {
@@ -46,12 +50,21 @@ export const getLength = (coordinates, meta?) => {
         }).format(lengthValue <= 1 ? lengthValue * 1000 : lengthValue);
 
   return {
-    label,
-    pos: midpoint(coordinates[0], coordinates[1]).geometry.coordinates,
+    type: "Feature",
+    properties: {
+      type: "measure",
+      value: label,
+      ...meta,
+    },
+    geometry: {
+      type: "Point",
+      coordinates: midpoint(coordinates[0], coordinates[1]).geometry
+        .coordinates,
+    },
   };
 };
 
-export const getArea = (coordinates, meta?) => {
+export const getArea = (coordinates, meta?): any => {
   // area calculation in square meters
   const areaValue = area({
     type: "Feature",
@@ -80,7 +93,7 @@ export const getArea = (coordinates, meta?) => {
   return {
     type: "Feature",
     properties: {
-      meta: "measureLabel",
+      type: "measure",
       value: areaLabel,
       ...meta,
     },

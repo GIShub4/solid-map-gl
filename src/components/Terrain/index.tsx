@@ -23,11 +23,11 @@ export const Terrain: VoidComponent<TerrainSpecification> = (
     sourceId = createUniqueId()
     ctx.map.addSource(sourceId, {
       type: 'raster-dem',
-      url: ctx.map.isMapLibre
+      url: ctx.isMapLibre
         ? 'https://demotiles.maplibre.org/terrain-tiles/tiles.json'
         : 'mapbox://mapbox.terrain-rgb',
-      tileSize: ctx.map.isMapLibre ? 256 : 512,
-      maxzoom: ctx.map.isMapLibre ? undefined : 14,
+      tileSize: ctx.isMapLibre ? 256 : 512,
+      maxzoom: ctx.isMapLibre ? undefined : 14,
     })
     ctx.map.sourceIdList.push(sourceId)
   }

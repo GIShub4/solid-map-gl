@@ -10,7 +10,6 @@ import {
 } from "solid-js";
 import { unwrap } from "solid-js/store";
 import { useMapContext } from "../MapProvider";
-import mapboxgl from "mapbox-gl";
 import { Logger } from "@babylonjs/core";
 
 declare global {
@@ -62,7 +61,7 @@ export const Layer3D: Component<Props> = (props) => {
   onMount(async () => {
     props.id = props.id || createUniqueId();
 
-    const worldOriginMercator = window.MapLib.MercatorCoordinate.fromLngLat(
+    const worldOriginMercator = ctx.mapLib.MercatorCoordinate.fromLngLat(
       [props.origin[0] || 0, props.origin[1] || 0],
       props.origin[2] || 0,
     );

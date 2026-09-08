@@ -1,23 +1,22 @@
 [![Banner](https://assets.solidjs.com/banner?project=solid-map-gl&background=tiles&type=Mapping%20Plugin)](https://gis-hub.gitbook.io/solid-map-gl)
 
-# **_Solid Map GL_** for Mapbox & MapLibre
+# SolidJS wrapper for MapboxGL & MapLibre
 
+[![CI](https://img.shields.io/github/actions/workflow/status/GIShub4/solid-map-gl/ci.yml?branch=main&label=CI)](https://github.com/GIShub4/solid-map-gl/actions/workflows/ci.yml)
+[![codecov](https://img.shields.io/codecov/c/github/GIShub4/solid-map-gl)](https://codecov.io/gh/GIShub4/solid-map-gl)
 [![npm](https://img.shields.io/npm/v/solid-map-gl)](https://www.npmjs.com/package/solid-map-gl)
 [![downloads](https://img.shields.io/npm/dt/solid-map-gl)](https://www.npmjs.com/package/solid-map-gl)
 [![licence](https://img.shields.io/npm/l/solid-map-gl?color=blue)](LICENSE/)
-[![size](https://img.shields.io/bundlephobia/min/solid-map-gl)](https://bundlephobia.com/package/solid-map-gl)
-[![treeshaking](https://img.shields.io/badge/treeshaking-supported-success)](https://bundlephobia.com/package/solid-map-gl)
-![ts](https://img.shields.io/badge/types-included-blue?logo=typescript&logoColor=white)
 
 [SolidJS](https://www.solidjs.com/) Component Library for [Mapbox GL JS](https://github.com/mapbox/mapbox-gl-js) and [MapLibre GL.](https://maplibre.org/projects/maplibre-gl-js/) Both libraries render interactive maps from vector tiles and Map styles using WebGL. This project is intended to be as close as possible to the [Mapbox GL JS API.](https://docs.mapbox.com/mapbox-gl-js/api/)
 
-## [Documentation & Examples](https://gis-hub.gitbook.io/solid-map-gl)
+## Documentation & Examples
 
 [![Gallery](/docs/header.png)](https://gis-hub.gitbook.io/solid-map-gl)
 
-## [Getting Started](https://gis-hub.gitbook.io/solid-map-gl/start)
+## Getting Started
 
-### Installation
+#### [Mapbox GL](https://gis-hub.gitbook.io/solid-map-gl/start#existing-project)
 
 ```shell
 pnpm add mapbox-gl solid-map-gl
@@ -25,7 +24,16 @@ yarn add mapbox-gl solid-map-gl
 npm  i   mapbox-gl solid-map-gl
 ```
 
-#### Use with [Solid Start](https://github.com/solidjs/solid-start)
+#### [MapLibre](https://gis-hub.gitbook.io/solid-map-gl/start#with-maplibre-project)
+
+```shell
+pnpm create solid && pnpm i
+# Install MapLibre package and placeholder Mapbox package
+pnpm add solid-map-gl maplibre-gl mapbox-gl@npm:empty-npm-package@1.0.0
+pnpm dev
+```
+
+#### [Solid Start](https://gis-hub.gitbook.io/solid-map-gl/start#solid-start)
 
 ```shell
 pnpm create solid && pnpm i
@@ -33,9 +41,17 @@ pnpm add mapbox-gl solid-map-gl
 pnpm dev
 ```
 
-## [Components](https://gis-hub.gitbook.io/solid-map-gl/components)
+> [!CAUTION]
+> If you use `vite` and get the error `'mapbox-gl.js' does not provide an export named 'default'`,
+> add this to your `vite.config.ts`:
+>
+> ```ts
+> optimizeDeps: { include: ['mapbox-gl'] }
+> ```
 
-| Component                                                                   | Description                                                                                                            |
+## Components
+
+| [Component](https://gis-hub.gitbook.io/solid-map-gl/components)                                                                   | Description                                                                                                            |
 | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | [MapGL](https://gis-hub.gitbook.io/solid-map-gl/components/mapgl)           | Represents map on the page                                                                                             |
 | [Source](https://gis-hub.gitbook.io/solid-map-gl/components/source)         | [Sources](https://docs.mapbox.com/mapbox-gl-js/api/#sources) specify the geographic features to be rendered on the map |
@@ -50,6 +66,7 @@ pnpm dev
 | [Control](https://gis-hub.gitbook.io/solid-map-gl/components/control)       | Represents the map's control                                                                                           |
 | [Camera](https://gis-hub.gitbook.io/solid-map-gl/components/camera)         | Map's camera view                                                                                                      |
 | [Draw](https://gis-hub.gitbook.io/solid-map-gl/components/draw)             | Draw Control view                                                                                                      |
+| [DeckOverlay](https://gis-hub.gitbook.io/solid-map-gl/components/deckoverlay) | Adds a [deck.gl](https://deck.gl/) overlay on top of the map                                                         |
 
 ## Usage with [Mapbox](https://docs.mapbox.com/mapbox-gl-js/guides/)
 
@@ -145,4 +162,5 @@ render(() => <App />, document.getElementById("app")!);
 - [x] Add MapLibre support
 - [x] Add debug functionality
 - [x] Add draw functionality
-- [x] Add 3D library support
+- [x] Add 3D Layer support
+- [x] Add deck.gl support

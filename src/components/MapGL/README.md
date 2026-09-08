@@ -11,7 +11,7 @@
 | viewport          | object                          | Current viewport of the map, contains: `latitude, longitude, zoom, ...`                      |
 | onViewportChange  | Viewport                        | Set the map viewport                                                                         |
 | options           | object                          | [Mapbox map parameter](https://docs.mapbox.com/mapbox-gl-js/api/map/#map-parameters)         |
-| config            | object | Sets configuration in Mapbox Standard Style                                                  |
+| config            | object | Sets configuration in Mapbox Standard/Standard Satellite Style (`lightPreset`, `showPlaceLabels`, `theme`, `color*` overrides, ...). Mapbox-only — silently ignored (with a debug log) on MapLibre, which has no equivalent | 
 | transitionType    | string                          | flyTo^, easeTo, jumpTo                                                                       |
 | on\[Event]        | Event                           | Any [Map Event](https://docs.mapbox.com/mapbox-gl-js/api/map/#map-events) - eg.: onMouseMove |
 | onUserInteraction | boolean                         | Event Listeners for user interactions with the map                                           |

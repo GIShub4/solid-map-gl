@@ -2,9 +2,8 @@
 // shows a center point, radius line, and circle polygon while drawing
 // forces draw.create on creation of second vertex
 
-import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import length from "@turf/length";
-import { getArea, getLength } from "./measurements";
+import { getLength } from "./measurements";
 
 function createVertex(parentId, coordinates, path, selected) {
   return {
@@ -74,8 +73,10 @@ const doubleClickZoom = {
   },
 };
 
-const RadiusMode = {
-  ...MapboxDraw.modes.draw_line_string,
+// takes the draw library passed to <Draw lib={...}> so this file has no
+// static dependency on any specific @mapbox/mapbox-gl-draw install
+const RadiusMode = (lib) => ({
+  ...lib.modes.draw_line_string,
 
   clickAnywhere: function (state, e) {
     // this ends the drawing after the user creates a second point, triggering this.onStop
@@ -113,27 +114,28 @@ const RadiusMode = {
     // check to see if we've deleted this feature
     if (this.getFeature(state.line.id) === undefined) return;
 
-    console.log(state);
-
     // remove last added coordinate
     state.line.removeCoordinate("0");
     if (state.line.isValid()) {
       const lineGeoJson = state.line.toGeoJSON();
-      // reconfigure the geojson line into a geojson point with a radius property
-      const pointWithRadius = {
+      const radius = (length(lineGeoJson) * 1000).toFixed(1);
+      const center = lineGeoJson.geometry.coordinates[0];
+
+      this.deleteFeature([state.line.id], { silent: true });
+
+      const point = this.newFeature({
         type: "Feature",
+        properties: { radius },
         geometry: {
           type: "Point",
-          coordinates: lineGeoJson.geometry.coordinates[0],
+          coordinates: center,
         },
-        properties: {
-          radius: (length(lineGeoJson) * 1000).toFixed(1),
-        },
-      };
-
-      // this.map.fire("draw.create", {
-      //   features: [pointWithRadius],
-      // });
+      });
+      this.addFeature(point);
+      this.map.fire("draw.create", {
+        features: [point.toGeoJSON()],
+      });
+      this.changeMode("simple_select", { featureIds: [point.id] });
     } else {
       this.deleteFeature([state.line.id], { silent: true });
       this.changeMode("simple_select", {}, { silent: true });
@@ -166,7 +168,7 @@ const RadiusMode = {
     display(geojson);
 
     // display measurement
-    display(getLength(geojson, { parent: state.line.id }));
+    display(getLength(geojson.geometry.coordinates, { parent: state.line.id }));
 
     // create custom feature for circle
     display(
@@ -179,6 +181,6 @@ const RadiusMode = {
 
     return null;
   },
-};
+});
 
 export default RadiusMode;
