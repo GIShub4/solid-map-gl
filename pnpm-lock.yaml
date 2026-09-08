@@ -25,7 +25,7 @@ importers:
         version: 7.4.0
       '@turf/midpoint':
         specifier: ^7.3.4
-        version: 7.3.4
+        version: 7.4.0
       solid-js:
         specifier: ^1.8.0 <2.0.0
         version: 1.9.15
@@ -742,8 +742,8 @@ packages:
   '@turf/area@7.4.0':
     resolution: {integrity: sha512-B7q5f6QwKIxxbl4/L59lAYA+FF7h2hv6st96PuKue0TGCYGSxAG/lV8LHSPUSOuOrLywN4jytJcKK3vOFBs7Nw==}
 
-  '@turf/bearing@7.3.4':
-    resolution: {integrity: sha512-zvFjapyFaOrM8nBtAND7f4yb0BJV0jyj6cyoXyTYqLY+3Hn0eHgL0M8lwxDLbTom5KfqYDHDVDQC3+VSfypoEA==}
+  '@turf/bearing@7.4.0':
+    resolution: {integrity: sha512-utMyjTU5U3QfHWLRIKUAvJerCMmC6NLI7X6cmL6PA5+KYdzul/ymxL6CQrwJugrf9zt4Hnzvipwz0j5H1Yo87w==}
 
   '@turf/center-of-mass@7.4.0':
     resolution: {integrity: sha512-wpa22gBJvwYmvh+I3idMds1mtSEYXqLFTu9s9U7TZTy2HrglIIe+6iz0zSm4is58W7TNXQQlfeCmyvURU2+kdQ==}
@@ -754,8 +754,8 @@ packages:
   '@turf/convex@7.4.0':
     resolution: {integrity: sha512-MKKAKBMZAQJLicdJSck0rPkwvf/Yz4IFl672iNq9ZoofQxgAqQSEGtBGy4Zgnr5edDoIexzLRAoqm6woyx4Lzw==}
 
-  '@turf/destination@7.3.4':
-    resolution: {integrity: sha512-YxoUJwkKmTHiRFQxMQOP0tz8Vy+ga5EXl+C+F/WubjDLwT1AJu5y8CNIjLvWyjPWckj/vZG4u/1js5bx6MLADA==}
+  '@turf/destination@7.4.0':
+    resolution: {integrity: sha512-+jFpOUtzCiN8l9ZOvr66rxi/UxizphXaBDldaw9NfxlX/HcMn3ZDzC8IiCHiNXAilVh4WpCH0qqmH9ykOgdBKA==}
 
   '@turf/distance@7.3.4':
     resolution: {integrity: sha512-9drWgd46uHPPyzgrcRQLgSvdS/SjVlQ6ZIBoRQagS5P2kSjUbcOXHIMeOSPwfxwlKhEtobLyr+IiR2ns1TfF8w==}
@@ -781,8 +781,8 @@ packages:
   '@turf/meta@7.4.0':
     resolution: {integrity: sha512-3cLUvlEyDuSnMSzrjhaLAEiYR8xhbfWyTVQlrlEw40xL81d4KF4PqUWbjTXKpXZStdYbet2GCurl79KMypNw6g==}
 
-  '@turf/midpoint@7.3.4':
-    resolution: {integrity: sha512-/XAeGvsz8l5HaqcP7TUlexzGfibqXozQgBZ8rH7az6op2Dfm3pL/Z7bKLHoVavM0ccBg0Pt7g6j9NM54kZWdKA==}
+  '@turf/midpoint@7.4.0':
+    resolution: {integrity: sha512-+poTGThn9F2tveuUDjg1z5TE3QG8zp/IHVqpzkFwFLWX3xpeys0mev9H3LqlbzRU7waawZJ/lsqYlHg3mIWHJw==}
 
   '@types/aria-query@5.0.4':
     resolution: {integrity: sha512-rfT93uj5s0PRL7EzccGMs3brplhcrghnDoV26NqKhCAS1hVo+WdNsPvE/yb6ilfr5hi2MEk6d5EWJTKdxg8jVw==}
@@ -2379,10 +2379,10 @@ snapshots:
       '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
-  '@turf/bearing@7.3.4':
+  '@turf/bearing@7.4.0':
     dependencies:
-      '@turf/helpers': 7.3.4
-      '@turf/invariant': 7.3.4
+      '@turf/helpers': 7.4.0
+      '@turf/invariant': 7.4.0
       '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
@@ -2411,10 +2411,10 @@ snapshots:
       concaveman: 1.2.1
       tslib: 2.8.1
 
-  '@turf/destination@7.3.4':
+  '@turf/destination@7.4.0':
     dependencies:
-      '@turf/helpers': 7.3.4
-      '@turf/invariant': 7.3.4
+      '@turf/helpers': 7.4.0
+      '@turf/invariant': 7.4.0
       '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
@@ -2468,12 +2468,12 @@ snapshots:
       '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
-  '@turf/midpoint@7.3.4':
+  '@turf/midpoint@7.4.0':
     dependencies:
-      '@turf/bearing': 7.3.4
-      '@turf/destination': 7.3.4
-      '@turf/distance': 7.3.4
-      '@turf/helpers': 7.3.4
+      '@turf/bearing': 7.4.0
+      '@turf/destination': 7.4.0
+      '@turf/distance': 7.4.0
+      '@turf/helpers': 7.4.0
       '@types/geojson': 7946.0.16
       tslib: 2.8.1
 
