@@ -57,7 +57,7 @@
     "@solidjs/testing-library": "^0.8.10",
     "@testing-library/jest-dom": "^6.9.1",
     "@vitest/coverage-v8": "^4.0.18",
-    "jsdom": "^28.1.0",
+    "jsdom": "^30.0.1",
     "jsdom-worker": "^0.3.0",
     "mapbox-gl": "^3.30.0",
     "maplibre-gl": "^6.7.0",
