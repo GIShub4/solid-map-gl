@@ -11,7 +11,18 @@
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
     "resolveJsonModule": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    // TypeScript 6 turned these three on by default when unset (previously
+    // off by default pre-6, matching this codebase's actual typing level) —
+    // pin them back explicitly rather than fixing the resulting flood of
+    // null/any/this errors across src/.
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "noImplicitThis": false,
+    // tsup-preset-solid's internal dts-bundling tsconfig sets baseUrl itself
+    // (not set anywhere in this file) — TS 6 flags that as a deprecated
+    // option and fails the dts build otherwise.
+    "ignoreDeprecations": "6.0"
   },
   "include": ["src"],
   "exclude": [

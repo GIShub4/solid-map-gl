@@ -173,7 +173,7 @@ export const MapGL: Component<Props> = (props) => {
     return typeof style === "string" || style instanceof String
       ? style
           ?.split(":")
-          .reduce((p, c) => p && p[c], vectorStyleList)
+          .reduce((p: any, c) => p && p[c], vectorStyleList)
           ?.replace(
             "{apikey}",
             //@ts-ignore
