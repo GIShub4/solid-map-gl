@@ -56,6 +56,7 @@ one locally instead.
 - [3D Overlays](https://stackblitz.com/fork/github/gishub4/solid-map-gl/tree/main/examples/3d-overlay?file=src%2Findex.tsx)
 - [Add Hillshade](https://stackblitz.com/fork/github/gishub4/solid-map-gl/tree/main/examples/hillshade?file=src%2Findex.tsx)
 - [Add Globe](https://stackblitz.com/fork/github/gishub4/solid-map-gl/tree/main/examples/globe?file=src%2Findex.tsx)
+- [Rotating Globe with Live Earthquakes](https://stackblitz.com/fork/github/gishub4/solid-map-gl/tree/main/examples/globe-earthquakes?file=src%2Findex.tsx)
 - [Query Elevation](https://stackblitz.com/fork/github/gishub4/solid-map-gl/tree/main/examples/query-elevation?file=src%2Findex.tsx)
 - [Add 3D Layer with BabylonJS](https://stackblitz.com/fork/github/gishub4/solid-map-gl/tree/main/examples/3d-babylon?file=src%2Findex.tsx)
 - [Add 3D Layer with ThreeJS](https://stackblitz.com/fork/github/gishub4/solid-map-gl/tree/main/examples/3d-three?file=src%2Findex.tsx)

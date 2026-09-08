@@ -21,7 +21,7 @@ layout: landing
 
 ## Simple Demo
 
-{% embed url="https://stackblitz.com/edit/solid-map-gl-intro?embed=1&hideExplorer=1&hideNavigation=1&hidedevtools=1&view=preview&file=src%2FApp.tsx" %}
+{% embed url="https://stackblitz.com/github/GIShub4/solid-map-gl/tree/main/examples/globe-earthquakes?embed=1&hideExplorer=1&hideNavigation=1&hidedevtools=1&view=preview&file=src%2Findex.tsx" %}
 
 #### Static Demo (Astro)
 

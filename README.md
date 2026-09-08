@@ -8,7 +8,7 @@
 
 ## Simple Demo
 
-[Open live demo ↗](https://stackblitz.com/edit/solid-map-gl-intro?embed=1&hideExplorer=1&hideNavigation=1&hidedevtools=1&view=preview&file=src%2FApp.tsx)
+[Open live demo ↗](https://stackblitz.com/fork/github/gishub4/solid-map-gl/tree/main/examples/globe-earthquakes?file=src%2Findex.tsx)
 
 #### Roadmap
 
