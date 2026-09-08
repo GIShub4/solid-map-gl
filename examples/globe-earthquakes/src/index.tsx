@@ -3,8 +3,12 @@ import { Component, createSignal } from "solid-js";
 import MapGL, { Viewport, Source, Layer, Camera, Atmosphere } from "solid-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
-// Get a token at https://www.mapbox.com/studio/account/tokens/
-const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+// Public demo token, intentionally committed — restricted (Mapbox account → Tokens → URL
+// restrictions) to StackBlitz's preview domains + gishub4.github.io + localhost, so this example
+// works with zero setup when forked. Not a secret; fork it and swap in your own token if you plan
+// to use this outside those domains. Get your own at https://www.mapbox.com/studio/account/tokens/
+const MAPBOX_ACCESS_TOKEN =
+  "pk.eyJ1Ijoia2FpaHVlYm5lciIsImEiOiJjbXRzMXQ0dWkwNmt6MnlwcnB0OGllcjV2In0.DL0zjliBpl5P-8yoetSpUA";
 
 // `options.projection: "globe"` renders the map as a 3D globe; `<Camera rotateGlobe>` spins it
 // automatically until the user interacts with the map (see Camera's README for the option shape).
