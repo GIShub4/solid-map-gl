@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 import { render, cleanup } from "@solidjs/testing-library";
 import { createSignal } from "solid-js";
 import MapGL from "../..";
@@ -126,5 +126,214 @@ describe("Map", () => {
     const map = mapLib.Map.instances[0];
     unmount();
     expect(map.remove).toHaveBeenCalled();
+  });
+
+  it("resolves an 'mb:light' style shorthand to its full mapbox:// style URL", async () => {
+    const mapLib = createMockMapLib();
+    const ctorSpy = vi.spyOn(mapLib, "Map");
+    render(() => <MapGL mapLib={mapLib} options={{ style: "mb:light" }} />);
+    await waitForLoad();
+
+    expect(ctorSpy.mock.calls[0][0].style).toContain("light-v11");
+  });
+
+  it("dispatches a function-form map event prop after a click that isn't from a layer", async () => {
+    const mapLib = createMockMapLib();
+    const onClick = vi.fn();
+    render(() => <MapGL mapLib={mapLib} onClick={onClick} />);
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+
+    map.fire("click", { lngLat: [0, 0] });
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(onClick).toHaveBeenCalledWith(expect.objectContaining({ lngLat: [0, 0] }));
+  });
+
+  it("ignores a function-form map event that originated from a layer", async () => {
+    const mapLib = createMockMapLib();
+    const onClick = vi.fn();
+    render(() => <MapGL mapLib={mapLib} onClick={onClick} />);
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+
+    map.fire("click", { lngLat: [0, 0], clickOnLayer: true });
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
+  it("dispatches an object-form (per-layer) map event prop", async () => {
+    const mapLib = createMockMapLib();
+    const onLayerClick = vi.fn();
+    render(() => <MapGL mapLib={mapLib} onClick={{ myLayer: onLayerClick }} />);
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+
+    map.fire("click", { lngLat: [1, 1] }, "myLayer");
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(onLayerClick).toHaveBeenCalledWith(
+      expect.objectContaining({ lngLat: [1, 1] }),
+    );
+  });
+
+  it("reports user interaction start via onUserInteraction", async () => {
+    const mapLib = createMockMapLib();
+    const onUserInteraction = vi.fn();
+    render(() => <MapGL mapLib={mapLib} onUserInteraction={onUserInteraction} />);
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+
+    map.fire("mousedown", {});
+
+    expect(onUserInteraction).toHaveBeenCalledWith(true);
+  });
+
+  it("switches darkStyle in when the OS-level color scheme changes", async () => {
+    let changeListener: (() => void) | undefined;
+    const matches = { current: false };
+    const origMatchMedia = window.matchMedia;
+    // @ts-ignore
+    window.matchMedia = () => ({
+      get matches() {
+        return matches.current;
+      },
+      addEventListener: (_: string, cb: () => void) => {
+        changeListener = cb;
+      },
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+    });
+
+    const mapLib = createMockMapLib();
+    render(() => <MapGL mapLib={mapLib} />);
+    await waitForLoad();
+
+    expect(changeListener).toBeTruthy();
+    matches.current = true;
+    changeListener!();
+
+    window.matchMedia = origMatchMedia;
+  });
+
+  it("picks up a 'dark' class toggle on document.body via MutationObserver", async () => {
+    const mapLib = createMockMapLib();
+    render(() => <MapGL mapLib={mapLib} />);
+    await waitForLoad();
+
+    document.body.classList.add("dark");
+    await new Promise((r) => setTimeout(r, 10));
+    document.body.classList.remove("dark");
+  });
+
+  it("resizes the map (debounced) when its container's ResizeObserver fires", async () => {
+    let roCallback: (() => void) | undefined;
+    const OrigRO = window.ResizeObserver;
+    // @ts-ignore
+    window.ResizeObserver = class {
+      constructor(cb: () => void) {
+        roCallback = cb;
+      }
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    };
+
+    const mapLib = createMockMapLib();
+    render(() => <MapGL mapLib={mapLib} />);
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+
+    expect(roCallback).toBeTruthy();
+    roCallback!();
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(map.resize).toHaveBeenCalled();
+    window.ResizeObserver = OrigRO;
+  });
+
+  it("applies a reactive viewport update once it changes after mount", async () => {
+    const mapLib = createMockMapLib();
+    const [viewport, setViewport] = createSignal<any>({ center: [0, 0], zoom: 5 });
+    render(() => <MapGL mapLib={mapLib} viewport={viewport()} />);
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+
+    setViewport({ center: [1, 1], zoom: 8 });
+    await tick();
+
+    expect(map.stop).toHaveBeenCalled();
+    expect(map.flyTo).toHaveBeenCalledWith(
+      expect.objectContaining({ center: [1, 1], zoom: 8 }),
+    );
+  });
+
+  it("updates the map projection reactively", async () => {
+    const mapLib = createMockMapLib();
+    const [projection, setProjection] = createSignal("mercator");
+    render(() => <MapGL mapLib={mapLib} options={{ projection: projection() } as any} />);
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+
+    setProjection("globe");
+    await tick();
+
+    expect(map.setProjection).toHaveBeenCalledWith("globe");
+  });
+
+  it("updates the map cursor reactively", async () => {
+    const mapLib = createMockMapLib();
+    const [cursor, setCursor] = createSignal<string | undefined>(undefined);
+    render(() => <MapGL mapLib={mapLib} cursorStyle={cursor()} />);
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+    const canvas = { style: {} as any };
+    map.getCanvas.mockReturnValue(canvas);
+
+    setCursor("pointer");
+    await tick();
+
+    expect(canvas.style.cursor).toBe("pointer");
+  });
+
+  it("carries over old sources (matching sourceIdList) across a style swap", async () => {
+    const mapLib = createMockMapLib();
+    const [style, setStyle] = createSignal<any>(undefined);
+    render(() => (
+      <MapGL mapLib={mapLib} options={{ style: style() }}>
+        <Source id="src" source={{ type: "geojson", data: {} as any }} />
+      </MapGL>
+    ));
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+
+    map.getStyle.mockReturnValue({
+      layers: [],
+      sources: { src: { type: "geojson", data: {} } },
+    });
+
+    setStyle({ version: 8, sources: {}, layers: [] });
+    await tick();
+    map.getStyle.mockReturnValue({ layers: [], sources: {} });
+    map.fire("styledata");
+    await tick();
+
+    const finalCall = map.setStyle.mock.calls[map.setStyle.mock.calls.length - 1][0];
+    expect(finalCall.sources).toHaveProperty("src");
+  });
+
+  it("turns on debug rendering flags reactively", async () => {
+    const mapLib = createMockMapLib();
+    const [show, setShow] = createSignal(false);
+    render(() => <MapGL mapLib={mapLib} showTileBoundaries={show()} />);
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+
+    setShow(true);
+    await tick();
+
+    expect((map as any).showTileBoundaries).toBe(true);
   });
 });

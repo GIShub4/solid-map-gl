@@ -14,6 +14,13 @@ window.ResizeObserver =
     disconnect() {}
   }
 
+// jsdom doesn't implement the Canvas Path2D API; only Image's pattern renderer
+// (components/Image) and its canvas-fallback image loader construct one.
+// @ts-ignore
+window.Path2D = window.Path2D || class Path2D {
+  constructor(_path?: string) {}
+}
+
 // @ts-ignore
 window.matchMedia =
   window.matchMedia ||

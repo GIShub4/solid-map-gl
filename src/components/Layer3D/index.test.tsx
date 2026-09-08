@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { cleanup } from "@solidjs/testing-library";
-import { Layer3D } from "./index";
+import { Layer3D, useScene } from "./index";
 import { renderWithMap } from "../../testUtils/renderWithMap";
 
 afterEach(cleanup);
@@ -41,5 +41,20 @@ describe("Layer3D", () => {
     await waitForMount();
     unmount();
     expect(map.removeLayer).toHaveBeenCalledWith("scene1");
+  });
+
+  it("computes a Babylon world matrix (instead of Three's) when babylon is set", async () => {
+    const { map } = renderWithMap(() => (
+      <Layer3D babylon id="scene1" origin={[1, 2, 3]} />
+    ));
+    await waitForMount();
+
+    expect(map.addLayer).toHaveBeenCalled();
+    const [layer] = map.addLayer.mock.calls[0];
+    expect(layer).toMatchObject({ id: "scene1", type: "custom", renderingMode: "3d" });
+  });
+
+  it("useScene() returns undefined outside of a Layer3D", () => {
+    expect(useScene()).toBeUndefined();
   });
 });

@@ -16,12 +16,21 @@
 
 ## Getting Started
 
-### [Installation](https://gis-hub.gitbook.io/solid-map-gl/start)
+#### [Mapbox GL](https://gis-hub.gitbook.io/solid-map-gl/start#existing-project)
 
 ```shell
 pnpm add mapbox-gl solid-map-gl
 yarn add mapbox-gl solid-map-gl
 npm  i   mapbox-gl solid-map-gl
+```
+
+#### [MapLibre](https://gis-hub.gitbook.io/solid-map-gl/start#with-maplibre-project)
+
+```shell
+pnpm create solid && pnpm i
+# Install MapLibre package and placeholder Mapbox package
+pnpm add solid-map-gl maplibre-gl mapbox-gl@npm:empty-npm-package@1.0.0
+pnpm dev
 ```
 
 #### [Solid Start](https://gis-hub.gitbook.io/solid-map-gl/start#solid-start)
@@ -40,9 +49,9 @@ pnpm dev
 > optimizeDeps: { include: ['mapbox-gl'] }
 > ```
 
-## [Components](https://gis-hub.gitbook.io/solid-map-gl/components)
+## Components
 
-| Component                                                                   | Description                                                                                                            |
+| [Component](https://gis-hub.gitbook.io/solid-map-gl/components)                                                                   | Description                                                                                                            |
 | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | [MapGL](https://gis-hub.gitbook.io/solid-map-gl/components/mapgl)           | Represents map on the page                                                                                             |
 | [Source](https://gis-hub.gitbook.io/solid-map-gl/components/source)         | [Sources](https://docs.mapbox.com/mapbox-gl-js/api/#sources) specify the geographic features to be rendered on the map |
