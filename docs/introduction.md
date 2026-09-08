@@ -23,6 +23,13 @@ layout: landing
 
 {% embed url="https://stackblitz.com/edit/solid-map-gl-intro?embed=1&hideExplorer=1&hideNavigation=1&hidedevtools=1&view=preview&file=src%2FApp.tsx" %}
 
+#### Static Demo (Astro)
+
+Same demo, prebuilt as a static page instead of a live editor — see
+[`examples/with-astro`](../examples/with-astro).
+
+{% embed url="https://gishub4.github.io/solid-map-gl/" %}
+
 #### Roadmap
 
 * [x] Basic Mapbox GL Functionality
