@@ -48,6 +48,28 @@ describe("Map", () => {
     );
   });
 
+  // Regression test: the config effect used to be created with `createEffect(...)` *inside*
+  // `map.once("load", () => {...})`, itself inside an async `onMount`. By the time that callback
+  // runs, execution has crossed an await/event-callback boundary and left Solid's synchronous
+  // owner tree, so the effect had no owner to dispose it — Solid's dev build warns
+  // "computations created outside a `createRoot` or `render` will never be disposed" for exactly
+  // this pattern. Moving the effect to the component's top level (reactively gated on the
+  // mapLoaded() signal instead of the plain `map` variable) keeps it inside the owner tree.
+  it("does not warn about computations created outside createRoot when applying config after load", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const mapLib = createMockMapLib({ isMapLibre: false });
+    render(() => (
+      <MapGL mapLib={mapLib} config={{ lightPreset: "dawn" }} />
+    ));
+    await waitForLoad();
+
+    const disposalWarnings = warnSpy.mock.calls.filter((args) =>
+      args.some((a) => typeof a === "string" && a.includes("will never be disposed")),
+    );
+    expect(disposalWarnings).toEqual([]);
+    warnSpy.mockRestore();
+  });
+
   // Regression test for 3.5 (UPGRADE_PLAN.md Section 3.5): `config` used to call
   // `setConfigProperty` unconditionally, throwing `TypeError: ... is not a function` on
   // MapLibre. The guard should make this a silent no-op instead.
@@ -252,6 +274,165 @@ describe("Map", () => {
 
     expect(map.resize).toHaveBeenCalled();
     window.ResizeObserver = OrigRO;
+  });
+
+  // Regression test: the injected `.overlay>*{pointer-events:auto}` rule used to have equal
+  // specificity to a consumer's own `pointer-events-none` class and lost only by source order,
+  // so a direct MapGL child could never opt back into being click-through. Wrapping the selector
+  // in :where() drops it to zero specificity so any consumer class selector wins outright.
+  it("scopes the injected overlay pointer-events rule with :where() so consumers can override it", async () => {
+    const mapLib = createMockMapLib();
+    const { container } = render(() => (
+      <MapGL mapLib={mapLib}>
+        <div class="my-widget" />
+      </MapGL>
+    ));
+    await waitForLoad();
+
+    const style = container.querySelector("style");
+    expect(style?.textContent).toContain(":where(.overlay>*)");
+    // The bare (unscoped, equal-specificity) selector must be gone, not just supplemented.
+    expect(style?.textContent).not.toContain("}.overlay>*{");
+  });
+
+  // Regression test: Mapbox's real `map.stop()` synchronously fires `moveend` for the animation
+  // it cancels. That used to flow straight into `onViewportChange`, which (in a typical consumer)
+  // writes back into the same `viewport` prop this effect is subscribed to — re-entering the
+  // effect before the current run returns and recursing until the call stack overflowed. The
+  // `interruptingEase` flag should suppress just that synthetic moveend.
+  it("does not call onViewportChange for the moveend synchronously fired by stop() when interrupting an ease", async () => {
+    const mapLib = createMockMapLib();
+    const [viewport, setViewport] = createSignal<any>({ center: [0, 0], zoom: 5 });
+    const onViewportChange = vi.fn();
+    render(() => (
+      <MapGL mapLib={mapLib} viewport={viewport()} onViewportChange={onViewportChange} />
+    ));
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+
+    // Mirror Mapbox's real stop(): synchronously fire moveend for the ease being cancelled.
+    map.stop.mockImplementation(() => {
+      map.fire("moveend", {});
+      return map;
+    });
+
+    expect(() => setViewport({ center: [1, 1], zoom: 8 })).not.toThrow();
+    await tick();
+
+    expect(onViewportChange).not.toHaveBeenCalled();
+    expect(map.flyTo).toHaveBeenCalledWith(
+      expect.objectContaining({ center: [1, 1], zoom: 8 }),
+    );
+  });
+
+  // Regression test: the effect used to gate on a coarse `internal()` "an animation is in
+  // flight" boolean, which the "move" handler set on every animation frame — including frames
+  // from its own programmatic flyTo. A typical consumer's onViewportChange writes straight back
+  // into the same store field this effect reads, so every one of those frames re-triggered the
+  // effect; without generation tagging it would try to restart the ease on every single frame.
+  it("does not restart the ease when its own move progress echoes back through onViewportChange", async () => {
+    const mapLib = createMockMapLib();
+    const [viewport, setViewport] = createSignal<any>({ center: [0, 0], zoom: 5 });
+    render(() => (
+      <MapGL mapLib={mapLib} viewport={viewport()} onViewportChange={setViewport} />
+    ));
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+
+    setViewport({ center: [1, 1], zoom: 8 });
+    await tick();
+    expect(map.flyTo).toHaveBeenCalledTimes(1);
+
+    // Simulate several animation frames of the ease that was just started — this is exactly
+    // what a real Mapbox "move" event does, many times per second, for a programmatic flyTo.
+    map.fire("move", {});
+    await tick();
+    map.fire("move", {});
+    await tick();
+
+    // None of that self-generated progress should have restarted the ease — stop() should
+    // still show only the one call from the initial command, not a second one from an echo.
+    expect(map.stop).toHaveBeenCalledTimes(1);
+    expect(map.flyTo).toHaveBeenCalledTimes(1);
+  });
+
+  // Regression test: with the old `internal()` gate, a genuinely new target arriving while an
+  // ease was still in flight was silently dropped — the effect returned early instead of
+  // interrupting. The map only ever caught up once the *original* ease naturally finished: real
+  // moveend fired, spread the (by-then-stale-or-final) props.viewport back through
+  // onViewportChange, and only *that* re-trigger (with internal() finally false) actually
+  // issued the correct flyTo. Confirmed live: this made every interrupted switch cost roughly
+  // 2x a normal ease (one wasted cycle, then the real one) instead of interrupting immediately.
+  it("immediately interrupts an in-flight ease when a genuinely new target arrives, instead of waiting for the current one to settle", async () => {
+    const mapLib = createMockMapLib();
+    const [viewport, setViewport] = createSignal<any>({ center: [0, 0], zoom: 5 });
+    render(() => (
+      <MapGL mapLib={mapLib} viewport={viewport()} onViewportChange={setViewport} />
+    ));
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+
+    setViewport({ center: [1, 1], zoom: 8 });
+    await tick();
+    expect(map.flyTo).toHaveBeenCalledTimes(1);
+
+    // The first ease is still in flight (no moveend yet) — a "move" frame or two land first,
+    // exactly as they would mid-animation.
+    map.fire("move", {});
+    await tick();
+
+    // Now a genuinely new target arrives — e.g. the user picked a different province before the
+    // first flyTo settled. This must interrupt right away, not wait for the first ease's moveend.
+    setViewport({ center: [9, 9], zoom: 3 });
+    await tick();
+
+    // Two commands total (the initial one, then the interrupt) means two stop()+flyTo pairs —
+    // not one wasted cycle followed by a corrective second one once the first ease's real
+    // moveend happened to fire, which was the old ~2x-cost behavior.
+    expect(map.stop).toHaveBeenCalledTimes(2);
+    expect(map.flyTo).toHaveBeenCalledTimes(2);
+    expect(map.flyTo).toHaveBeenLastCalledWith(
+      expect.objectContaining({ center: [9, 9], zoom: 3 }),
+    );
+  });
+
+  // Regression test for a real bug found live in tb-mapper: an earlier version of this fix
+  // tagged the *viewport value itself* (a Symbol-keyed field) to tell a self-echo apart from a
+  // new request. That broke the moment a consumer did the extremely common
+  // `setStore({ viewport: { ...store.viewport, bounds: newBounds } })` — spreading the *current*
+  // (recently-echoed) viewport forward and only overriding one field, exactly like a province
+  // dropdown updating just `bounds`. The spread carried the tag along for the ride, so the new
+  // selection looked like an echo of itself and was silently dropped — confirmed live: 7 rapid
+  // province clicks produced zero flyTo calls. The fix must not depend on any field surviving a
+  // consumer's own spread/merge of the previous viewport.
+  it("still treats a new request as new even when the consumer builds it by spreading the just-echoed viewport", async () => {
+    const mapLib = createMockMapLib();
+    const [viewport, setViewport] = createSignal<any>({ center: [0, 0], zoom: 5 });
+    render(() => (
+      <MapGL mapLib={mapLib} viewport={viewport()} onViewportChange={setViewport} />
+    ));
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+
+    setViewport({ bounds: [[0, 0], [1, 1]] });
+    await tick();
+    expect(map.flyTo).toHaveBeenCalledTimes(1);
+
+    // Let the ease settle for real, so props.viewport now holds exactly what our own moveend
+    // handler produced (the shape a consumer's store would hold afterward).
+    map.fire("moveend", {});
+    await tick();
+
+    // A brand-new selection built the way a real dropdown handler does: spread the *current*
+    // (just-echoed) viewport and override only `bounds`.
+    const current = viewport();
+    setViewport({ ...current, bounds: [[5, 5], [6, 6]] });
+    await tick();
+
+    expect(map.flyTo).toHaveBeenCalledTimes(2);
+    expect(map.flyTo).toHaveBeenLastCalledWith(
+      expect.objectContaining({ bounds: [[5, 5], [6, 6]] }),
+    );
   });
 
   it("applies a reactive viewport update once it changes after mount", async () => {

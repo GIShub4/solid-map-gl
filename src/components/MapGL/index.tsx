@@ -131,6 +131,13 @@ type Props = {
   cursorStyle?: string;
   //** Dark Map Style */
   darkStyle?: StyleSpecification | string;
+  /** Called with (prevStyle, nextStyle) on every base style change. Return false to skip
+   * mapbox-gl's diff attempt and go straight to a full rebuild — useful when you already know a
+   * given style pair can never diff (e.g. Standard vs Standard Satellite, whose sprite/glyphs
+   * always differ), to avoid the wasted diff pass and its "Unimplemented ... Rebuilding the style
+   * from scratch" console warnings. Defaults to always attempting the diff (mapbox-gl's own
+   * default), so existing consumers see no behavior change unless they opt in. */
+  shouldDiffStyle?: (prevStyle: any, nextStyle: any) => boolean;
   //** Disable automatic map resize */
   disableResize?: boolean;
   //** MapLibre library */
@@ -162,7 +169,21 @@ export const MapGL: Component<Props> = (props) => {
       (typeof document !== "undefined" &&
         document.body.classList.contains("dark")),
   );
-  const [internal, setInternal] = createSignal(false);
+  // Set around map.stop() so the moveend it synchronously fires for a
+  // cancelled in-flight ease doesn't echo back into onViewportChange —
+  // that echo re-enters the viewport effect below before it returns.
+  let interruptingEase = false;
+  // Set immediately before every move/moveend-triggered onViewportChange call and consumed by
+  // the viewport effect below. A typical consumer writes onViewportChange's argument straight
+  // back into the same store field this effect reads (e.g. `setStore({ viewport: evt })`), which
+  // re-triggers the effect synchronously — this flag is how it recognizes that inbound change as
+  // its own outbound call's echo (skip) rather than a genuinely new target (act on it right
+  // away, even mid-flight). This is deliberately NOT based on comparing viewport values: a
+  // consumer's own update handler (e.g. "spread the previous viewport, override just `bounds`")
+  // routinely carries fields from our last echo forward into what is otherwise a brand-new
+  // request, so tagging/comparing the data itself is unreliable — tracking the round-trip
+  // transactionally, independent of what the consumer's store does to the data, is not.
+  let expectingOwnEcho = false;
 
   const debug = (text: string, value?: any) =>
     (props.debug || props.debugEvents) &&
@@ -286,25 +307,6 @@ export const MapGL: Component<Props> = (props) => {
         resizeObserver.observe(mapRef as Element);
       }
 
-      // Update Configuration
-      createEffect(() => {
-        if (typeof (map as any)?.setConfigProperty !== "function") {
-          if (props.config && Object.keys(props.config).length) {
-            debug(
-              "Config prop is set but this map library has no setConfigProperty (Mapbox Standard Style only) — skipping",
-            );
-          }
-          return;
-        }
-        for (const key in props.config) {
-          if (!key || key === "id") continue;
-          const id = props.config?.id || "basemap";
-          const value = props.config[key];
-          (map as any).setConfigProperty(id, key, value);
-          debug(`Set Config (${id}:${key}) to:`, value);
-        }
-      });
-
       // Update Viewport
       map.on("move", (event) => {
         const viewport: Viewport = {
@@ -337,14 +339,19 @@ export const MapGL: Component<Props> = (props) => {
           //         ]
           //     : null,
         };
-        setInternal(true);
-        !(event as any).viewport && props.onViewportChange?.(viewport);
+        if (!(event as any).viewport && props.onViewportChange) {
+          expectingOwnEcho = true;
+          props.onViewportChange(viewport);
+        }
       });
 
       map.on("moveend", (event: any) => {
-        !event.rotate &&
-          props.onViewportChange?.({ ...props.viewport, inTransit: false });
-        setInternal(false);
+        if (interruptingEase) return;
+        if (event.rotate) return;
+        if (!props.onViewportChange) return;
+        const viewport: Viewport = { ...props.viewport, inTransit: false };
+        expectingOwnEcho = true;
+        props.onViewportChange(viewport);
       });
     });
   });
@@ -353,8 +360,15 @@ export const MapGL: Component<Props> = (props) => {
   createEffect(
     on(
       () => props.viewport,
-      (vp) => {
-        if (props.id !== vp?.id || internal()) return;
+      (vp: any) => {
+        if (props.id !== vp?.id) return;
+        // If we're currently expecting our own move/moveend echo to come back through
+        // props.viewport, this change is it — consume the flag and ignore it. Anything else is
+        // a genuinely new request and should interrupt whatever's in flight right away.
+        if (expectingOwnEcho) {
+          expectingOwnEcho = false;
+          return;
+        }
         const viewport = {
           ...vp,
           ...(vp.bounds
@@ -365,7 +379,10 @@ export const MapGL: Component<Props> = (props) => {
               })
             : null),
         };
-        map.stop()[props.transitionType || "flyTo"](viewport);
+        interruptingEase = true;
+        map.stop();
+        interruptingEase = false;
+        map[props.transitionType || "flyTo"](viewport);
         debug(
           `Update Viewport (${props.transitionType || "flyTo"}):`,
           viewport,
@@ -374,6 +391,30 @@ export const MapGL: Component<Props> = (props) => {
       { defer: true },
     ),
   );
+
+  // Update Configuration
+  createEffect(() => {
+    // Tracks mapLoaded() (rather than reading the plain `map` variable) so this effect re-runs
+    // once the map finishes loading, correctly applying an initially-provided config — setting
+    // config properties requires the style to already be loaded, which is why this can't just
+    // run at construction time like most other options.
+    const loadedMap = mapLoaded() as any;
+    if (typeof loadedMap?.setConfigProperty !== "function") {
+      if (loadedMap && props.config && Object.keys(props.config).length) {
+        debug(
+          "Config prop is set but this map library has no setConfigProperty (Mapbox Standard Style only) — skipping",
+        );
+      }
+      return;
+    }
+    for (const key in props.config) {
+      if (!key || key === "id") continue;
+      const id = props.config?.id || "basemap";
+      const value = props.config[key];
+      loadedMap.setConfigProperty(id, key, value);
+      debug(`Set Config (${id}:${key}) to:`, value);
+    }
+  });
 
   // Update Projection
   createEffect(() => {
@@ -418,7 +459,10 @@ export const MapGL: Component<Props> = (props) => {
         .filter((s) => map.sourceIdList.includes(s))
         .reduce((obj, key) => ({ ...obj, [key]: oldStyle.sources[key] }), {});
 
-      map.setStyle(style);
+      const diff = props.shouldDiffStyle ? props.shouldDiffStyle(prev, style) : true;
+      // mapbox-gl's SetStyleOptions type marks localFontFamily/localIdeographFontFamily as
+      // required even though they're optional at runtime — cast to sidestep that upstream typing gap.
+      map.setStyle(style, diff ? undefined : ({ diff: false } as any));
       map.once("styledata", () => {
         if (!oldLayers) return;
         const newStyle = map.getStyle();
@@ -469,7 +513,7 @@ export const MapGL: Component<Props> = (props) => {
     >
       {mapLoaded() && (
         <MapProvider map={mapLoaded()} mapLib={mapLib} isMapLibre={isMapLibre}>
-          <style>{`.overlay{position:relative;width:100%;height:100%;pointer-events:none}.overlay>*{pointer-events:auto}`}</style>
+          <style>{`.overlay{position:relative;width:100%;height:100%;pointer-events:none}:where(.overlay>*){pointer-events:auto}`}</style>
           <div class="overlay">{props.children}</div>
         </MapProvider>
       )}
