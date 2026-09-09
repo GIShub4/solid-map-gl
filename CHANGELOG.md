@@ -10,6 +10,8 @@ rejected, what's still open), see `docs/dev-notes.md`.
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-09-09
+
 This is a major version bump. The library went a long time without updates while Mapbox GL JS,
 MapLibre GL JS, and SolidJS all moved forward — bringing it current required breaking some things
 on purpose rather than silently.
