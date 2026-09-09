@@ -1,6 +1,6 @@
-[![Banner](https://assets.solidjs.com/banner?project=solid-map-gl&background=tiles&type=Mapping%20Plugin)](https://gis-hub.gitbook.io/solid-map-gl)
+[![Banner](https://assets.solidjs.com/banner?project=solid-map-gl&background=tiles&type=Component%20Library)](https://gis-hub.gitbook.io/solid-map-gl)
 
-# SolidJS wrapper for MapboxGL & MapLibre
+# SolidJS Component Library for Mapbox GL JS & MapLibre GL JS
 
 [![CI](https://img.shields.io/github/actions/workflow/status/GIShub4/solid-map-gl/ci.yml?branch=main&label=CI)](https://github.com/GIShub4/solid-map-gl/actions/workflows/ci.yml)
 [![codecov](https://img.shields.io/codecov/c/github/GIShub4/solid-map-gl)](https://codecov.io/gh/GIShub4/solid-map-gl)
