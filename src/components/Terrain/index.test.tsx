@@ -17,7 +17,7 @@ describe("Terrain", () => {
     });
   });
 
-  // Regression test for 3.1 (UPGRADE_PLAN.md Section 3.1): `ctx.isMapLibre` used to never be
+  // Regression test: `ctx.isMapLibre` used to never be
   // set, so this branch was dead and every Terrain always got Mapbox's DEM defaults, even
   // against MapLibre. Assert the two configurations genuinely differ.
   it("auto-creates a raster-dem source with MapLibre defaults when isMapLibre is true (3.1)", () => {

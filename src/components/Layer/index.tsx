@@ -120,7 +120,7 @@ export const Layer: Component<Props> = (props) => {
       ...updateStyle(props.style),
       id: layerId,
       source: sourceId,
-      // `slot` is Mapbox Standard-Style-only — MapLibre has no equivalent (UPGRADE_PLAN.md 10.3)
+      // `slot` is Mapbox Standard-Style-only — MapLibre has no equivalent (see docs/dev-notes.md)
       ...(ctx.isMapLibre ? {} : { slot: props.slot || "" }),
       metadata: {
         smg: { beforeType: props.beforeType, beforeId: props.beforeId },

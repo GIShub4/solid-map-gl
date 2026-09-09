@@ -15,9 +15,8 @@ const waitForMount = (map: { addLayer: { mock: { calls: unknown[][] } } }) =>
 
 // Actually invoking the real onAdd/render (constructing a THREE.WebGLRenderer or BABYLON.Engine
 // against a fake GL context) reliably throws in jsdom — there is no real WebGL context to back
-// it. Per UPGRADE_PLAN.md Section 7.2, asserting real Babylon/Three render output is explicitly
-// out of scope for these mocked tests; this file only asserts the custom-layer wiring Layer3D
-// itself is responsible for.
+// it. Asserting real Babylon/Three render output is explicitly out of scope for these mocked
+// tests; this file only asserts the custom-layer wiring Layer3D itself is responsible for.
 describe("Layer3D", () => {
   it("adds a custom layer with the expected renderingMode and lifecycle methods", async () => {
     const { map } = renderWithMap(() => <Layer3D id="scene1" origin={[0, 0, 0]} />);

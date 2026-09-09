@@ -9,12 +9,9 @@
 # dependencies
 /node_modules
 
-# stage 0 spike scratch workspace (throwaway, see UPGRADE_PLAN.md Section 8)
-/spike
-
 # misc
 .env
-.DS_Store
+**/.DS_Store
 .env.local
 .env.development.local
 .env.test.local
@@ -27,4 +24,6 @@ yarn-debug.log*
 yarn-error.log*
 yarn.lock
 
-pnpm-lock.yaml
+#ai
+CLAUDE.md
+/.claude

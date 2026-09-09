@@ -64,7 +64,7 @@ describe("Source", () => {
     expect(handle.updateImage).toHaveBeenCalledTimes(2);
   });
 
-  // Regression test for 3.4 (UPGRADE_PLAN.md Section 3.4): Source must not cache the
+  // Regression test: Source must not cache the
   // `getSource()` handle across a base-style swap — every reactive update should fetch a fresh
   // handle so it never mutates a detached Style's source object.
   it("fetches a fresh getSource() handle on every reactive update instead of caching it (3.4)", async () => {
@@ -90,7 +90,7 @@ describe("Source", () => {
     expect(freshHandle.setData).toHaveBeenCalled();
   });
 
-  // Regression test for 3.8 (UPGRADE_PLAN.md Section 3.8): the old `isSourceLoaded` guard used
+  // Regression test: the old `isSourceLoaded` guard used
   // to drop reactive updates if the source happened to be mid-tiling. It's gone now — updates
   // must go through unconditionally, even while `isSourceLoaded` reports false.
   it("still calls setData while isSourceLoaded() reports false (3.8)", async () => {

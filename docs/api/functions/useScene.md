@@ -8,7 +8,7 @@
 
 > **useScene**(): `any`
 
-Defined in: [Layer3D/index.tsx:55](https://github.com/GIShub4/solid-map-gl/blob/fca606ee19a2fdc3b0bf747232db2e1310371bf9/src/components/Layer3D/index.tsx#L55)
+Defined in: [Layer3D/index.tsx:55](https://github.com/GIShub4/solid-map-gl/blob/f9f67e541d9cc39059479fb997e928d86cd65900/src/components/Layer3D/index.tsx#L55)
 
 ## Returns
 

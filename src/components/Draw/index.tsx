@@ -30,7 +30,7 @@ export const Draw: VoidComponent<Props> = (props: Props) => {
   // MapLibre stopped using Mapbox's CSS class names internally; mapbox-gl-draw reads them via
   // this static, so on MapLibre keyboard shortcuts (Delete/Backspace/1/2/3) and native-looking
   // control styling silently don't work unless patched before instantiating (mouse-driven
-  // drawing itself is unaffected — see STAGE0_FINDINGS.md).
+  // drawing itself is unaffected).
   if (ctx.isMapLibre && props.lib.constants?.classes) {
     Object.assign(props.lib.constants.classes, {
       CANVAS: "maplibregl-canvas",

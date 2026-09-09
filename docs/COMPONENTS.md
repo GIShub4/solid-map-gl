@@ -61,7 +61,7 @@ components can sit on top of the canvas.
 | `cursorStyle` | `string` | CSS cursor applied to the map canvas |
 | `darkStyle` | `StyleSpecification \| string` | Style used instead of `options.style` when dark mode is active |
 | `disableResize` | `boolean` | Disable the `ResizeObserver` that calls `map.resize()` |
-| `mapLib` | `any` | Pass the MapLibre (or other compatible) module instead of dynamically importing `mapbox-gl` |
+| `mapLib` | `any` | Pass the MapLibre (or other compatible) module instead of dynamically importing `mapbox-gl`. Remember to also import that library's own CSS (`maplibre-gl/dist/maplibre-gl.css` instead of `mapbox-gl/dist/mapbox-gl.css`) — `solid-map-gl` doesn't load it for you |
 | `apikey` | `string` | API key substituted into `{apikey}` placeholders in style/tile URLs |
 | `debug` / `debugEvents` | `boolean` | Enable `[MapGL]` console.debug logging |
 | `on[Event]` | see `mapEventTypes` in `src/events.ts` | Any Mapbox map event, e.g. `onMouseMove`, `onClick`, `onLoad` |
@@ -75,9 +75,11 @@ static, non-interactive map.
 ```jsx
 import { createSignal } from "solid-js";
 import MapGL, { Viewport } from "solid-map-gl";
+// Import the CSS matching whichever library you use — mapbox-gl.css here,
+// or maplibre-gl/dist/maplibre-gl.css when passing a `mapLib` prop.
 import "mapbox-gl/dist/mapbox-gl.css";
 
-const [viewport, setViewport] = createSignal({ center: [-122.41, 37.78], zoom: 11 } as Viewport);
+const [viewport, setViewport] = createSignal<Viewport>({ center: [-122.41, 37.78], zoom: 11 });
 
 const App = () => (
   <MapGL
@@ -473,7 +475,7 @@ Wraps `@mapbox/mapbox-gl-draw` (or any API-compatible `lib`) as a Mapbox control
 (`ctx.isMapLibre`), patches `lib.constants.classes` to MapLibre's `maplibregl-*` class names
 before instantiating — mapbox-gl-draw reads Mapbox's class names internally for keyboard shortcuts
 (Delete/Backspace/1/2/3) and the control wrapper's native-look styling; mouse-driven drawing itself
-works unpatched either way (see `STAGE0_FINDINGS.md`). Merges in a set of custom draw modes from
+works unpatched either way. Merges in a set of custom draw modes from
 `src/components/Draw/modes/`, plus custom styling from
 `drawingStyles.jsx` layered on top of the library's own theme. Three of the modes
 (`point`/`line_string`/`polygon`) *replace* the library's built-in `draw_point`/`draw_line_string`/

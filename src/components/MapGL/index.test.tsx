@@ -70,7 +70,7 @@ describe("Map", () => {
     warnSpy.mockRestore();
   });
 
-  // Regression test for 3.5 (UPGRADE_PLAN.md Section 3.5): `config` used to call
+  // Regression test: `config` used to call
   // `setConfigProperty` unconditionally, throwing `TypeError: ... is not a function` on
   // MapLibre. The guard should make this a silent no-op instead.
   it("is a no-op (not a throw) for the config prop on a MapLibre-shaped map (3.5)", async () => {
@@ -99,7 +99,7 @@ describe("Map", () => {
     expect(events).toEqual(["change", "change"]);
   });
 
-  // Regression test for 3.9 (UPGRADE_PLAN.md Section 3.9): `insertLayers`'s off-by-one used to
+  // Regression test: `insertLayers`'s off-by-one used to
   // replace the layer matched by `beforeType` instead of inserting before it, so of two consumer
   // layers anchored to the same `beforeType`, only the first survived a style swap. Assert both
   // survive now.

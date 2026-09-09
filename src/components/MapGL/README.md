@@ -4,7 +4,7 @@
 
 | Name              | Type                            | Description                                                                                  |
 | ----------------- | ------------------------------- | -------------------------------------------------------------------------------------------- |
-| mapLib            | module                          | Pass [MapLibre](https://maplibre.org/) package to use instead of Mapbox library              |
+| mapLib            | module                          | Pass [MapLibre](https://maplibre.org/) package to use instead of Mapbox library — also import `maplibre-gl/dist/maplibre-gl.css` instead of Mapbox's CSS, see below |
 | style             | string                          | CSS style for map container                                                                  |
 | class             | string                          | CSS class for map container                                                                  |
 | classList         | string\[]                       | SolidJS classList attached to map container                                                  |
@@ -69,6 +69,28 @@ const App: Component = () => {
     ></MapGL>
   );
 };
+```
+
+### **Using MapLibre**
+
+`solid-map-gl` doesn't load a base map stylesheet for you — import the one matching whichever library you pass via `mapLib`. Importing the wrong CSS (e.g. Mapbox's, while using MapLibre) leaves the map broken (no size, misplaced controls).
+
+```jsx
+import { Component } from 'solid-js'
+import MapGL from 'solid-map-gl'
+import * as maplibregl from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
+
+const App: Component = () => (
+  <MapGL
+    mapLib={maplibregl}
+    options={{ style: 'https://demotiles.maplibre.org/style.json' }}
+    viewport={{
+      center: [-122.41, 37.78],
+      zoom: 11,
+    }}
+  ></MapGL>
+)
 ```
 
 ### **Changing Map Style**

@@ -33,7 +33,7 @@ describe("Control", () => {
     expect(map.addControl).toHaveBeenCalledWith(custom, undefined);
   });
 
-  // Regression test for 3.6 (UPGRADE_PLAN.md Section 3.6): "traffic"/"language" were documented
+  // Regression test: "traffic"/"language" were documented
   // as valid `type`s but never implemented — resolving them produced `new undefined(...)`. The
   // fix was on the docs side (README no longer lists them); assert the code side still holds:
   // the type system has no resolvable class for either, so `controlClasses.get(...)` is undefined

@@ -3,7 +3,7 @@ import { useMapContext } from "../MapProvider";
 import type { FogSpecification } from "mapbox-gl";
 
 /** MapLibre's `sky` style-spec object — a genuinely different shape from Mapbox's `Fog`,
- * not a variant of it (see UPGRADE_PLAN.md Section 2.2/10). */
+ * not a variant of it. */
 export interface MapLibreSky {
   "sky-color"?: string;
   "sky-horizon-blend"?: number;

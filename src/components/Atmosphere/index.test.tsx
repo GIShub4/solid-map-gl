@@ -22,8 +22,8 @@ describe("Atmosphere", () => {
     expect(map.setFog).toHaveBeenLastCalledWith(null);
   });
 
-  // 4.1 (UPGRADE_PLAN.md Section 4.1/2.2): MapLibre has its own, differently-shaped `sky` API —
-  // this can't reuse setFog()/FogSpecification.
+  // MapLibre has its own, differently-shaped `sky` API — this can't reuse
+  // setFog()/FogSpecification.
   it("calls setSky with MapLibre-shaped properties on the MapLibre path", () => {
     const { map } = renderWithMap(
       () => <Atmosphere style={{ "sky-color": "#fff", "horizon-color": "#000" } as any} />,

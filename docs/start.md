@@ -43,6 +43,24 @@ add this to your `vite.config.ts` file:
 `optimizeDeps: {include: ['mapbox-gl']}`
 {% endhint %}
 
+## Stylesheet
+
+`solid-map-gl` does not bundle or auto-load the base map CSS — import it yourself, matching whichever library you're actually using. Import the wrong one (or none) and the map renders with broken layout (missing size, controls piled in a corner, etc).
+
+{% tabs %}
+{% tab title="Mapbox" %}
+```js
+import "mapbox-gl/dist/mapbox-gl.css";
+```
+{% endtab %}
+
+{% tab title="MapLibre" %}
+```js
+import "maplibre-gl/dist/maplibre-gl.css";
+```
+{% endtab %}
+{% endtabs %}
+
 ## Usage
 
 To use any of Mapbox’s tools, APIs, or SDKs, you’ll need a Mapbox [access token](https://www.mapbox.com/help/define-access-token/). Mapbox uses access tokens to associate requests to API resources with your account. You can find all your access tokens, create new ones, or delete existing ones on your [API access tokens page](https://www.mapbox.com/studio/account/tokens/). Then pass the *Mapbox access token* via `<MapGL> options` or `.env` file as `VITE_MAPBOX_ACCESS_TOKEN`
@@ -78,10 +96,10 @@ import { Component, createSignal } from "solid-js";
 import MapGL, { Viewport } from "solid-map-gl";
 
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-122.41, 37.78],
     zoom: 11,
-  } as Viewport);
+  });
 
   return (
     <MapGL

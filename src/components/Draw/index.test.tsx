@@ -68,7 +68,7 @@ describe("Draw", () => {
 
   // MapLibre stopped using Mapbox's CSS class names internally — mapbox-gl-draw reads them via
   // this static, so keyboard shortcuts/control styling silently break there unless patched
-  // before instantiating (UPGRADE_PLAN.md Section 4.1/2.2, STAGE0_FINDINGS.md).
+  // before instantiating.
   it("patches the draw lib's class-name constants to MapLibre's on the MapLibre path", () => {
     const lib = createMockDrawLib();
     renderWithMap(() => <Draw lib={lib} />, { isMapLibre: true });
