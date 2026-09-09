@@ -6,8 +6,9 @@
 # coverage reports (pnpm coverage)
 /coverage
 
-# dependencies
-/node_modules
+# dependencies (unanchored: also covers examples/*/node_modules)
+node_modules
+package-lock.json
 
 # misc
 .env

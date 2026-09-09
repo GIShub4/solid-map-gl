@@ -13,7 +13,7 @@
     "astro": "^7.3.1",
     "mapbox-gl": "^3.30.0",
     "solid-js": "^1.9.15",
-    "solid-map-gl": "^1.13.0"
+    "solid-map-gl": "^2.0.1"
   },
   "devDependencies": {
     "typescript": "^5.9.3"

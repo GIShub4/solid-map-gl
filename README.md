@@ -33,6 +33,12 @@ pnpm add solid-map-gl maplibre-gl mapbox-gl@npm:empty-npm-package@1.0.0
 pnpm dev
 ```
 
+> [!NOTE]
+> `npm` enforces peer-dependency version ranges more strictly than `pnpm`/`yarn` — the placeholder
+> above satisfies them on `pnpm`/`yarn`, but `npm install` will fail with an `ERESOLVE` error since
+> the placeholder's version doesn't match `solid-map-gl`'s declared `mapbox-gl` range. Use
+> `pnpm`/`yarn` for this install, or run `npm install --legacy-peer-deps` if you must use `npm`.
+
 #### [Solid Start](https://gis-hub.gitbook.io/solid-map-gl/start#solid-start)
 
 ```shell
@@ -122,6 +128,12 @@ pnpm add solid-map-gl maplibre-gl mapbox-gl@npm:empty-npm-package@1.0.0
 yarn add solid-map-gl maplibre-gl mapbox-gl@npm:empty-npm-package@1.0.0
 npm  i   solid-map-gl maplibre-gl mapbox-gl@npm:empty-npm-package@1.0.0
 ```
+
+> [!NOTE]
+> `npm` enforces peer-dependency version ranges more strictly than `pnpm`/`yarn` — the placeholder
+> above satisfies them on `pnpm`/`yarn`, but `npm install` will fail with an `ERESOLVE` error since
+> the placeholder's version doesn't match `solid-map-gl`'s declared `mapbox-gl` range. Use
+> `pnpm`/`yarn` for this install, or run `npm install --legacy-peer-deps` if you must use `npm`.
 
 ```jsx
 import { render } from "solid-js/web";

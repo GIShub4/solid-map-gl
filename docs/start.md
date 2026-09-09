@@ -33,6 +33,13 @@ pnpm dev
 {% endtab %}
 {% endtabs %}
 
+{% hint style="info" %}
+`npm` enforces peer-dependency version ranges more strictly than `pnpm`/`yarn` — the placeholder
+above satisfies them on `pnpm`/`yarn`, but `npm install` will fail with an `ERESOLVE` error since
+the placeholder's version doesn't match `solid-map-gl`'s declared `mapbox-gl` range. Use
+`pnpm`/`yarn` for this install, or run `npm install --legacy-peer-deps` if you must use `npm`.
+{% endhint %}
+
 {% hint style="danger" %}
 If you use `vite` and get the following error:
 

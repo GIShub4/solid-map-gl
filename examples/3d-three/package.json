@@ -10,7 +10,7 @@
   "dependencies": {
     "mapbox-gl": "^3.30.0",
     "solid-js": "^1.9.15",
-    "solid-map-gl": "^1.13.0",
+    "solid-map-gl": "^2.0.1",
     "three": "^0.157.0"
   },
   "devDependencies": {

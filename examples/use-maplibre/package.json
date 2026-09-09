@@ -11,7 +11,7 @@
     "mapbox-gl": "npm:empty-npm-package@1.0.0",
     "maplibre-gl": "^6.7.0",
     "solid-js": "^1.9.15",
-    "solid-map-gl": "^1.13.0"
+    "solid-map-gl": "^2.0.1"
   },
   "devDependencies": {
     "typescript": "^5.9.3",
