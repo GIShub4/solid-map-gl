@@ -31,6 +31,20 @@ export default defineConfig((config) => {
 
   if (!watching) {
     const package_fields = preset.generatePackageExports(parsed_data);
+    // For a single-entry package, tsup-preset-solid emits a flat `exports` object
+    // gated only on an "import" condition (plus "solid"), with no "." wrapper and
+    // no universal fallback — `require()` and any resolver using a bare "node"
+    // condition get ERR_PACKAGE_PATH_NOT_EXPORTED. Wrap under "." and add a
+    // "default" fallback pointing at the same ESM build, matching this package's
+    // pre-tsup exports shape (rollup-preset-solid always included one).
+    package_fields.exports = {
+      ".": {
+        types: package_fields.types,
+        ...package_fields.exports,
+        default: package_fields.main,
+      },
+      "./package.json": "./package.json",
+    };
     preset.writePackageJson(package_fields);
   }
 

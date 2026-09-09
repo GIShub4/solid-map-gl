@@ -10,6 +10,20 @@ rejected, what's still open), see `docs/dev-notes.md`.
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-09-09
+
+### Fixed
+
+- **`require("solid-map-gl")` was completely broken in 2.0.0** — the published package's
+  `exports` field had no `"."` entry and no fallback condition, only a `solid`/`import`-gated
+  one, so any CommonJS consumer (`require()`, `require.resolve()`, Jest configs on `commonjs`
+  transform, some Node-targeted SSR bundler configs resolving under a bare `node` condition)
+  got `ERR_PACKAGE_PATH_NOT_EXPORTED`. Caused by `tsup-preset-solid`'s single-entry output never
+  emitting a `default`/`require` condition unless `cjs: true` is set. `exports` is now wrapped
+  under `"."` with an explicit `default` fallback pointing at the same ESM build (matching the
+  pre-2.0 rollup-based build's shape), plus an explicit `"./package.json"` export. ESM consumers
+  (`import`, Vite, SolidStart) are unaffected — this only restores the fallback path.
+
 ## [2.0.0] - 2026-09-09
 
 This is a major version bump. The library went a long time without updates while Mapbox GL JS,
