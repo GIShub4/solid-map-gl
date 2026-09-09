@@ -3,7 +3,7 @@ import { cleanup } from "@solidjs/testing-library";
 import { createSignal } from "solid-js";
 import { Source } from "./index";
 import { renderWithMap } from "../../testUtils/renderWithMap";
-import { tick } from "../../testUtils/mockMap";
+import { createMockMap, tick } from "../../testUtils/mockMap";
 
 afterEach(cleanup);
 
@@ -105,6 +105,89 @@ describe("Source", () => {
     await tick();
 
     expect(handle.setData).toHaveBeenCalledTimes(2);
+  });
+
+  it("defaults to an empty object when geojson data is not given", () => {
+    const { map } = renderWithMap(() => (
+      <Source id="geo" source={{ type: "geojson", data: undefined as any }} />
+    ));
+    const handle = map.getSource("geo");
+    expect(handle.setData).toHaveBeenCalledWith({});
+  });
+
+  it("resolves an 'osm:org' shorthand raster source into a/b/c tile URLs", () => {
+    const { map } = renderWithMap(() => (
+      <Source id="raster" source={{ type: "raster", url: "osm:org" } as any} />
+    ));
+    expect(map.addSource).toHaveBeenCalledWith(
+      "raster",
+      expect.objectContaining({
+        url: "",
+        tiles: [
+          "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        ],
+        attribution: expect.any(String),
+      }),
+    );
+  });
+
+  it("substitutes {r} with '@2x' on a high-DPI screen for a raster shorthand", () => {
+    const originalRatio = window.devicePixelRatio;
+    // @ts-ignore
+    window.devicePixelRatio = 2;
+    const { map } = renderWithMap(() => (
+      <Source id="raster3" source={{ type: "raster", url: "carto:voyager" } as any} />
+    ));
+    expect(map.addSource).toHaveBeenCalledWith(
+      "raster3",
+      expect.objectContaining({
+        tiles: expect.arrayContaining([expect.stringContaining("@2x.png")]),
+      }),
+    );
+    window.devicePixelRatio = originalRatio;
+  });
+
+  it("calls setUrl for a raster source given an explicit (non-shorthand) URL", async () => {
+    const [url, setUrl] = createSignal("https://example.com/a/{z}/{x}/{y}.png");
+    const { map } = renderWithMap(() => (
+      <Source id="raster2" source={{ type: "raster", url: url() } as any} />
+    ));
+    const handle = map.getSource("raster2");
+    expect(handle.setUrl).toHaveBeenCalledWith("https://example.com/a/{z}/{x}/{y}.png");
+
+    setUrl("https://example.com/b/{z}/{x}/{y}.png");
+    await tick();
+    expect(handle.setUrl).toHaveBeenLastCalledWith("https://example.com/b/{z}/{x}/{y}.png");
+  });
+
+  it("calls setTiles for a vector source with no url given", () => {
+    const { map } = renderWithMap(() => (
+      <Source id="vec2" source={{ type: "vector", tiles: ["a.png"] } as any} />
+    ));
+    const handle = map.getSource("vec2");
+    // `lookup()` always runs the {s} a/b/c tile expansion on whatever `tiles` it's given,
+    // even for a plain (non-shorthand) vector source, so a single-entry input becomes 3.
+    expect(handle.setTiles).toHaveBeenCalledWith(["a.png", "a.png", "a.png"]);
+    expect(handle.setUrl).not.toHaveBeenCalled();
+  });
+
+  it("logs debug output when map.debug is enabled", () => {
+    const debugSpy = vi.spyOn(console, "debug").mockImplementation(() => {});
+    const map = createMockMap();
+    map.debug = true;
+    renderWithMap(() => (
+      <Source id="geo" source={{ type: "geojson", data: {} as any }} />
+    ), { map });
+
+    expect(debugSpy).toHaveBeenCalledWith(
+      "%c[MapGL]",
+      "color: #ec4899",
+      "Add Source:",
+      "geo",
+    );
+    debugSpy.mockRestore();
   });
 
   it("removes dependent layers then the source on cleanup", () => {

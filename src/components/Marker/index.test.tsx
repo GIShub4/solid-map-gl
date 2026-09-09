@@ -1,9 +1,10 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { cleanup } from "@solidjs/testing-library";
+import { cleanup, render } from "@solidjs/testing-library";
 import { createSignal } from "solid-js";
 import { Marker } from "./index";
+import { MapProvider } from "../MapProvider";
 import { renderWithMap } from "../../testUtils/renderWithMap";
-import { tick } from "../../testUtils/mockMap";
+import { createMockMapLib, tick } from "../../testUtils/mockMap";
 
 afterEach(cleanup);
 
@@ -91,5 +92,32 @@ describe("Marker", () => {
     const marker = mapLib.Marker.instances[0];
     unmount();
     expect(marker.remove).toHaveBeenCalled();
+  });
+
+  it("does not create a marker or popup when the map isn't ready yet", () => {
+    const mapLib = createMockMapLib();
+    render(() => (
+      <MapProvider mapLib={mapLib}>
+        <Marker lngLat={[1, 2]} />
+      </MapProvider>
+    ));
+    expect(mapLib.Marker.instances.length).toBe(0);
+    expect(mapLib.Popup.instances.length).toBe(0);
+  });
+
+  it("fires onOpen/onClose via the marker's popup open/close events", async () => {
+    const events: string[] = [];
+    const { mapLib } = renderWithMap(() => (
+      <Marker
+        lngLat={[1, 2]}
+        onOpen={() => events.push("open")}
+        onClose={() => events.push("close")}
+      />
+    ));
+    await tick();
+    const popup = mapLib.Popup.instances[0];
+    popup.on.mock.calls.find((c: any[]) => c[0] === "open")[1]();
+    popup.on.mock.calls.find((c: any[]) => c[0] === "close")[1]();
+    expect(events).toEqual(["open", "close"]);
   });
 });

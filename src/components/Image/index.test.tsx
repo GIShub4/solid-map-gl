@@ -15,6 +15,7 @@ function stubCanvasContext() {
     fillStyle: "",
     strokeStyle: "",
     lineWidth: 0,
+    scale: vi.fn(),
     drawImage: vi.fn(),
     fillRect: vi.fn(),
     stroke: vi.fn(),
@@ -168,7 +169,7 @@ describe("MGL_Image", () => {
     expect(map.addImage).toHaveBeenCalledWith(
       "pin",
       expect.objectContaining({ width: 1, height: 1 }),
-      undefined,
+      { pixelRatio: 1 },
     );
 
     window.Image = OrigImage;
@@ -237,5 +238,132 @@ describe("MGL_Image", () => {
     expect(call[1].render.call(fakeThis)).toBe(true);
 
     restoreCanvas.mockRestore();
+  });
+
+  it("falls back to transparent/black/1px defaults and skips fill() for a non-fill pattern", async () => {
+    const restoreCanvas = stubCanvasContext();
+    const { map } = renderWithMap(() => (
+      <MGL_Image id="hatch" pattern={{ type: "diagonal_l" } as any} />
+    ));
+    await tick();
+
+    const call = map.addImage.mock.calls.find((c: any[]) => c[0] === "hatch");
+    const fakeThis: any = {};
+    call[1].onAdd.call(fakeThis);
+    call[1].render.call(fakeThis);
+
+    expect(fakeThis.ctx.fillStyle).toBe("black");
+    expect(fakeThis.ctx.lineWidth).toBe(1);
+    expect(fakeThis.ctx.fill).not.toHaveBeenCalled();
+
+    restoreCanvas.mockRestore();
+  });
+
+  it("falls back to a hardcoded pixelRatio when devicePixelRatio is unset", async () => {
+    const restoreCanvas = stubCanvasContext();
+    const originalRatio = window.devicePixelRatio;
+    // @ts-ignore
+    delete window.devicePixelRatio;
+
+    const { map } = renderWithMap(() => (
+      <MGL_Image id="hatch" pattern={{ type: "diagonal_l", color: "#000" } as any} />
+    ));
+    await tick();
+
+    const call = map.addImage.mock.calls.find((c: any[]) => c[0] === "hatch");
+    expect(call[2]).toEqual(expect.objectContaining({ pixelRatio: 2 }));
+
+    window.devicePixelRatio = originalRatio;
+    restoreCanvas.mockRestore();
+  });
+
+  it("logs debug output for add and remove when map.debug is enabled", async () => {
+    const debugSpy = vi.spyOn(console, "debug").mockImplementation(() => {});
+    const map = createMockMap();
+    map.debug = true;
+    const { unmount } = renderWithMap(() => <MGL_Image id="pin" source="pin.png" />, { map });
+    await tick();
+    await tick();
+
+    expect(debugSpy).toHaveBeenCalledWith(
+      "%c[MapGL]",
+      "color: #10b981",
+      "Add Image:",
+      "pin",
+    );
+
+    unmount();
+    expect(debugSpy).toHaveBeenCalledWith(
+      "%c[MapGL]",
+      "color: #10b981",
+      "Remove Image:",
+      "pin",
+    );
+
+    debugSpy.mockRestore();
+  });
+
+  it("falls back to a hardcoded pixelRatio for canvas rendering when devicePixelRatio is unset", async () => {
+    const restoreCanvas = stubCanvasContext();
+    const originalRatio = window.devicePixelRatio;
+    // @ts-ignore
+    delete window.devicePixelRatio;
+    let capturedImg: HTMLImageElement | undefined;
+    const OrigImage = window.Image;
+    // @ts-ignore
+    window.Image = class extends OrigImage {
+      constructor() {
+        super();
+        capturedImg = this;
+      }
+    };
+
+    const map = createMockMap();
+    map.loadImage.mockImplementation((_url: string, cb: any) => cb(new Error("fail")));
+    renderWithMap(() => <MGL_Image id="pin" source="http://example.com/pin.png" />, { map });
+    await tick();
+
+    expect(capturedImg).toBeTruthy();
+    capturedImg!.onload!(new Event("load"));
+
+    expect(map.addImage).toHaveBeenCalledWith(
+      "pin",
+      expect.objectContaining({ width: 1, height: 1 }),
+      { pixelRatio: 1 },
+    );
+
+    window.Image = OrigImage;
+    window.devicePixelRatio = originalRatio;
+    restoreCanvas.mockRestore();
+  });
+
+  it("logs an error via img.onerror when the canvas-fallback image fails to decode", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    let capturedImg: HTMLImageElement | undefined;
+    const OrigImage = window.Image;
+    // @ts-ignore
+    window.Image = class extends OrigImage {
+      constructor() {
+        super();
+        capturedImg = this;
+      }
+    };
+
+    const map = createMockMap();
+    map.loadImage.mockImplementation((_url: string, cb: any) => cb(new Error("fail")));
+    renderWithMap(() => <MGL_Image id="pin" source="http://example.com/pin.png" />, { map });
+    await tick();
+
+    expect(capturedImg).toBeTruthy();
+    const fakeErrorEvent = new Event("error");
+    capturedImg!.onerror!(fakeErrorEvent);
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      '[MapGL] Image "pin" failed to load:',
+      fakeErrorEvent,
+    );
+
+    window.Image = OrigImage;
+    errorSpy.mockRestore();
   });
 });

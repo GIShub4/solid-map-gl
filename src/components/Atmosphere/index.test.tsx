@@ -44,4 +44,35 @@ describe("Atmosphere", () => {
     unmount();
     expect((map as any).setSky).toHaveBeenLastCalledWith(null);
   });
+
+  it("defaults to an empty object when no style is given (Mapbox path)", () => {
+    const { map } = renderWithMap(() => <Atmosphere />, { isMapLibre: false });
+    expect(map.setFog).toHaveBeenCalledWith({});
+  });
+
+  it("defaults to an empty object when no style is given (MapLibre path)", () => {
+    const { map } = renderWithMap(() => <Atmosphere />, { isMapLibre: true });
+    expect((map as any).setSky).toHaveBeenCalledWith({});
+  });
+
+  it("does not call setFog(null) on cleanup if fog was never actually set (Mapbox path)", () => {
+    const { map, unmount } = renderWithMap(() => <Atmosphere style={{ range: [1, 10] }} />, {
+      isMapLibre: false,
+    });
+    map.setFog.mockClear();
+    map.getFog.mockReturnValue(null);
+    unmount();
+    expect(map.setFog).not.toHaveBeenCalled();
+  });
+
+  it("does not call setSky(null) on cleanup if sky was never actually set (MapLibre path)", () => {
+    const { map, unmount } = renderWithMap(
+      () => <Atmosphere style={{ "sky-color": "#fff" } as any} />,
+      { isMapLibre: true },
+    );
+    (map as any).setSky.mockClear();
+    (map as any).getSky.mockReturnValue(null);
+    unmount();
+    expect((map as any).setSky).not.toHaveBeenCalled();
+  });
 });

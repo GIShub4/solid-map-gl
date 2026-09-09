@@ -57,6 +57,19 @@ describe("Control", () => {
     expect(map.addControl).toHaveBeenLastCalledWith(instance, "top-right");
   });
 
+  it("removes the previous control instance when the type changes and it's still present on the map", async () => {
+    const [type, setType] = createSignal<"navigation" | "scale">("navigation");
+    const { map } = renderWithMap(() => <Control type={type()} />);
+    await tick();
+    const first = map.addControl.mock.calls[0][0];
+    map.hasControl.mockReturnValue(true);
+
+    setType("scale");
+    await tick();
+
+    expect(map.removeControl).toHaveBeenCalledWith(first);
+  });
+
   it("removes the control on cleanup", async () => {
     const { map, unmount } = renderWithMap(() => <Control />);
     await tick();

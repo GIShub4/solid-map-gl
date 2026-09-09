@@ -40,6 +40,14 @@ describe("DeckOverlay", () => {
     expect(map.addControl.mock.calls.every((c: any[]) => c[0] === instance)).toBe(true);
   });
 
+  it("constructs the overlay and forwards setProps with an empty object when no props are given", async () => {
+    const { map } = renderWithMap(() => <DeckOverlay overlay={MockOverlay} />);
+    await tick();
+    const instance = map.addControl.mock.calls[0][0];
+    expect(instance.initialProps).toEqual({});
+    expect(instance.setProps).toHaveBeenCalledWith({});
+  });
+
   it("removes the overlay control on cleanup", async () => {
     const { map, unmount } = renderWithMap(() => (
       <DeckOverlay overlay={MockOverlay} props={{}} />

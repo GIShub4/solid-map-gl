@@ -505,6 +505,369 @@ describe("Map", () => {
     expect(finalCall.sources).toHaveProperty("src");
   });
 
+  it("logs debug output when the debug prop is enabled", async () => {
+    const debugSpy = vi.spyOn(console, "debug").mockImplementation(() => {});
+    const mapLib = createMockMapLib();
+    render(() => <MapGL mapLib={mapLib} debug />);
+    await waitForLoad();
+
+    expect(debugSpy).toHaveBeenCalledWith(
+      "%c[MapGL]",
+      "color: #0ea5e9",
+      "Map loaded",
+      "",
+    );
+    debugSpy.mockRestore();
+  });
+
+  it("does not observe resize when disableResize is set", async () => {
+    let observed = false;
+    const OrigRO = window.ResizeObserver;
+    // @ts-ignore
+    window.ResizeObserver = class {
+      observe() {
+        observed = true;
+      }
+      unobserve() {}
+      disconnect() {}
+    };
+
+    const mapLib = createMockMapLib();
+    render(() => <MapGL mapLib={mapLib} disableResize />);
+    await waitForLoad();
+
+    expect(observed).toBe(false);
+    window.ResizeObserver = OrigRO;
+  });
+
+  it("skips the 'id' key in the config prop instead of setting it as a config property", async () => {
+    const mapLib = createMockMapLib({ isMapLibre: false });
+    render(() => (
+      <MapGL mapLib={mapLib} config={{ id: "custom-basemap", lightPreset: "dawn" }} />
+    ));
+    await waitForLoad();
+
+    const map = mapLib.Map.instances[0];
+    expect(map.setConfigProperty).toHaveBeenCalledWith("custom-basemap", "lightPreset", "dawn");
+    expect(map.setConfigProperty).not.toHaveBeenCalledWith(
+      "custom-basemap",
+      "id",
+      expect.anything(),
+    );
+  });
+
+  it("ignores a rotate-flagged moveend event (does not call onViewportChange)", async () => {
+    const mapLib = createMockMapLib();
+    const onViewportChange = vi.fn();
+    render(() => <MapGL mapLib={mapLib} onViewportChange={onViewportChange} />);
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+
+    map.fire("moveend", { rotate: true });
+
+    expect(onViewportChange).not.toHaveBeenCalled();
+  });
+
+  it("does not throw firing move/moveend when no onViewportChange is given", async () => {
+    const mapLib = createMockMapLib();
+    render(() => <MapGL mapLib={mapLib} />);
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+
+    expect(() => {
+      map.fire("move", {});
+      map.fire("moveend", {});
+    }).not.toThrow();
+  });
+
+  it("ignores a reactive viewport update whose id doesn't match this map instance's id", async () => {
+    const mapLib = createMockMapLib();
+    const [viewport, setViewport] = createSignal<any>({ id: "other-map", center: [0, 0], zoom: 5 });
+    render(() => <MapGL id="this-map" mapLib={mapLib} viewport={viewport()} />);
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+
+    setViewport({ id: "other-map", center: [1, 1], zoom: 8 });
+    await tick();
+
+    expect(map.flyTo).not.toHaveBeenCalled();
+  });
+
+  it("dispatches an object-form (per-layer) map event with debugEvents logging, and ignores a layer-originated event", async () => {
+    const debugSpy = vi.spyOn(console, "debug").mockImplementation(() => {});
+    const mapLib = createMockMapLib();
+    const onLayerClick = vi.fn();
+    render(() => (
+      <MapGL mapLib={mapLib} debugEvents onClick={{ myLayer: onLayerClick }} />
+    ));
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+
+    map.fire("click", { lngLat: [1, 1] }, "myLayer");
+    await new Promise((r) => setTimeout(r, 10));
+    expect(onLayerClick).toHaveBeenCalledTimes(1);
+    expect(debugSpy).toHaveBeenCalledWith(
+      "%c[MapGL]",
+      "color: #0ea5e9",
+      "Map 'click' event on 'myLayer':",
+      expect.objectContaining({ lngLat: [1, 1] }),
+    );
+
+    onLayerClick.mockClear();
+    map.fire("click", { lngLat: [2, 2], clickOnLayer: true }, "myLayer");
+    await new Promise((r) => setTimeout(r, 10));
+    expect(onLayerClick).not.toHaveBeenCalled();
+
+    debugSpy.mockRestore();
+  });
+
+  it("falls back to a window global map library when the given mapLib has no .Map", async () => {
+    const realLib = createMockMapLib();
+    // @ts-ignore
+    window.maplibregl = realLib;
+    render(() => <MapGL mapLib={{} as any} />);
+    await waitForLoad();
+
+    expect(realLib.Map.instances.length).toBe(1);
+    // @ts-ignore
+    delete window.maplibregl;
+  });
+
+  it("throws when the map library reports it isn't supported", async () => {
+    const mapLib = createMockMapLib();
+    (mapLib as any).supported = () => false;
+
+    // The throw happens inside MapGL's async onMount, so it surfaces as an unhandled
+    // rejection rather than a synchronous throw from render().
+    const rejection = new Promise<Error>((resolve) => {
+      process.once("unhandledRejection", (reason) => resolve(reason as Error));
+    });
+
+    render(() => <MapGL mapLib={mapLib} />);
+    const err = await rejection;
+
+    expect(err.message).toMatch(/not supported/);
+  });
+
+  it("inserts a consumer layer anchored by beforeId (not just beforeType)", async () => {
+    const mapLib = createMockMapLib();
+    const [style, setStyle] = createSignal<any>(undefined);
+    render(() => (
+      <MapGL mapLib={mapLib} options={{ style: style() }}>
+        <Source id="src" source={{ type: "geojson", data: {} as any }}>
+          <Layer id="a" style={{ type: "fill" }} beforeId="labels" />
+        </Source>
+      </MapGL>
+    ));
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+
+    map.getStyle().layers = [
+      { id: "a", type: "fill", metadata: { smg: { beforeId: "labels" } } },
+      { id: "labels", type: "symbol" },
+    ];
+
+    setStyle({ version: 8, sources: {}, layers: [{ id: "labels", type: "symbol" }] });
+    await tick();
+    map.getStyle.mockReturnValue({ version: 8, sources: {}, layers: [{ id: "labels", type: "symbol" }] });
+    map.fire("styledata");
+    await tick();
+
+    const finalCall = map.setStyle.mock.calls[map.setStyle.mock.calls.length - 1][0];
+    const ids = (finalCall.layers || []).map((l: any) => l.id);
+    expect(ids).toEqual(["a", "labels"]);
+  });
+
+  it("appends a consumer layer at the end when its anchor isn't found in the new style", async () => {
+    const mapLib = createMockMapLib();
+    const [style, setStyle] = createSignal<any>(undefined);
+    render(() => (
+      <MapGL mapLib={mapLib} options={{ style: style() }}>
+        <Source id="src" source={{ type: "geojson", data: {} as any }}>
+          <Layer id="a" style={{ type: "fill" }} beforeType="symbol" />
+        </Source>
+      </MapGL>
+    ));
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+
+    map.getStyle().layers = [
+      { id: "a", type: "fill", metadata: { smg: { beforeType: "symbol" } } },
+    ];
+
+    setStyle({ version: 8, sources: {}, layers: [{ id: "background", type: "background" }] });
+    await tick();
+    map.getStyle.mockReturnValue({
+      version: 8,
+      sources: {},
+      layers: [{ id: "background", type: "background" }],
+    });
+    map.fire("styledata");
+    await tick();
+
+    const finalCall = map.setStyle.mock.calls[map.setStyle.mock.calls.length - 1][0];
+    const ids = (finalCall.layers || []).map((l: any) => l.id);
+    expect(ids).toEqual(["background", "a"]);
+  });
+
+  it("skips mapbox-gl's diff pass when shouldDiffStyle returns false", async () => {
+    const mapLib = createMockMapLib();
+    const [style, setStyle] = createSignal<any>(undefined);
+    const shouldDiffStyle = vi.fn(() => false);
+    render(() => (
+      <MapGL mapLib={mapLib} options={{ style: style() }} shouldDiffStyle={shouldDiffStyle} />
+    ));
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+
+    setStyle({ version: 8, sources: {}, layers: [] });
+    await tick();
+
+    expect(shouldDiffStyle).toHaveBeenCalled();
+    expect(map.setStyle).toHaveBeenCalledWith(
+      { version: 8, sources: {}, layers: [] },
+      { diff: false },
+    );
+  });
+
+  it("does not render children until the map fires 'load'", () => {
+    const mapLib = createMockMapLib();
+    const { container } = render(() => (
+      <MapGL mapLib={mapLib}>
+        <div class="child-probe" />
+      </MapGL>
+    ));
+
+    expect(container.querySelector(".child-probe")).toBeNull();
+  });
+
+  it("uses the darkStyle once darkMode is active", async () => {
+    let changeListener: (() => void) | undefined;
+    const matches = { current: false };
+    const origMatchMedia = window.matchMedia;
+    // @ts-ignore
+    window.matchMedia = () => ({
+      get matches() {
+        return matches.current;
+      },
+      addEventListener: (_: string, cb: () => void) => {
+        changeListener = cb;
+      },
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+    });
+
+    const mapLib = createMockMapLib();
+    const ctorSpy = vi.spyOn(mapLib, "Map");
+    render(() => (
+      <MapGL
+        mapLib={mapLib}
+        options={{ style: "mb:light" }}
+        darkStyle="mb:dark"
+      />
+    ));
+    await waitForLoad();
+
+    matches.current = true;
+    changeListener!();
+    await tick();
+
+    // getStyle() is re-evaluated on the next style-swap effect run; assert the resolved dark
+    // shorthand made it into a subsequent setStyle call once darkMode flips on.
+    const calls = (mapLib.Map.instances[0].setStyle as any).mock.calls;
+    expect(calls.some((c: any[]) => typeof c[0] === "string" && c[0].includes("dark"))).toBe(
+      true,
+    );
+
+    window.matchMedia = origMatchMedia;
+    ctorSpy.mockRestore();
+  });
+
+  it("passes a non-string style object through unchanged", async () => {
+    const mapLib = createMockMapLib();
+    const ctorSpy = vi.spyOn(mapLib, "Map");
+    const styleObj = { version: 8, sources: {}, layers: [] };
+    render(() => <MapGL mapLib={mapLib} options={{ style: styleObj as any }} />);
+    await waitForLoad();
+
+    expect(ctorSpy.mock.calls[0][0].style).toBe(styleObj);
+  });
+
+  it("passes through a style string unchanged when it doesn't match any shorthand prefix", async () => {
+    const mapLib = createMockMapLib();
+    const ctorSpy = vi.spyOn(mapLib, "Map");
+    render(() => <MapGL mapLib={mapLib} options={{ style: "not-a-known-shorthand" }} />);
+    await waitForLoad();
+
+    expect(ctorSpy.mock.calls[0][0].style).toBe("not-a-known-shorthand");
+  });
+
+  it("dynamically imports mapbox-gl when no mapLib prop is given", async () => {
+    const rejection = new Promise<Error>((resolve) => {
+      process.once("unhandledRejection", (reason) => resolve(reason as Error));
+    });
+
+    render(() => <MapGL />);
+    const err = await rejection;
+
+    // Real mapbox-gl's `supported()` reliably reports false under jsdom (no WebGL context),
+    // which is exactly what confirms the dynamic import actually ran and returned the real module.
+    expect(err.message).toMatch(/not supported/);
+  });
+
+  it("falls back to window.mapboxgl when neither the given mapLib nor window.maplibregl has .Map", async () => {
+    const realLib = createMockMapLib();
+    // @ts-ignore
+    window.mapboxgl = realLib;
+    render(() => <MapGL mapLib={{} as any} />);
+    await waitForLoad();
+
+    expect(realLib.Map.instances.length).toBe(1);
+    // @ts-ignore
+    delete window.mapboxgl;
+  });
+
+  it("logs a debugEvents message for a function-form map event", async () => {
+    const debugSpy = vi.spyOn(console, "debug").mockImplementation(() => {});
+    const mapLib = createMockMapLib();
+    render(() => <MapGL mapLib={mapLib} debugEvents onClick={() => {}} />);
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+
+    map.fire("click", { lngLat: [0, 0] });
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(debugSpy).toHaveBeenCalledWith(
+      "%c[MapGL]",
+      "color: #0ea5e9",
+      "Map 'click' event:",
+      expect.objectContaining({ lngLat: [0, 0] }),
+    );
+    debugSpy.mockRestore();
+  });
+
+  it("uses map.getCenter() directly when the viewport's center is given as a {lng,lat} object", async () => {
+    const mapLib = createMockMapLib();
+    const onViewportChange = vi.fn();
+    render(() => (
+      <MapGL
+        mapLib={mapLib}
+        viewport={{ center: { lng: 1, lat: 2 } as any, zoom: 5 }}
+        onViewportChange={onViewportChange}
+      />
+    ));
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+    map.getCenter.mockReturnValue({ lng: 9, lat: 9 });
+
+    map.fire("move", {});
+
+    expect(onViewportChange).toHaveBeenCalledWith(
+      expect.objectContaining({ center: { lng: 9, lat: 9 } }),
+    );
+  });
+
   it("turns on debug rendering flags reactively", async () => {
     const mapLib = createMockMapLib();
     const [show, setShow] = createSignal(false);

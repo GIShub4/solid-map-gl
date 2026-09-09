@@ -1,9 +1,10 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { cleanup } from "@solidjs/testing-library";
+import { cleanup, render } from "@solidjs/testing-library";
 import { createSignal } from "solid-js";
 import { Popup } from "./index";
+import { MapProvider } from "../MapProvider";
 import { renderWithMap } from "../../testUtils/renderWithMap";
-import { tick } from "../../testUtils/mockMap";
+import { createMockMapLib, tick } from "../../testUtils/mockMap";
 
 afterEach(cleanup);
 
@@ -75,5 +76,15 @@ describe("Popup", () => {
     const popup = mapLib.Popup.instances[0];
     unmount();
     expect(popup.remove).toHaveBeenCalled();
+  });
+
+  it("does not create a popup when the map isn't ready yet", () => {
+    const mapLib = createMockMapLib();
+    render(() => (
+      <MapProvider mapLib={mapLib}>
+        <Popup lngLat={[1, 2]}>hi</Popup>
+      </MapProvider>
+    ));
+    expect(mapLib.Popup.instances.length).toBe(0);
   });
 });
