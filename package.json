@@ -1,5 +1,5 @@
 {
-  "version": "1.13.0",
+  "version": "2.0.0",
   "name": "solid-map-gl",
   "description": "SolidJS Component Library for Mapbox GL JS & MapLibre GL JS",
   "info": "SolidJS Component Library for Mapbox GL JS & MapLibre GL JS. Mapbox GL JS and MapLibre GL JS are JavaScript libraries that render interactive maps from vector tiles and map styles using WebGL. This project is intended to be as close as possible to the Mapbox GL JS API.",
