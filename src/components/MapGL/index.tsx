@@ -6,7 +6,6 @@ import {
   Component,
   on,
 } from "solid-js";
-import "mapbox-gl/dist/mapbox-gl.css";
 import { MapProvider } from "../MapProvider";
 import { mapEvents } from "../../events";
 import { vectorStyleList } from "../../mapStyles";

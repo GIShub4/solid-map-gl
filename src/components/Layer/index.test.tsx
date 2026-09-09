@@ -87,6 +87,42 @@ describe("Layer", () => {
     );
   });
 
+  it("calls moveLayer when beforeId changes after mount", async () => {
+    const [beforeId, setBeforeId] = createSignal("anchor");
+    const { map } = renderWithMap(() => (
+      <Source id="src" source={{ type: "geojson", data: {} as any }}>
+        <Layer id="l1" style={{ type: "fill" }} beforeId={beforeId()} />
+      </Source>
+    ));
+    expect(map.moveLayer).not.toHaveBeenCalled();
+
+    setBeforeId("other");
+    await tick();
+
+    expect(map.moveLayer).toHaveBeenCalledWith("l1", "other");
+  });
+
+  it("calls moveLayer when beforeType resolves to a different layer id", async () => {
+    const map = createMockMap();
+    map.getStyle().layers = [{ id: "labels", type: "symbol" }];
+    const [beforeType, setBeforeType] = createSignal("symbol");
+    renderWithMap(
+      () => (
+        <Source id="src" source={{ type: "geojson", data: {} as any }}>
+          <Layer id="l1" style={{ type: "fill" }} beforeType={beforeType()} />
+        </Source>
+      ),
+      { map },
+    );
+    expect(map.moveLayer).not.toHaveBeenCalled();
+
+    map.getStyle().layers = [{ id: "roads", type: "line" }];
+    setBeforeType("line");
+    await tick();
+
+    expect(map.moveLayer).toHaveBeenCalledWith("l1", "roads");
+  });
+
   it("removes the layer on cleanup", () => {
     const { map, unmount } = renderWithMap(() => (
       <Source id="src" source={{ type: "geojson", data: {} as any }}>

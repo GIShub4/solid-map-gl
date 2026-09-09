@@ -87,6 +87,7 @@ export function createMockMap(opts: { isMapLibre?: boolean } = {}) {
   });
   const getLayer = vi.fn((id: string) => layers.get(id));
   const removeLayer = vi.fn((id: string) => layers.delete(id));
+  const moveLayer = vi.fn();
   const setLayoutProperty = vi.fn();
   const setPaintProperty = vi.fn();
   const setLayerZoomRange = vi.fn();
@@ -152,6 +153,7 @@ export function createMockMap(opts: { isMapLibre?: boolean } = {}) {
     addLayer,
     getLayer,
     removeLayer,
+    moveLayer,
     setLayoutProperty,
     setPaintProperty,
     setLayerZoomRange,

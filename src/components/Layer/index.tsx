@@ -1,4 +1,10 @@
-import { onCleanup, createEffect, Component, createUniqueId } from "solid-js";
+import {
+  onCleanup,
+  createEffect,
+  createMemo,
+  Component,
+  createUniqueId,
+} from "solid-js";
 import { useMapContext } from "../MapProvider";
 import { useSourceId } from "../Source";
 import { layerEvents } from "../../events";
@@ -102,6 +108,12 @@ export const Layer: Component<Props> = (props) => {
       console.debug("%c[MapGL]", "color: #10b981", text, value || "");
   };
 
+  const getBeforeId = createMemo(() =>
+    props.beforeType
+      ? ctx.map.getStyle().layers.find((l) => l.type === props.beforeType)?.id
+      : props.beforeId,
+  );
+
   // Add Layer
   ctx.map.addLayer(
     (props.customLayer || {
@@ -114,9 +126,7 @@ export const Layer: Component<Props> = (props) => {
         smg: { beforeType: props.beforeType, beforeId: props.beforeId },
       },
     }) as any,
-    props.beforeType
-      ? ctx.map.getStyle().layers.find((l) => l.type === props.beforeType)?.id
-      : props.beforeId,
+    getBeforeId(),
   );
   ctx.map.layerIdList.push(layerId);
   if (props.customLayer) ctx.map.fire("load");
@@ -173,6 +183,15 @@ export const Layer: Component<Props> = (props) => {
     debug(`Update Visibility (${layerId}):`, props.visible.toString());
     return props.visible;
   }, props.visible);
+
+  // Update Layer Z-Index
+  createEffect((prev: string) => {
+    if (getBeforeId() === prev) return prev;
+
+    ctx.map.moveLayer(layerId, getBeforeId());
+    debug(`Update Layer Z-Index (${layerId}):`, getBeforeId());
+    return getBeforeId();
+  }, getBeforeId());
 
   // Update Filter
   createEffect(async () => {
