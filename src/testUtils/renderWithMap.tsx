@@ -9,13 +9,22 @@ import { createMockMap, createMockMapLib, type MockMap } from "./mockMap";
  */
 export function renderWithMap(
   ui: () => any,
-  opts: { isMapLibre?: boolean; map?: MockMap } = {},
+  opts: {
+    isMapLibre?: boolean;
+    map?: MockMap;
+    constants?: Record<string, any>;
+  } = {},
 ) {
   const map = opts.map || createMockMap({ isMapLibre: opts.isMapLibre });
   const mapLib = createMockMapLib({ isMapLibre: opts.isMapLibre });
 
   const result = render(() => (
-    <MapProvider map={map} mapLib={mapLib} isMapLibre={!!opts.isMapLibre}>
+    <MapProvider
+      map={map}
+      mapLib={mapLib}
+      isMapLibre={!!opts.isMapLibre}
+      constants={opts.constants}
+    >
       {ui()}
     </MapProvider>
   ));

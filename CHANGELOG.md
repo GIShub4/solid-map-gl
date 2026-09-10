@@ -10,6 +10,45 @@ rejected, what's still open), see `docs/dev-notes.md`.
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-09-10
+
+### Added
+
+- **`<MapGL constants>`** — named values (colors, widths, or any paint/layout value) defined once
+  and reused across every `<Layer>` by writing `"@name"` in place of a literal value (e.g.
+  `fillColor: "@primary"`). Updating `constants` re-applies only the layers referencing a changed
+  name — the JS-side equivalent of the `constants`/`@name` feature the Mapbox GL style spec itself
+  dropped after v7, resolved here before the value ever reaches Mapbox's own style representation.
+- **`<Layer>` paint colors accept a Tailwind CSS v4 palette name** (`fillColor: 'blue-600'`),
+  resolved from the page's live `--color-blue-600` custom property (including a consuming app's own
+  customized/extended theme colors), or a raw CSS Color 4 function (`oklch(...)`, `lab(...)`,
+  `color(...)`, ...) that Mapbox's own color parser can't read.
+- **`'bg-{name} dark:bg-{name}'` color syntax** (e.g. `fillColor: 'bg-blue-600 dark:bg-blue-400'`)
+  for colors that automatically track the page's light/dark theme — resolved through the browser's
+  real CSS cascade against the actual compiled Tailwind utility classes, so it respects whatever
+  dark-mode strategy a consuming app's Tailwind config uses (a class or data-attribute on any
+  ancestor, a media query, a custom variant) instead of `solid-map-gl` guessing one.
+
+### Fixed
+
+- **`Image`**: pixelRatio handling now uses `window.devicePixelRatio` (matching `Source`'s `@2x`
+  convention) instead of a hardcoded `2`, and actually oversamples the pattern canvas to render at
+  that resolution; the `style.load` re-add listener no longer leaks a new registration on every
+  reactive effect run, so images reliably survive a full style rebuild (e.g. switching basemaps);
+  the SVG-string rasterization fallback now percent-encodes SVG markup before building its `data:`
+  URI (an unescaped `#` in a hex color previously truncated the URI at a fragment), surfaces decode
+  failures via an `onerror` handler instead of hanging forever, and scales both canvas axes
+  uniformly so non-square SVGs keep their aspect ratio.
+
+### Changed
+
+- `MapGL`'s dark-mode `MutationObserver` now also watches `<html>` (not just `<body>`) for a
+  `dark` class, matching Tailwind's own documented convention, and separately exposes a plain
+  `themeVersion` counter (bumped on every observed change, unconditionally) so `Layer`'s
+  `'bg-x dark:bg-y'` color resolution re-checks correctly even for dark-mode strategies (e.g. a
+  `data-theme` attribute) the class-based heuristic used for `darkStyle` switching wouldn't
+  recognize.
+
 ## [2.0.1] - 2026-09-09
 
 ### Fixed

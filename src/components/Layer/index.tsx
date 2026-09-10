@@ -9,6 +9,7 @@ import { useMapContext } from "../MapProvider";
 import { useSourceId } from "../Source";
 import { layerEvents } from "../../events";
 import { baseStyle, layoutStyles } from "../../styles";
+import { resolveColor as resolveColorValue } from "../../colors";
 import type { layerEventTypes } from "../../events";
 import type { FilterSpecification, CustomLayerInterface } from "mapbox-gl";
 
@@ -73,27 +74,72 @@ const newKey = (key, type) =>
     ? ""
     : type + "-") + key.replace(/[A-Z]/g, (s) => "-" + s.toLowerCase());
 
-const updateStyle = (oldStyle: FlatLayerStyle): FlatLayerStyle => {
+// Lets paint colors be given as a Tailwind palette name (`fillColor: 'blue-600'`) or a CSS Color 4
+// function Mapbox can't parse (`fillColor: 'oklch(54.6% 0.245 262.881)'`), alongside any format
+// Mapbox already understands — see `resolveColorValue` in `src/colors.ts`.
+const resolveColor = (key: string, value: any) =>
+  key.endsWith("color") && typeof value === "string"
+    ? resolveColorValue(value)
+    : value;
+
+const constantRef = /^@(.+)$/;
+
+// Resolves a `"@name"` reference against the `constants` prop passed to `<MapGL>` (see
+// `MapProvider`'s `ctx.constants`) — the JS-side equivalent of the `@name`/`constants` feature the
+// Mapbox GL style spec itself dropped after v7. Reads `constants[name]` directly (rather than e.g.
+// `in`/`hasOwnProperty`) so a plain property access on the `solid-js/store` proxy is what
+// establishes the reactive dependency, letting a `constants` prop change re-run just the Layer
+// effects that reference the changed name. Applied to every paint/layout value, not just colors,
+// since a constant can hold a width or any other value type just as well as a color.
+const resolveConstant = (
+  key: string,
+  value: any,
+  constants: Record<string, any>,
+  debug: (text: string, value?: any) => void,
+) => {
+  if (typeof value !== "string") return value;
+  const match = value.match(constantRef);
+  if (!match) return value;
+  const resolved = constants[match[1]];
+  if (resolved === undefined) {
+    debug(`Unknown constant "@${match[1]}" referenced by "${key}" — leaving unresolved`);
+    return value;
+  }
+  return resolved;
+};
+
+const updateStyle = (
+  oldStyle: FlatLayerStyle,
+  constants: Record<string, any> = {},
+  debug: (text: string, value?: any) => void = () => {},
+): FlatLayerStyle => {
   if (!oldStyle) return;
   let layout = {};
   let paint = {};
   let style = {};
 
+  const resolvePaint = (key: string, value: any) =>
+    resolveColor(key, resolveConstant(key, value, constants, debug));
+
   Object.entries(oldStyle).forEach(([key, value]) => {
     if (baseStyle.includes(key)) style[key] = value;
     else {
       const nk = newKey(key, oldStyle.type);
-      layoutStyles.includes(nk) ? (layout[nk] = value) : (paint[nk] = value);
+      layoutStyles.includes(nk)
+        ? (layout[nk] = resolveConstant(nk, value, constants, debug))
+        : (paint[nk] = resolvePaint(nk, value));
     }
   });
   if (oldStyle.paint)
-    Object.entries(oldStyle.paint).forEach(
-      ([key, value]) => (paint[newKey(key, oldStyle.type)] = value),
-    );
+    Object.entries(oldStyle.paint).forEach(([key, value]) => {
+      const nk = newKey(key, oldStyle.type);
+      paint[nk] = resolvePaint(nk, value);
+    });
   if (oldStyle.layout)
-    Object.entries(oldStyle.layout).forEach(
-      ([key, value]) => (layout[newKey(key, oldStyle.type)] = value),
-    );
+    Object.entries(oldStyle.layout).forEach(([key, value]) => {
+      const nk = newKey(key, oldStyle.type);
+      layout[nk] = resolveConstant(nk, value, constants, debug);
+    });
   return { ...style, paint, layout };
 };
 
@@ -117,7 +163,7 @@ export const Layer: Component<Props> = (props) => {
   // Add Layer
   ctx.map.addLayer(
     (props.customLayer || {
-      ...updateStyle(props.style),
+      ...updateStyle(props.style, ctx.constants, debug),
       id: layerId,
       source: sourceId,
       // `slot` is Mapbox Standard-Style-only — MapLibre has no equivalent (see docs/dev-notes.md)
@@ -147,7 +193,13 @@ export const Layer: Component<Props> = (props) => {
 
   // Update Style
   createEffect((prev: FlatLayerStyle) => {
-    const style = updateStyle(props.style);
+    // Read (not otherwise used) so any environment change MapGL noticed (a matchMedia firing, or
+    // any attribute mutation on <html>/<body> — not just a "dark" class) re-runs this effect,
+    // needed to re-probe any "bg-x dark:bg-y" color pair (see resolveColor in src/colors.ts): the
+    // browser's cascade decides which of the two applies, but nothing tells Solid to re-read that
+    // cascade on its own, so this stands in as the "please re-check" trigger.
+    ctx.themeVersion;
+    const style = updateStyle(props.style, ctx.constants, debug);
     if (style === prev) return;
 
     if (style.layout !== prev?.layout)
@@ -168,7 +220,7 @@ export const Layer: Component<Props> = (props) => {
 
     debug("Update Layer Style:", layerId);
     return style;
-  }, updateStyle(props.style));
+  }, updateStyle(props.style, ctx.constants, debug));
 
   // Update Visibility
   createEffect((prev: boolean) => {

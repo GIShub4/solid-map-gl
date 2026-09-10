@@ -37,7 +37,12 @@ map instance via `useMapContext()`.
 The root component. Creates the `mapboxgl.Map` (or `maplibregl.Map`, via `mapLib`) instance in
 `onMount`, resolves style shorthands (see [mapStyles](#supporting-modules)), wires up every
 `mapEvents` entry from `src/events.ts`, tracks dark-mode via `matchMedia` + a `MutationObserver`
-on `document.body`'s `dark` class, observes container resize, and republishes the live viewport
+watching for a `dark` class on both `<html>` and `<body>` (used for `darkStyle` switching), and
+separately bumps a plain `themeVersion` counter on *every* matchMedia/mutation firing regardless of
+that class check — threaded through `MapProvider` as `ctx.themeVersion`, purely as `Layer`'s
+re-probe trigger for `'bg-x dark:bg-y'` color pairs (see [Layer](#layer)), so it also catches
+non-class dark-mode strategies (a `data-theme` attribute, say) the class-based `darkStyle` check
+wouldn't recognize. Observes container resize, and republishes the live viewport
 (`center`/`zoom`/`pitch`/`bearing`/`point`/`inTransit`) through `onViewportChange` on `move` /
 `moveend`. Once the map fires `load`, it renders `<MapProvider>` around `children` inside an
 absolutely-positioned `.overlay` div (`pointer-events: none` except for real children) so overlay
@@ -63,6 +68,7 @@ components can sit on top of the canvas.
 | `disableResize` | `boolean` | Disable the `ResizeObserver` that calls `map.resize()` |
 | `mapLib` | `any` | Pass the MapLibre (or other compatible) module instead of dynamically importing `mapbox-gl`. Remember to also import that library's own CSS (`maplibre-gl/dist/maplibre-gl.css` instead of `mapbox-gl/dist/mapbox-gl.css`) — `solid-map-gl` doesn't load it for you |
 | `apikey` | `string` | API key substituted into `{apikey}` placeholders in style/tile URLs |
+| `constants` | `Record<string, string \| number>` | Named values reusable across every `<Layer>` by writing `"@name"` in a paint/layout style property instead of the literal value (e.g. `fillColor: "@primary"`). Updating this prop re-applies just the layers referencing a changed name. See [Layer](#layer)'s "Update Style" section |
 | `debug` / `debugEvents` | `boolean` | Enable `[MapGL]` console.debug logging |
 | `on[Event]` | see `mapEventTypes` in `src/events.ts` | Any Mapbox map event, e.g. `onMouseMove`, `onClick`, `onLoad` |
 | `children` | `JSX.Element` | Rendered once the map has loaded, inside `MapProvider` |
@@ -96,14 +102,16 @@ const App = () => (
 
 `src/components/MapProvider/index.tsx` — internal plumbing, exported for advanced use.
 
-A `solid-js/store`-backed context holding `{ map, mapLib, isMapLibre }`. `MapGL` renders this
-automatically, passing the map instance it created plus whichever Mapbox/MapLibre module it
-resolved (`props.mapLib`, or its dynamic `import("mapbox-gl")`) and a computed `isMapLibre` flag;
-you normally never instantiate `<MapProvider>` yourself. The store is created fresh inside the
-component on every render (not module-scoped), so multiple `<MapGL>` instances — even ones mixing
-Mapbox and MapLibre on the same page — each get an isolated context value instead of clobbering a
-shared global (this replaced the old `window.MapLib` singleton, which had exactly that collision
-bug). Exposes `useMapContext()`, which every other component calls to reach:
+A `solid-js/store`-backed context holding `{ map, mapLib, isMapLibre, constants, themeVersion }`.
+`MapGL` renders this automatically, passing the map instance it created plus whichever
+Mapbox/MapLibre module it resolved (`props.mapLib`, or its dynamic `import("mapbox-gl")`), a
+computed `isMapLibre` flag, its own `constants` prop, and its own `themeVersion` counter; you
+normally never instantiate `<MapProvider>` yourself. The store is
+created fresh inside the component on every render (not module-scoped), so multiple `<MapGL>`
+instances — even ones mixing Mapbox and MapLibre on the same page — each get an isolated context
+value instead of clobbering a shared global (this replaced the old `window.MapLib` singleton,
+which had exactly that collision bug). Exposes `useMapContext()`, which every other component
+calls to reach:
 
 - `ctx.map` — the live `mapboxgl.Map`/`maplibregl.Map` instance, extended with `debug`,
   `debugEvents`, `sourceIdList`, `layerIdList`, `isMapLibre`.
@@ -114,6 +122,21 @@ bug). Exposes `useMapContext()`, which every other component calls to reach:
   `MapGL` by checking `typeof mapLib.Map.prototype.setConfigProperty !== "function"` (Mapbox
   Standard Style's `setConfigProperty` has no MapLibre equivalent, so its absence is a stable,
   structural way to tell the two libraries apart regardless of how `mapLib` was obtained).
+- `ctx.constants` — `MapGL`'s `constants` prop, read by `Layer` to resolve `"@name"` placeholders
+  (see [Layer](#layer)). Set synchronously at setup (not only inside a `createEffect`) so a child
+  reading it during its own synchronous setup — `Layer`'s initial `addLayer` call — sees the real
+  value immediately rather than the `{}` default for one microtask; a `createEffect` then keeps it
+  updated as the `constants` prop changes. Uses a plain-object merge, not `reconcile` — `reconcile`
+  unwraps its source to a non-reactive snapshot before diffing, which would silently break
+  fine-grained tracking if `constants` is ever a live signal/store read inline (e.g.
+  `constants={{ primary: primary() }}`), the idiomatic way to make one entry reactive.
+- `ctx.themeVersion` — `MapGL`'s plain incrementing counter (see [MapGL](#mapgl)'s dark-mode
+  detection), threaded through the same way as `constants`. `Layer` reads it purely as a "please
+  re-check" trigger for `resolveColor`'s `'bg-x dark:bg-y'` class-pair resolution (see
+  [Layer](#layer)) — its value is never branched on, only the fact that it changed. Deliberately
+  *not* the same signal as `darkMode`/`darkStyle` switching: that one only recognizes a `dark`
+  class, but this bumps on every observed mutation/matchMedia firing unconditionally, so it also
+  covers a consuming app's non-class dark-mode strategy (a `data-theme` attribute, say) correctly.
 
 ```ts
 const [ctx] = useMapContext();
@@ -169,6 +192,70 @@ inserting relative to existing layers via `beforeId`/`beforeType` (recorded in
 `layer.metadata.smg` so it survives base-style swaps, see `MapGL`'s `insertLayers`). Also supports
 raw `customLayer` (a `CustomLayerInterface`, e.g. for deck.gl) instead of `style`, and per-layer
 feature state via `featureState`.
+
+Every bucketed paint/layout value is first checked against `resolveConstant()`: a string matching
+`/^@(.+)$/` (e.g. `"@primary"`) looks up the rest (`"primary"`) in `ctx.constants` (`MapGL`'s
+`constants` prop, see [MapProvider](#mapprovider)) and, if found, is replaced by that value
+verbatim — of whatever type it holds (a color string, a number for `lineWidth`, ...). This is the
+JS-side equivalent of the `@name`/`constants` feature the Mapbox GL style spec itself dropped after
+v7: the substitution happens here, before the value ever reaches `addLayer`/`setPaintProperty`, so
+the style Mapbox actually sees is always fully resolved — no unresolved placeholder is ever part of
+Mapbox's own style representation. `resolveConstant` reads `constants[name]` via a plain property
+access (not `in`/`hasOwnProperty`) specifically so that read is what establishes the `solid-js/store`
+dependency, letting a `constants` prop change on `MapGL` re-run only the Layer effects that
+reference the name that actually changed. An unresolved reference (name not found in `constants`)
+is left as the literal `"@name"` string and passed through unchanged, with a `debug()` log — Mapbox
+itself will then reject/ignore it, same as any other invalid property value.
+
+Only *after* constant resolution does a bucketed paint key ending in `color` also run through
+`resolveColor()` (→ `resolveColor()` in `src/colors.ts`, imported there as `resolveColorValue` to
+avoid the name clash) before reaching `addLayer`/`setPaintProperty` — so a constant's own value can
+itself be a Tailwind name or CSS Color 4 function and still resolve (e.g. `constants={{ primary:
+"blue-600" }}` with `fillColor: "@primary"`):
+- `'bg-{name} dark:bg-{name}'` (e.g. `fillColor: 'bg-blue-600 dark:bg-blue-400'`) resolves via a
+  *second*, separate detached probe (`resolveClassPair` in `src/colors.ts`) that gets the real
+  compiled Tailwind utility classes applied to it as a `className` (not an inline style) and reads
+  back `getComputedStyle(...).backgroundColor` — whichever of the two the browser's own cascade
+  picked wins, so this respects whatever dark-mode strategy the consuming app's Tailwind config
+  actually uses (a class or data-attribute on any ancestor, a media query, a custom variant, ...)
+  without `Layer` needing to know or guess which. The tradeoff: unlike the bare `'blue-600'` form
+  below (which reads an always-present *theme* custom property), this depends on Tailwind's
+  build-time scanner having actually generated `.bg-{name}`/the dark-scoped rule for it, which only
+  happens if that exact, complete, prefixed string appears literally somewhere in the consuming
+  app's own source — a bare unprefixed name doesn't have a property prefix, so it's never scanned
+  or generated; you must write the full `bg-`-prefixed form for this path. `background-color` is
+  used (rather than `color`, as the other probe uses) specifically because it isn't inherited and
+  defaults to fully transparent, so a class that was never generated reads back as an unambiguous
+  `rgba(0, 0, 0, 0)` rather than a plausible-but-wrong inherited color — that's how an unresolved
+  pair falls back to the literal string instead of silently applying the wrong color.
+
+  Nothing about *reading* the cascade is reactive by itself — `getComputedStyle` is a one-shot
+  snapshot, not a live binding — so re-probing still needs an explicit trigger. `Layer`'s "Update
+  Style" effect reads `ctx.themeVersion` (`MapProvider`'s context field, sourced from `MapGL`'s
+  `themeVersion` counter — see [MapGL](#mapgl)) purely to force a re-run whenever it changes; the
+  value itself is never branched on — the cascade decides the color, not this signal. Deliberately
+  *not* `MapGL`'s `darkMode` boolean (used for `darkStyle` switching): that one only recognizes a
+  `dark` class on `<html>`/`<body>`, but `themeVersion` bumps on *every* matchMedia/mutation firing
+  regardless of what that class check finds, since the underlying `MutationObserver` is already
+  watching for any attribute mutation, `data-theme` included — so it correctly re-triggers even for
+  a dark-mode strategy MapGL's own class-based heuristic wouldn't recognize as "dark" at all.
+- A Tailwind color name (`fillColor: 'blue-600'`) resolves via the live `--color-blue-600` custom
+  property Tailwind v4 defines on `:root` — including the consuming app's own customized/extended
+  theme colors. This requires Tailwind v4 (not v3, which never exposed colors as CSS variables) to
+  be installed with its CSS loaded on the page; there's no bundled fallback palette, so an unset
+  variable just leaves the name as-is (and Mapbox will reject it). No SSR concern here: `Layer`
+  only ever renders as a descendant of `MapProvider`, which `MapGL` only mounts client-side after
+  `onMount`/the map's `load` event, unlike e.g. `MapGL`'s own top-level `darkMode` signal
+  initializer, which does need an `isServer` (from `solid-js/web`) guard because it runs during
+  SolidStart SSR too — see `src/components/MapGL/index.ssr.test.tsx` for a real (non-jsdom) SSR
+  smoke test of that guard.
+- A raw CSS Color 4 function Mapbox's own parser (csscolorparser) can't read (`oklch(...)`,
+  `lab(...)`, `color(...)`, ...) resolves directly, the same way, so it isn't limited to Tailwind
+  names.
+Both cases convert via the browser's own CSS engine — a detached probe `<div>` with its
+`style.color` set, read back through `getComputedStyle(...).color` — rather than reimplementing
+oklch/lab color-space math, so it stays correct for whatever color functions the browser supports.
+Anything else (hex, rgb/hsl, named CSS colors, Mapbox expressions) passes through unchanged.
 
 ### Props
 

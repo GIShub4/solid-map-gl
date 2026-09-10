@@ -1,12 +1,34 @@
-import { describe, it, expect, afterEach, vi } from "vitest";
-import { cleanup } from "@solidjs/testing-library";
+import { describe, it, expect, beforeAll, afterEach, vi } from "vitest";
+import { cleanup, render } from "@solidjs/testing-library";
 import { createSignal } from "solid-js";
 import { Layer } from "./index";
 import { Source } from "../Source";
+import { MapProvider } from "../MapProvider";
 import { renderWithMap } from "../../testUtils/renderWithMap";
-import { createMockMap, tick } from "../../testUtils/mockMap";
+import { createMockMap, createMockMapLib, tick } from "../../testUtils/mockMap";
 
-afterEach(cleanup);
+beforeAll(() => {
+  // Same stand-in as src/colors.test.ts for what Tailwind's build would generate from a literal
+  // "bg-blue-600 dark:bg-blue-400" match — a light rule plus a class-strategy dark rule scoped
+  // under an ancestor `.dark`.
+  // A third rule scoped by a `data-theme` attribute (no class at all) stands in for an app that
+  // configured Tailwind's dark variant that way instead of a `.dark` class — proving the
+  // themeVersion re-probe trigger isn't tied to MapGL's own class-based darkMode heuristic.
+  const style = document.createElement("style");
+  style.textContent = `
+    .bg-blue-600 { background-color: rgb(1, 2, 3); }
+    .dark .dark\\:bg-blue-400 { background-color: rgb(4, 5, 6); }
+    [data-theme="dark"] .dark\\:bg-blue-400 { background-color: rgb(7, 8, 9); }
+  `;
+  document.head.appendChild(style);
+});
+
+afterEach(() => {
+  cleanup();
+  document.documentElement.style.removeProperty("--color-blue-600");
+  document.body.removeAttribute("data-theme");
+  document.body.classList.remove("dark");
+});
 
 describe("Layer", () => {
   it("buckets a flat style object into paint/layout on addLayer", () => {
@@ -29,6 +51,226 @@ describe("Layer", () => {
     expect(call[0].paint).toEqual({ "icon-color": "#fff" });
     expect(call[0].layout).toEqual({ "icon-image": "pin" });
     expect(map.layerIdList).toContain("l1");
+  });
+
+  it("resolves a Tailwind color name through its live --color-{name} custom property", () => {
+    document.documentElement.style.setProperty("--color-blue-600", "#123456");
+    const { map } = renderWithMap(() => (
+      <Source id="src" source={{ type: "geojson", data: {} as any }}>
+        <Layer id="l1" style={{ type: "fill", fillColor: "blue-600", fillOpacity: 1 }} />
+      </Source>
+    ));
+    const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
+    expect(call[0].paint).toEqual({
+      "fill-color": "rgb(18, 52, 86)",
+      "fill-opacity": 1,
+    });
+  });
+
+  it("leaves a Tailwind name unchanged when no matching --color-{name} variable is set", () => {
+    const { map } = renderWithMap(() => (
+      <Source id="src" source={{ type: "geojson", data: {} as any }}>
+        <Layer id="l1" style={{ type: "fill", fillColor: "blue-600" }} />
+      </Source>
+    ));
+    const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
+    expect(call[0].paint).toEqual({ "fill-color": "blue-600" });
+  });
+
+  it("resolves a raw oklch() paint color value, not just Tailwind names", () => {
+    const { map } = renderWithMap(() => (
+      <Source id="src" source={{ type: "geojson", data: {} as any }}>
+        <Layer
+          id="l1"
+          style={{ type: "fill", fillColor: "oklch(54.6% 0.245 262.881)" }}
+        />
+      </Source>
+    ));
+    const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
+    // jsdom doesn't do real oklch conversion (unlike a real browser) — the "54.6%" -> "0.546"
+    // normalization it does apply is enough to prove this was routed through resolution rather
+    // than left as the literal input string.
+    expect(call[0].paint["fill-color"]).not.toBe("oklch(54.6% 0.245 262.881)");
+  });
+
+  it("leaves non-Tailwind-name strings on paint color properties untouched", () => {
+    const { map } = renderWithMap(() => (
+      <Source id="src" source={{ type: "geojson", data: {} as any }}>
+        <Layer id="l1" style={{ type: "fill", fillColor: "#f00" }} />
+      </Source>
+    ));
+    const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
+    expect(call[0].paint).toEqual({ "fill-color": "#f00" });
+  });
+
+  it("leaves a matching name/shade string untouched on a non-color property", () => {
+    const { map } = renderWithMap(() => (
+      <Source id="src" source={{ type: "geojson", data: {} as any }}>
+        <Layer id="l1" style={{ type: "symbol", iconImage: "blue-600" }} />
+      </Source>
+    ));
+    const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
+    expect(call[0].layout).toEqual({ "icon-image": "blue-600" });
+  });
+
+  it("resolves an \"@name\" reference against MapGL's constants prop", () => {
+    const { map } = renderWithMap(
+      () => (
+        <Source id="src" source={{ type: "geojson", data: {} as any }}>
+          <Layer id="l1" style={{ type: "fill", fillColor: "@primary" }} />
+        </Source>
+      ),
+      { constants: { primary: "#123456" } },
+    );
+    const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
+    expect(call[0].paint).toEqual({ "fill-color": "#123456" });
+  });
+
+  it("resolves a non-color constant (e.g. a shared width) the same way", () => {
+    const { map } = renderWithMap(
+      () => (
+        <Source id="src" source={{ type: "geojson", data: {} as any }}>
+          <Layer id="l1" style={{ type: "line", lineWidth: "@roadWidth" }} />
+        </Source>
+      ),
+      { constants: { roadWidth: 4 } },
+    );
+    const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
+    expect(call[0].paint).toEqual({ "line-width": 4 });
+  });
+
+  it("chains constant resolution into resolveColor, so a constant can itself be a Tailwind name", () => {
+    document.documentElement.style.setProperty("--color-blue-600", "#123456");
+    const { map } = renderWithMap(
+      () => (
+        <Source id="src" source={{ type: "geojson", data: {} as any }}>
+          <Layer id="l1" style={{ type: "fill", fillColor: "@primary" }} />
+        </Source>
+      ),
+      { constants: { primary: "blue-600" } },
+    );
+    const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
+    expect(call[0].paint).toEqual({ "fill-color": "rgb(18, 52, 86)" });
+  });
+
+  it("leaves an unknown \"@name\" reference unresolved instead of throwing", () => {
+    const { map } = renderWithMap(
+      () => (
+        <Source id="src" source={{ type: "geojson", data: {} as any }}>
+          <Layer id="l1" style={{ type: "fill", fillColor: "@missing" }} />
+        </Source>
+      ),
+      { constants: { primary: "#123456" } },
+    );
+    const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
+    expect(call[0].paint).toEqual({ "fill-color": "@missing" });
+  });
+
+  it("leaves a literal string starting with @ but with no constants defined untouched", () => {
+    const { map } = renderWithMap(() => (
+      <Source id="src" source={{ type: "geojson", data: {} as any }}>
+        <Layer id="l1" style={{ type: "symbol", textField: "@handle" }} />
+      </Source>
+    ));
+    const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
+    expect(call[0].layout).toEqual({ "text-field": "@handle" });
+  });
+
+  it("resolves a 'bg-x dark:bg-y' pair to the light class when not in dark mode", () => {
+    const { map } = renderWithMap(() => (
+      <Source id="src" source={{ type: "geojson", data: {} as any }}>
+        <Layer id="l1" style={{ type: "fill", fillColor: "bg-blue-600 dark:bg-blue-400" }} />
+      </Source>
+    ));
+    const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
+    expect(call[0].paint).toEqual({ "fill-color": "rgb(1, 2, 3)" });
+  });
+
+  it("resolves a 'bg-x dark:bg-y' pair to the dark class when an ancestor already has the dark class", () => {
+    document.body.classList.add("dark");
+    const { map } = renderWithMap(() => (
+      <Source id="src" source={{ type: "geojson", data: {} as any }}>
+        <Layer id="l1" style={{ type: "fill", fillColor: "bg-blue-600 dark:bg-blue-400" }} />
+      </Source>
+    ));
+    const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
+    expect(call[0].paint).toEqual({ "fill-color": "rgb(4, 5, 6)" });
+  });
+
+  it("re-probes a 'bg-x dark:bg-y' color when MapGL's themeVersion bumps, with no other change", async () => {
+    const [version, setVersion] = createSignal(0);
+    const map = createMockMap();
+    const mapLib = createMockMapLib();
+
+    render(() => (
+      <MapProvider map={map} mapLib={mapLib} themeVersion={version()}>
+        <Source id="src" source={{ type: "geojson", data: {} as any }}>
+          <Layer id="l1" style={{ type: "fill", fillColor: "bg-blue-600 dark:bg-blue-400" }} />
+        </Source>
+      </MapProvider>
+    ));
+
+    document.body.classList.add("dark");
+    setVersion((v) => v + 1);
+    await tick();
+
+    expect(map.setPaintProperty).toHaveBeenCalledWith(
+      "l1",
+      "fill-color",
+      "rgb(4, 5, 6)",
+      { validate: false },
+    );
+  });
+
+  it("re-probes correctly for a data-theme attribute change, not just a class — themeVersion doesn't care which", async () => {
+    const [version, setVersion] = createSignal(0);
+    const map = createMockMap();
+    const mapLib = createMockMapLib();
+
+    render(() => (
+      <MapProvider map={map} mapLib={mapLib} themeVersion={version()}>
+        <Source id="src" source={{ type: "geojson", data: {} as any }}>
+          <Layer id="l1" style={{ type: "fill", fillColor: "bg-blue-600 dark:bg-blue-400" }} />
+        </Source>
+      </MapProvider>
+    ));
+
+    // No class touched at all — only a data-theme attribute, which MapGL's own darkMode heuristic
+    // (used solely for darkStyle switching) wouldn't recognize, but themeVersion doesn't need to.
+    document.body.setAttribute("data-theme", "dark");
+    setVersion((v) => v + 1);
+    await tick();
+
+    expect(map.setPaintProperty).toHaveBeenCalledWith(
+      "l1",
+      "fill-color",
+      "rgb(7, 8, 9)",
+      { validate: false },
+    );
+  });
+
+  it("re-applies every layer referencing a constant when MapGL's constants prop changes", async () => {
+    const [primary, setPrimary] = createSignal("#fff");
+    const map = createMockMap();
+    const mapLib = createMockMapLib();
+
+    render(() => (
+      <MapProvider map={map} mapLib={mapLib} constants={{ primary: primary() }}>
+        <Source id="src" source={{ type: "geojson", data: {} as any }}>
+          <Layer id="l1" style={{ type: "fill", fillColor: "@primary" }} />
+        </Source>
+      </MapProvider>
+    ));
+
+    setPrimary("#000");
+    await tick();
+
+    expect(map.setPaintProperty).toHaveBeenCalledWith(
+      "l1",
+      "fill-color",
+      "#000",
+      { validate: false },
+    );
   });
 
   it("diff-based update only touches changed paint/layout properties", async () => {

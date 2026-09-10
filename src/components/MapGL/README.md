@@ -20,6 +20,7 @@
 | disableResize     | boolean                         | disable listener for resizing map container                                                  |
 | debug             | boolean                         | Enable debug messages                                                                        |
 | apikey            | string                          | apikey for vectortile services                                                               |
+| constants         | `Record<string, string \| number>` | Named values reusable across every `<Layer>` — write `'@name'` in a paint/layout style property instead of the literal value |
 
 _\*required_\
 _^default_

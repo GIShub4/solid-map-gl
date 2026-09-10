@@ -6,6 +6,7 @@ import {
   Component,
   on,
 } from "solid-js";
+import { isServer } from "solid-js/web";
 import { MapProvider } from "../MapProvider";
 import { mapEvents } from "../../events";
 import { vectorStyleList } from "../../mapStyles";
@@ -143,6 +144,12 @@ type Props = {
   mapLib?: any;
   //** APIkey for vector service */
   apikey?: string;
+  /** Named values (colors, widths, ...), reusable across every `<Layer>` in this map by writing
+   * `"@name"` in a paint/layout style property instead of repeating the literal value. Updating
+   * this prop updates every layer referencing a changed name. Mirrors the `constants`/`@name`
+   * feature the Mapbox GL style spec itself dropped after v7 — resolved here in JS instead, never
+   * touching the style JSON Mapbox itself sees. */
+  constants?: Record<string, string | number>;
   //** Debug Message Mode */
   debug?: boolean;
   //** Debug Events */
@@ -162,10 +169,16 @@ export const MapGL: Component<Props> = (props) => {
   let isMapLibre = false;
 
   const [mapLoaded, setMapLoaded] = createSignal(null);
+  // Bumped unconditionally by both listeners below, regardless of what `darkMode` computes — a
+  // plain "something in the environment that could affect a resolved CSS value just changed"
+  // ping, not a light/dark judgment. `darkMode`'s own class-based heuristic only needs to be right
+  // for *this* library's `darkStyle` switching; a consuming app's Tailwind dark variant might use
+  // a class, a data-attribute, or nothing MapGL can name at all, so Layer's bg-*/dark: class-pair
+  // re-probing (src/colors.ts) depends on this instead — see MapProvider's `ctx.themeVersion`.
+  const [themeVersion, setThemeVersion] = createSignal(0);
   const [darkMode, setDarkMode] = createSignal(
-    (typeof window !== "undefined" &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches) ||
-      (typeof document !== "undefined" &&
+    !isServer &&
+      (window.matchMedia("(prefers-color-scheme: dark)").matches ||
         document.body.classList.contains("dark")),
   );
   // Set around map.stop() so the moveend it synchronously fires for a
@@ -282,17 +295,30 @@ export const MapGL: Component<Props> = (props) => {
 
       // Listen to dark theme changes
       const darkTheme =
-        typeof window !== "undefined" &&
-        window?.matchMedia("(prefers-color-scheme: dark)");
+        !isServer && window.matchMedia("(prefers-color-scheme: dark)");
       darkTheme?.addEventListener("change", () => {
         setDarkMode(darkTheme.matches);
+        setThemeVersion((v) => v + 1);
         debug("Set dark theme to:", darkTheme.matches?.toString());
       });
       mutationObserver = new MutationObserver(() => {
-        const darkTheme = document.body.classList.contains("dark");
+        // Checks both <html> (Tailwind's own documented convention) and <body> (this library's
+        // older assumption) for a plain "dark" class, since either is a common place for a manual
+        // dark-mode toggle to add one — this is only good enough for this library's own
+        // `darkStyle` switching below, not exhaustive of every possible Tailwind dark-variant
+        // strategy (a data-attribute like `data-theme`, say, wouldn't touch either class list).
+        // `themeVersion` below doesn't rely on this check at all: `attributes: true` with no
+        // `attributeFilter` means this callback already fires for *any* attribute mutation on
+        // either element, `data-theme` included, so bumping it unconditionally here is genuinely
+        // strategy-agnostic in a way this boolean can't be.
+        const darkTheme =
+          document.documentElement.classList.contains("dark") ||
+          document.body.classList.contains("dark");
         setDarkMode(darkTheme);
+        setThemeVersion((v) => v + 1);
         debug("Set theme to:", darkTheme);
       });
+      mutationObserver.observe(document.documentElement, { attributes: true });
       mutationObserver.observe(document.body, { attributes: true });
 
       // Listen to map container size changes
@@ -511,7 +537,13 @@ export const MapGL: Component<Props> = (props) => {
       style={{ width: "100%", height: "100%", ...props.style }}
     >
       {mapLoaded() && (
-        <MapProvider map={mapLoaded()} mapLib={mapLib} isMapLibre={isMapLibre}>
+        <MapProvider
+          map={mapLoaded()}
+          mapLib={mapLib}
+          isMapLibre={isMapLibre}
+          constants={props.constants}
+          themeVersion={themeVersion()}
+        >
           <style>{`.overlay{position:relative;width:100%;height:100%;pointer-events:none}:where(.overlay>*){pointer-events:auto}`}</style>
           <div class="overlay">{props.children}</div>
         </MapProvider>

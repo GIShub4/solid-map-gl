@@ -8,4 +8,4 @@
 
 > `const` **Layer**: `Component`\<`Props`\>
 
-Defined in: [Layer/index.tsx:100](https://github.com/GIShub4/solid-map-gl/blob/f9f67e541d9cc39059479fb997e928d86cd65900/src/components/Layer/index.tsx#L100)
+Defined in: [Layer/index.tsx:146](https://github.com/GIShub4/solid-map-gl/blob/a9c705ee5cebc77611ea56892e4c8962ef2ffa4a/src/components/Layer/index.tsx#L146)
