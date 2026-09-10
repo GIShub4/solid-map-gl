@@ -47,8 +47,15 @@ not shown standalone on GitHub's repo homepage or npm.
 - SolidJS (fine-grained reactivity — `createSignal`, `createEffect`, `createStore`, `onCleanup`)
 - TypeScript, `jsx: preserve` with `jsxImportSource: solid-js`
 - Build: esbuild via `tsup`/`tsup-preset-solid` (`tsup.config.ts`), entry `src/index.tsx`
-- Tests: Vitest + `@solidjs/testing-library`, jsdom environment (`vite.config.ts`, `src/vitest.ts`).
-  Component tests render against a hand-rolled mock map (`src/testUtils/mockMap.ts`'s
+- Tests: Vitest + `@solidjs/testing-library`, split into two `test.projects` in `vite.config.ts`:
+  the default `"unit"` project (jsdom environment, `resolve.conditions: ['development', 'browser']`
+  to force solid-js's browser build, `src/vitest.ts` setup file) runs everything except `*.ssr.test.tsx`
+  files; a separate `"ssr"` project (`environment: 'node'`, no jsdom, `vite-plugin-solid`'s
+  `{ ssr: true }` option so JSX compiles to `solid-js/web`'s `ssr()` helpers and solid-js resolves
+  through its real `"node"` export condition instead) runs only `*.ssr.test.tsx` files against a
+  genuinely DOM-less server render (`renderToStringAsync`) — see
+  `src/components/MapGL/index.ssr.test.tsx`. Component tests in the `"unit"` project render against
+  a hand-rolled mock map (`src/testUtils/mockMap.ts`'s
   `createMockMap`/`createMockMapLib`/`createMockDrawLib`, wired up via
   `src/testUtils/renderWithMap.tsx`'s `renderWithMap()`) instead of a real `mapbox-gl`/`maplibre-gl`
   instance — real map construction depends on a real WebGL context, which jsdom doesn't have. The

@@ -120,3 +120,29 @@ const App: Component = () => {
   );
 };
 ```
+
+### **SSR / SolidStart**
+
+`MapGL` guards its own `window`/`document` reads and never constructs a real map instance until
+`onMount`, which SolidStart (and any other SolidJS SSR setup) only ever runs client-side — so
+server-rendering a page containing `<MapGL>` won't throw. That said, `mapbox-gl`/`maplibre-gl`
+need a real WebGL context, so there's nothing meaningful for the map to render server-side either
+way: SSR output is just the empty container `<div>`, with the map itself appearing once the client
+mounts and the `load` event fires.
+
+Rather than round-trip that empty container through the server, wrap map-using components in
+SolidStart's [`clientOnly`](https://docs.solidjs.com/solid-start/reference/client/client-only) and
+skip server rendering for them entirely:
+
+```jsx
+import { clientOnly } from "@solidjs/start";
+
+const MapDemo = clientOnly(() => import("./MapDemo"));
+
+export default function Page() {
+  return <MapDemo fallback={<p>Loading map...</p>} />;
+}
+```
+
+See `examples/with-solidstart` for a complete, runnable version of this pattern (and
+`examples/with-astro` for the equivalent using Astro's `client:only="solid"`).
