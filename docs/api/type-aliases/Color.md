@@ -8,4 +8,4 @@
 
 > **Color** = `` `#${string}` `` \| `` `rgb(${number}, ${number}, ${number})` `` \| `` `rgba(${number}, ${number}, ${number}, ${number})` `` \| `` `hsl(${number}, ${number}%, ${number}%)` `` \| `` `hsla(${number}, ${number}%, ${number}%, ${number})` ``
 
-Defined in: [Image/index.tsx:35](https://github.com/GIShub4/solid-map-gl/blob/a9c705ee5cebc77611ea56892e4c8962ef2ffa4a/src/components/Image/index.tsx#L35)
+Defined in: [components/Image/index.tsx:27](https://github.com/GIShub4/solid-map-gl/blob/306fd9b2a121738e3991315dad80a66450a0384f/src/components/Image/index.tsx#L27)

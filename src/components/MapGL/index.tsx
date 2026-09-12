@@ -10,6 +10,9 @@ import { isServer } from "solid-js/web";
 import { MapProvider } from "../MapProvider";
 import { mapEvents } from "../../events";
 import { vectorStyleList } from "../../mapStyles";
+import { settleAfterIdle, disableRasterFade } from "../../tilesSettled";
+import { createCapturer } from "../../offscreenCapture";
+import type { MapCapturer } from "../../offscreenCapture";
 import type { mapEventTypes } from "../../events";
 import type mapboxgl from "mapbox-gl";
 import type {
@@ -117,6 +120,40 @@ type Props = {
   onViewportChange?: (viewport: Viewport) => void;
   /** Event listener for User Interaction */
   onUserInteraction?: (user: boolean) => void;
+  /** Called once every currently-required tile has actually finished loading *and* rendering after
+   * an 'idle' event — unlike 'onIdle' itself, which can fire while raster tiles are still
+   * fetching, mid GPU-upload, or still cross-fading in via `raster-fade-duration`. Re-fires after
+   * every idle, not just the initial load. */
+  onTilesLoaded?: () => void;
+  /** Max time (ms) to keep polling `areTilesLoaded()` after idle before giving up and moving on
+   * anyway, so a permanently-erroring tile can't block `onTilesLoaded` forever. Default 10000. */
+  tilesLoadedTimeout?: number;
+  /** Extra flat delay (ms) `onTilesLoaded` waits after tiles report loaded, to outlast any
+   * `raster-fade-duration` cross-fade still in flight — mapbox-gl-js exposes no public event for
+   * "the fade finished", and its own internal transition tracking doesn't reliably cover imported
+   * style fragments (e.g. Mapbox's Standard/Standard Satellite styles), so a flat margin is the
+   * only fully reliable option. Default 400 (mapbox-gl's own `raster-fade-duration` default is
+   * 300). Set to 0 to disable and get the old, faster-but-less-certain behavior. */
+  tilesLoadedFadeMargin?: number;
+  /** Renders the map off-screen (`position: fixed`, far outside the viewport) instead of filling
+   * its normal container, for capturing map images (e.g. PDF export) without showing the map to
+   * the user — an off-screen element has no layout to size itself against, so a width/height is
+   * required. `<Source>`/`<Layer>` children work exactly as they do on a normal `<MapGL>`, since
+   * they only ever read the map off context, never the DOM it's rendered into. */
+  offscreen?: {
+    width: number;
+    height: number;
+    /** Zero every layer's `raster-fade-duration` once the map loads — see `disableRasterFade`.
+     * Default `true`. */
+    disableRasterFade?: boolean;
+  };
+  /** Called once, after the map loads, with a capturer for grabbing the canvas as an image — only
+   * meaningful together with `offscreen`. Change `viewport`/`<Source>`'s `data` the normal
+   * declarative way, then call `capturer.captureWhenSettled()`, which waits for the map to fully
+   * settle (see `onTilesLoaded`, reusing this same `tilesLoadedTimeout`/`tilesLoadedFadeMargin`)
+   * before reading the canvas. The result (a data URL) can be handed to any PDF/document library —
+   * this doesn't depend on or assume one. */
+  onCapturerReady?: (capturer: MapCapturer) => void;
   /** Displays Map Tile Borders */
   showTileBoundaries?: boolean;
   /** Displays Wireframe if Terrain is visible */
@@ -167,6 +204,12 @@ export const MapGL: Component<Props> = (props) => {
   let mutationObserver: MutationObserver;
   let mapLib: any;
   let isMapLibre = false;
+  // Bumped on every 'idle' and on unmount. settleAfterIdle's chain crosses several
+  // requestAnimationFrame/setTimeout hops with no way to abort it mid-flight, so instead each
+  // idle's chain captures the generation it started with and checks it's still current before
+  // calling onTilesLoaded — covering both "superseded by a later idle" and "component unmounted"
+  // with one mechanism.
+  let tilesLoadedGeneration = 0;
 
   const [mapLoaded, setMapLoaded] = createSignal(null);
   // Bumped unconditionally by both listeners below, regardless of what `darkMode` computes — a
@@ -239,6 +282,10 @@ export const MapGL: Component<Props> = (props) => {
       container: mapRef,
       style: getStyle(props.options?.style, props.darkStyle),
       fitBoundsOptions: { padding: props.viewport?.padding },
+      // Required for capture()/toDataURL() to read back anything from the canvas at all — forced
+      // regardless of `options` since getting this wrong doesn't degrade capture, it silently
+      // breaks it (an all-transparent/blank image, no error).
+      ...(props.offscreen ? { preserveDrawingBuffer: true } : {}),
     } as MapboxOptions);
 
     map.debug = props.debug;
@@ -275,9 +322,36 @@ export const MapGL: Component<Props> = (props) => {
       }
     });
 
+    // Poll for fully-loaded, fully-painted tiles after each idle — 'idle' can fire while raster
+    // tiles are still fetching, mid GPU-upload, or still cross-fading in (raster-fade-duration is a
+    // paint-time opacity animation, orthogonal to tile load state), none of which 'idle' itself
+    // waits out.
+    if (props.onTilesLoaded) {
+      const timeout = props.tilesLoadedTimeout ?? 10000;
+      const fadeMargin = props.tilesLoadedFadeMargin ?? 400;
+      map.on("idle", () => {
+        const generation = ++tilesLoadedGeneration;
+        settleAfterIdle(map, { timeout, fadeMargin }).then(() => {
+          if (generation !== tilesLoadedGeneration) return;
+          debug("Tiles settled");
+          props.onTilesLoaded();
+        });
+      });
+    }
+
     map.once("load", () => {
       setMapLoaded(map);
       debug("Map loaded");
+
+      if (props.offscreen) {
+        if (props.offscreen.disableRasterFade !== false) disableRasterFade(map);
+        props.onCapturerReady?.(
+          createCapturer(map, {
+            timeout: props.tilesLoadedTimeout ?? 10000,
+            fadeMargin: props.tilesLoadedFadeMargin ?? 400,
+          }),
+        );
+      }
 
       // Handle User Interaction
       ["mousedown", "touchstart", "wheel"].forEach((event) =>
@@ -524,6 +598,7 @@ export const MapGL: Component<Props> = (props) => {
   onCleanup(() => {
     resizeObserver?.disconnect();
     mutationObserver?.disconnect();
+    tilesLoadedGeneration++;
     map?.remove();
     debug("Map removed");
   });
@@ -534,7 +609,18 @@ export const MapGL: Component<Props> = (props) => {
       id={props.id}
       class={props?.class}
       classList={props?.classList}
-      style={{ width: "100%", height: "100%", ...props.style }}
+      style={
+        props.offscreen
+          ? {
+              position: "fixed",
+              left: "-99999px",
+              top: "-99999px",
+              width: `${props.offscreen.width}px`,
+              height: `${props.offscreen.height}px`,
+              ...props.style,
+            }
+          : { width: "100%", height: "100%", ...props.style }
+      }
     >
       {mapLoaded() && (
         <MapProvider

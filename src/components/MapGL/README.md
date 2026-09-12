@@ -15,6 +15,11 @@
 | transitionType    | string                          | flyTo^, easeTo, jumpTo                                                                       |
 | on\[Event]        | Event                           | Any [Map Event](https://docs.mapbox.com/mapbox-gl-js/api/map/#map-events) - eg.: onMouseMove |
 | onUserInteraction | boolean                         | Event Listeners for user interactions with the map                                           |
+| onTilesLoaded     | `() => void`                    | Fires after `idle`, once every tile has actually finished loading *and* rendering (polls `map.areTilesLoaded()`, confirms a real paint, then waits out any raster-fade cross-fade) — unlike `onIdle`, not fooled by tiles still fetching, mid GPU-upload, or fading in |
+| tilesLoadedTimeout | number                          | Max ms to keep polling `areTilesLoaded()` before giving up and moving on anyway (default `10000`) |
+| tilesLoadedFadeMargin | number                       | Extra flat delay (ms) to outlast a `raster-fade-duration` cross-fade still in flight (default `400`; set to `0` to disable) |
+| offscreen         | `{ width, height, disableRasterFade? }` | Renders the map off-screen (fixed, far outside the viewport) instead of filling its container — for capturing map images without showing them. `<Source>`/`<Layer>` children work unchanged |
+| onCapturerReady   | `(capturer) => void`            | Called once, after load, when `offscreen` is set. `capturer.captureWhenSettled()` waits for the map to fully settle and returns a canvas data URL, ready for any PDF/document library |
 | cursorStyle       | string                          | Map cursor                                                                                   |
 | darkStyle         | object \| string                | Map style when application or browser is in dark mode                                        |
 | disableResize     | boolean                         | disable listener for resizing map container                                                  |
@@ -122,6 +127,46 @@ const App: Component = () => {
       <button onClick={() => setStyle('sat_street')}>Satellite Streets</button>
       <button onClick={() => setStyle('nav_day')}>Nav Day</button>
       <button onClick={() => setStyle('nav_night')}>Nav Night</button>
+    </MapGL>
+  );
+};
+```
+
+### **Off-screen Capture (e.g. for PDF export)**
+
+`offscreen` renders the map fixed and far outside the viewport instead of filling its container —
+`<Source>`/`<Layer>` children work exactly as they do on a normal `<MapGL>`, since they only ever
+read the map off context, never the DOM it's rendered into. `onCapturerReady`'s `captureWhenSettled()`
+waits for the map to fully settle (see `onTilesLoaded`) before returning a canvas data URL, ready
+for any PDF/document library.
+
+```jsx
+import { Component, createSignal } from "solid-js";
+import MapGL, { Source, Layer, Viewport } from "solid-map-gl";
+import type { MapCapturer } from "solid-map-gl";
+import 'mapbox-gl/dist/mapbox-gl.css';
+
+const App: Component = () => {
+  const [viewport, setViewport] = createSignal({ center: [-122.45, 37.78], zoom: 14 } as Viewport);
+  let capturer: MapCapturer;
+
+  const captureLocation = async (center: [number, number]) => {
+    setViewport({ ...viewport(), center });
+    const dataUrl = await capturer.captureWhenSettled();
+    // hand dataUrl to pdfmake/jsPDF/whichever document library you're already using
+    return dataUrl;
+  };
+
+  return (
+    <MapGL
+      offscreen={{ width: 640, height: 480 }}
+      options={{ style: "mapbox://styles/mapbox/standard-satellite" }}
+      viewport={viewport()}
+      onCapturerReady={(c) => (capturer = c)}
+    >
+      <Source id="pin" type="geojson" data={{ type: "FeatureCollection", features: [] }}>
+        <Layer type="circle" paint={{ circleColor: "#f00", circleRadius: 8 }} />
+      </Source>
     </MapGL>
   );
 };

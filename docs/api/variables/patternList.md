@@ -8,4 +8,4 @@
 
 > `const` **patternList**: `string`[]
 
-Defined in: [Image/index.tsx:33](https://github.com/GIShub4/solid-map-gl/blob/a9c705ee5cebc77611ea56892e4c8962ef2ffa4a/src/components/Image/index.tsx#L33)
+Defined in: components/Image/shapes.ts:55

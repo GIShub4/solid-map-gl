@@ -11,6 +11,13 @@
 ## Type Aliases
 
 - [Color](type-aliases/Color.md)
+- [MapCapturer](type-aliases/MapCapturer.md)
+- [PatternName](type-aliases/PatternName.md)
+- [PixelData](type-aliases/PixelData.md)
+- [SDFOptions](type-aliases/SDFOptions.md)
+- [SettleableMap](type-aliases/SettleableMap.md)
+- [SettleOptions](type-aliases/SettleOptions.md)
+- [SymbolName](type-aliases/SymbolName.md)
 - [Viewport](type-aliases/Viewport.md)
 
 ## Variables
@@ -30,10 +37,15 @@
 - [patternList](variables/patternList.md)
 - [Popup](variables/Popup.md)
 - [Source](variables/Source.md)
+- [symbolList](variables/symbolList.md)
 - [Terrain](variables/Terrain.md)
 
 ## Functions
 
+- [disableRasterFade](functions/disableRasterFade.md)
+- [settleAfterIdle](functions/settleAfterIdle.md)
+- [toSDF](functions/toSDF.md)
 - [useMapContext](functions/useMapContext.md)
 - [useScene](functions/useScene.md)
 - [useSourceId](functions/useSourceId.md)
+- [waitForIdleAndSettle](functions/waitForIdleAndSettle.md)

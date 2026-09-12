@@ -10,6 +10,37 @@ rejected, what's still open), see `docs/dev-notes.md`.
 
 ## [Unreleased]
 
+### Added
+
+- **`<MapGL onTilesLoaded>`** — fires after `idle` once every currently-required tile has actually
+  finished loading *and* rendering, unlike `onIdle` itself, which can fire while raster tiles are
+  still fetching, mid GPU-upload, or still cross-fading in via `raster-fade-duration`. New
+  `tilesLoadedTimeout`/`tilesLoadedFadeMargin` props tune the poll timeout and the flat margin used
+  to outlast a cross-fade still in flight (mapbox-gl-js exposes no public event for "the fade
+  finished").
+- **`<MapGL offscreen>` / `onCapturerReady`** — renders the map off-screen (fixed, far outside the
+  viewport) instead of filling its container, for capturing map images (e.g. PDF export) without
+  showing the map. `<Source>`/`<Layer>` children work unchanged. `onCapturerReady` hands back a
+  capturer whose `captureWhenSettled()` waits for the map to fully settle and returns a canvas data
+  URL, ready for any PDF/document library — this doesn't depend on or assume one.
+- **`<Image sdf>`** — runs the rasterized `source`/`symbol` through a real signed-distance-field
+  transform before `addImage`, so `icon-color`/`icon-halo-color`/`icon-halo-width`/`icon-halo-blur`
+  recolor and outline it crisply from paint properties at any size. Also exported package-wide as
+  `toSDF`/`SDFOptions`/`PixelData`.
+- **`<Image symbol>`** — a discrete `icon-image` shape (built-in name, custom SVG markup, or a raw
+  path `d` string), as an alternative to `pattern`'s tiling fills, resolved through the same
+  rasterization/SDF path a hand-authored `source` SVG would use. New `symbolList`/`SymbolName`
+  exports alongside the existing `patternList`/`PatternName`.
+
+### Fixed
+
+- **`Image`**: the SDF encoding path used on a *successfully*-decoded (non-error, non-SVG-fallback)
+  `source` image was passing whatever `map.loadImage` returned straight into the SDF transform
+  unconverted — for a plain raster URL, mapbox-gl-js's real implementation commonly hands back an
+  `ImageBitmap`, which has no `.data` array, so this threw at runtime. It's also missing the empty
+  margin the SDF transform needs around the art (or the field clips at the bitmap edge) — both are
+  now handled the same way the SVG-rasterization fallback path already did.
+
 ## [2.1.0] - 2026-09-10
 
 ### Added

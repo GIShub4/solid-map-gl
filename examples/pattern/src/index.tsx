@@ -28,7 +28,7 @@ const App: Component = () => {
           type: pattern(),
           color: "#1978c8",
           background: "#ffffff",
-          lineWith: 2,
+          lineWidth: 2,
         }}
       />
       <Source

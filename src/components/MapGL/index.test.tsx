@@ -880,4 +880,190 @@ describe("Map", () => {
 
     expect((map as any).showTileBoundaries).toBe(true);
   });
+
+  describe("onTilesLoaded", () => {
+    afterEach(() => vi.useRealTimers());
+
+    // tilesLoadedFadeMargin={0} isolates these from the fade-settle chain (covered separately
+    // below) so they only exercise the areTilesLoaded()-polling behavior.
+
+    it("fires after idle once tiles are loaded and a frame has confirmed the paint", async () => {
+      vi.useFakeTimers();
+      const mapLib = createMockMapLib();
+      const onTilesLoaded = vi.fn();
+      render(() => (
+        <MapGL mapLib={mapLib} onTilesLoaded={onTilesLoaded} tilesLoadedFadeMargin={0} />
+      ));
+      await waitForLoad();
+      const map = mapLib.Map.instances[0];
+
+      map.fire("idle", {});
+      expect(onTilesLoaded).not.toHaveBeenCalled();
+
+      await vi.advanceTimersByTimeAsync(100);
+      expect(onTilesLoaded).toHaveBeenCalledTimes(1);
+    });
+
+    it("keeps polling areTilesLoaded after idle until it reports true", async () => {
+      vi.useFakeTimers();
+      const mapLib = createMockMapLib();
+      const onTilesLoaded = vi.fn();
+      render(() => (
+        <MapGL mapLib={mapLib} onTilesLoaded={onTilesLoaded} tilesLoadedFadeMargin={0} />
+      ));
+      await waitForLoad();
+      const map = mapLib.Map.instances[0];
+      map.areTilesLoaded.mockReturnValueOnce(false).mockReturnValueOnce(false);
+
+      map.fire("idle", {});
+      expect(onTilesLoaded).not.toHaveBeenCalled();
+
+      await vi.advanceTimersByTimeAsync(100);
+      expect(onTilesLoaded).not.toHaveBeenCalled();
+
+      await vi.advanceTimersByTimeAsync(300);
+      expect(onTilesLoaded).toHaveBeenCalledTimes(1);
+    });
+
+    it("gives up and fires anyway once tilesLoadedTimeout elapses", async () => {
+      vi.useFakeTimers();
+      const mapLib = createMockMapLib();
+      const onTilesLoaded = vi.fn();
+      render(() => (
+        <MapGL
+          mapLib={mapLib}
+          onTilesLoaded={onTilesLoaded}
+          tilesLoadedTimeout={250}
+          tilesLoadedFadeMargin={0}
+        />
+      ));
+      await waitForLoad();
+      const map = mapLib.Map.instances[0];
+      map.areTilesLoaded.mockReturnValue(false);
+
+      map.fire("idle", {});
+      await vi.advanceTimersByTimeAsync(200);
+      expect(onTilesLoaded).not.toHaveBeenCalled();
+
+      await vi.advanceTimersByTimeAsync(300);
+      expect(onTilesLoaded).toHaveBeenCalledTimes(1);
+    });
+
+    it("waits out tilesLoadedFadeMargin (default 400ms) before firing", async () => {
+      vi.useFakeTimers();
+      const mapLib = createMockMapLib();
+      const onTilesLoaded = vi.fn();
+      render(() => <MapGL mapLib={mapLib} onTilesLoaded={onTilesLoaded} />);
+      await waitForLoad();
+      const map = mapLib.Map.instances[0];
+
+      map.fire("idle", {});
+      await vi.advanceTimersByTimeAsync(300);
+      expect(onTilesLoaded).not.toHaveBeenCalled();
+
+      await vi.advanceTimersByTimeAsync(200);
+      expect(onTilesLoaded).toHaveBeenCalledTimes(1);
+    });
+
+    it("does not call onTilesLoaded after unmount", async () => {
+      vi.useFakeTimers();
+      const mapLib = createMockMapLib();
+      const onTilesLoaded = vi.fn();
+      const { unmount } = render(() => (
+        <MapGL mapLib={mapLib} onTilesLoaded={onTilesLoaded} />
+      ));
+      await waitForLoad();
+      const map = mapLib.Map.instances[0];
+      map.areTilesLoaded.mockReturnValue(false);
+
+      map.fire("idle", {});
+      unmount();
+      await vi.advanceTimersByTimeAsync(10000);
+
+      expect(onTilesLoaded).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("offscreen", () => {
+    afterEach(() => vi.useRealTimers());
+
+    it("renders the container fixed and off-viewport, sized to offscreen.width/height", async () => {
+      const mapLib = createMockMapLib();
+      const { container } = render(() => (
+        <MapGL mapLib={mapLib} offscreen={{ width: 640, height: 480 }} />
+      ));
+      await waitForLoad();
+
+      const el = container.firstElementChild as HTMLElement;
+      expect(el.style.position).toBe("fixed");
+      expect(el.style.width).toBe("640px");
+      expect(el.style.height).toBe("480px");
+    });
+
+    it("calls onCapturerReady once the map loads, exposing the raw map instance", async () => {
+      const mapLib = createMockMapLib();
+      const onCapturerReady = vi.fn();
+      render(() => (
+        <MapGL
+          mapLib={mapLib}
+          offscreen={{ width: 320, height: 240 }}
+          onCapturerReady={onCapturerReady}
+        />
+      ));
+      await waitForLoad();
+
+      expect(onCapturerReady).toHaveBeenCalledTimes(1);
+      const capturer = onCapturerReady.mock.calls[0][0];
+      expect(capturer.map).toBe(mapLib.Map.instances[0]);
+    });
+
+    it("disables raster fade by default once the map loads", async () => {
+      const mapLib = createMockMapLib();
+      render(() => <MapGL mapLib={mapLib} offscreen={{ width: 320, height: 240 }} />);
+      await waitForLoad();
+
+      // disableRasterFade always scans getStyle().layers regardless of how many raster layers it
+      // finds — asserting the scan happened is what distinguishes "ran" from "skipped" here, since
+      // the mock's default style has zero layers either way.
+      expect(mapLib.Map.instances[0].getStyle).toHaveBeenCalled();
+    });
+
+    it("skips disableRasterFade when offscreen.disableRasterFade is false", async () => {
+      const mapLib = createMockMapLib();
+      render(() => (
+        <MapGL
+          mapLib={mapLib}
+          offscreen={{ width: 320, height: 240, disableRasterFade: false }}
+        />
+      ));
+      await waitForLoad();
+
+      expect(mapLib.Map.instances[0].getStyle).not.toHaveBeenCalled();
+    });
+
+    it("capturer.captureWhenSettled waits for idle + settle before resolving with a data URL", async () => {
+      vi.useFakeTimers();
+      const mapLib = createMockMapLib();
+      const onCapturerReady = vi.fn();
+      render(() => (
+        <MapGL
+          mapLib={mapLib}
+          offscreen={{ width: 320, height: 240 }}
+          onCapturerReady={onCapturerReady}
+          tilesLoadedFadeMargin={0}
+        />
+      ));
+      await waitForLoad();
+
+      const map = mapLib.Map.instances[0];
+      map.getCanvas.mockReturnValue({ toDataURL: vi.fn(() => "data:image/jpeg;base64,xyz") });
+      const capturer = onCapturerReady.mock.calls[0][0];
+
+      const resultPromise = capturer.captureWhenSettled();
+      map.fire("idle", {});
+      await vi.advanceTimersByTimeAsync(200);
+
+      await expect(resultPromise).resolves.toBe("data:image/jpeg;base64,xyz");
+    });
+  });
 });

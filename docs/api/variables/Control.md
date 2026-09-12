@@ -8,4 +8,4 @@
 
 > `const` **Control**: `VoidComponent`\<`Props`\>
 
-Defined in: [Control/index.tsx:34](https://github.com/GIShub4/solid-map-gl/blob/a9c705ee5cebc77611ea56892e4c8962ef2ffa4a/src/components/Control/index.tsx#L34)
+Defined in: [components/Control/index.tsx:34](https://github.com/GIShub4/solid-map-gl/blob/306fd9b2a121738e3991315dad80a66450a0384f/src/components/Control/index.tsx#L34)

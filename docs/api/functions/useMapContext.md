@@ -8,7 +8,7 @@
 
 > **useMapContext**(): \[`MapContextState`\]
 
-Defined in: [MapProvider/index.tsx:31](https://github.com/GIShub4/solid-map-gl/blob/a9c705ee5cebc77611ea56892e4c8962ef2ffa4a/src/components/MapProvider/index.tsx#L31)
+Defined in: [components/MapProvider/index.tsx:31](https://github.com/GIShub4/solid-map-gl/blob/306fd9b2a121738e3991315dad80a66450a0384f/src/components/MapProvider/index.tsx#L31)
 
 ## Returns
 

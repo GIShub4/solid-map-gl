@@ -62,6 +62,11 @@ components can sit on top of the canvas.
 | `config` | `object` | Mapbox Standard/Standard Satellite config properties (`lightPreset`, `showPlaceLabels`, `theme`, 20+ `color*` overrides, ...), applied via `setConfigProperty`. Mapbox-only — feature-detected and a no-op (with a `debug()` log) on MapLibre, which has no equivalent |
 | `transitionType` | `"flyTo" \| "easeTo" \| "jumpTo"` | Camera transition used when `viewport` changes externally (default `flyTo`) |
 | `onUserInteraction` | `(user: boolean) => void` | Fires `true`/`false` around user-driven mouse/touch/wheel interaction |
+| `onTilesLoaded` | `() => void` | Fires after `idle` once every tile has actually finished loading *and* rendering — unlike `onIdle`, not fooled by tiles still fetching, mid GPU-upload, or still cross-fading in via `raster-fade-duration`. Polls `map.areTilesLoaded()` every 100ms, confirms a real paint via two `requestAnimationFrame`s, then (unless `tilesLoadedFadeMargin={0}`) waits out any raster-fade cross-fade. Re-fires after every idle |
+| `tilesLoadedTimeout` | `number` | Max ms to poll `areTilesLoaded()` after idle before giving up and moving on anyway (default `10000`) |
+| `tilesLoadedFadeMargin` | `number` | Extra flat delay (ms) `onTilesLoaded` waits after tiles report loaded, to outlast any `raster-fade-duration` cross-fade still in flight — there's no public event for "the fade finished", and Mapbox's own internal transition tracking doesn't reliably cover imported style fragments (e.g. Standard/Standard Satellite). Default `400`; set to `0` for the old, faster-but-less-certain behavior |
+| `offscreen` | `{ width: number, height: number, disableRasterFade?: boolean }` | Renders the container `position: fixed` and far outside the viewport instead of filling its normal layout — for capturing map images (e.g. PDF export) without showing the map. `<Source>`/`<Layer>` children work unchanged, since they only ever read the map off context. Zeroes `raster-fade-duration` on every layer by default |
+| `onCapturerReady` | `(capturer: MapCapturer) => void` | Called once, after load, only when `offscreen` is set. `capturer.map` is the raw map instance; `capturer.captureWhenSettled()` waits for the map to fully settle (reusing `tilesLoadedTimeout`/`tilesLoadedFadeMargin`) and returns `getCanvas().toDataURL()` — hand that to any PDF/document library |
 | `showTileBoundaries` / `showTerrainWireframe` / `showPadding` / `showCollisionBoxes` / `showOverdrawInspector` | `boolean` | Debug overlays, mapped 1:1 to the same `map.*` boolean flags |
 | `cursorStyle` | `string` | CSS cursor applied to the map canvas |
 | `darkStyle` | `StyleSpecification \| string` | Style used instead of `options.style` when dark mode is active |
@@ -354,25 +359,48 @@ plus cleanup) is shared with `DeckOverlay` via `src/lib/createMapControl.ts`'s `
 
 ## Image
 
-`src/components/Image/index.tsx` — exported as `Image` (source name `MGL_Image`).
+`src/components/Image/index.tsx` — exported as `Image` (source name `MGL_Image`). Built-in shape
+data (`PATTERN`/`SYMBOL` and their `*List`/`*Name` exports) lives in the sibling
+`src/components/Image/shapes.ts`, not inline in `index.tsx`.
 
 Wraps `map.addImage`/`updateImage`/`removeImage`, accepting a raw bitmap/`ImageData`, an
 `SVGElement`, or a loadable URL (falls back to fetch + canvas rasterization for cross-origin SVGs
 that `map.loadImage` can't handle directly). `options.fill`/`options.stroke`/`options.transform`
 patch SVG attributes before loading. Alternatively, set `pattern` to procedurally generate one of
-the built-in hatch/geometric patterns (`patternList`, e.g. `diagonal_l`, `cross`, `hex`, `circle`)
-at runtime via a small canvas renderer — useful for dynamic fill colors without pre-baked image
-assets. Re-adds the image automatically after a `style.load` event (base-style swaps wipe custom
-images).
+the built-in hatch/geometric *tiling* patterns (`patternList`: `diagonal_l`, `diagonal_r`,
+`horizontal`, `vertical`, `cross`, `hash`, `chevron_h`, `chevron_v`, `square`, `hex`, `circle`,
+`grid`, `brick`, `wave`) at runtime via a small canvas renderer — useful for dynamic fill colors
+without pre-baked image assets, but meant for `fill-pattern` backgrounds, not discrete point
+icons. Set `symbol` instead for a discrete `icon-image` shape — either a built-in name
+(`symbolList`: `square`, `circle`, `triangle`, `diamond`, `pentagon`, `hexagon`, `octagon`,
+`cross`, `x`, `star`), full custom SVG markup, or a raw path `d` string (auto-wrapped in
+`shapes.ts`'s shared 64x64 `viewBox` template via `wrapSymbolPath`); it resolves to markup and
+goes through the exact same rasterization path a hand-authored `source` SVG would, so `sdf` and
+`options.fill`/`options.stroke` both work on it. `symbol` is ignored if `source` is set.
+Re-adds the image automatically after a `style.load` event (base-style swaps wipe custom images).
+
+`sdf` (boolean or `{ radius?, cutoff? }`) runs the rasterized `source`/`symbol` through a real
+signed-distance-field transform (`src/components/Image/sdf.ts`, a from-scratch port of the exact
+Euclidean distance transform `@mapbox/tiny-sdf` uses internally for glyphs — that package only
+exposes a glyph-drawing API, not a way to SDF-encode an arbitrary image, hence the port) before
+`addImage`, and sets `sdf: true` in the metadata automatically. This is what actually makes
+`icon-color`/`icon-halo-color`/`icon-halo-width`/`icon-halo-blur` work crisply from paint
+properties — passing `options={{ sdf: true }}` alone just tells mapbox to treat a plain
+antialiased raster as if it were a distance field, which it isn't. Only applies to `source`/
+`symbol`, not `pattern` (pattern's `background` is normally opaque, which breaks the
+inside/outside silhouette assumption an SDF's alpha channel depends on — see `Image/README.md`).
+The transform itself is also exported package-wide as `toSDF`/`PixelData`/`SDFOptions`.
 
 ### Props
 
 | Name | Type | Description |
 | --- | --- | --- |
 | `id`\* | `string` | ID used to reference the image from a layer's `icon-image`/`fill-pattern` |
-| `source`\* | `HTMLImageElement \| ImageBitmap \| ImageData \| SVGElement \| {width,height,data} \| StyleImageInterface \| string` | Image data or a loadable URL (required unless `pattern` is set) |
+| `source`\* | `HTMLImageElement \| ImageBitmap \| ImageData \| SVGElement \| {width,height,data} \| StyleImageInterface \| string` | Image data or a loadable URL (required unless `pattern`/`symbol` is set) |
 | `options` | `StyleImageMetadata & { fill?: Color, stroke?: Color, transform?: string }` | Passed to `addImage`, plus SVG attribute overrides |
-| `pattern` | `{ type: string, color: Color, background: Color, lineWith: number }` | Procedurally generate a pattern instead of using `source` |
+| `pattern` | `{ type: PatternName \| string, color: Color, background: Color, lineWidth: number }` | Procedurally generate a tiling pattern instead of using `source` |
+| `symbol` | `SymbolName \| string` | Built-in shape name, custom SVG markup, or a raw path `d` string — resolved like `source` |
+| `sdf` | `boolean \| { radius?: number, cutoff?: number }` | Convert `source`/`symbol` into a real SDF icon so paint properties can recolor/outline it |
 
 ### Example
 
@@ -651,3 +679,19 @@ These aren't components but are shared by several of the ones above:
   `rasterStyleList` (`osm:*`, `carto:*`, `stamen:*`, `tf:*` raster tile templates with `{s}`/`{r}`/
   `{apikey}` placeholders), used by `MapGL` and `Source` to resolve basemap shorthand strings.
   Full list of shortcuts documented in `docs/styles.md`.
+- **`src/tilesSettled.ts`** — framework-agnostic (no SolidJS import) "is this map actually done,
+  visually" check: `settleAfterIdle(map, opts)` polls `areTilesLoaded()`, confirms a real paint via
+  two `requestAnimationFrame`s, then waits out any `raster-fade-duration` cross-fade still in flight
+  (`hasActiveFadeTransition`, plus a flat fallback margin since mapbox-gl-js exposes no public event
+  for "the fade finished" and its own internal transition tracking doesn't reliably cover imported
+  style fragments like Standard/Standard Satellite). `waitForIdleAndSettle` adds the `map.once('idle',
+  ...)` wait; `disableRasterFade` is the standalone raster-fade-zeroing utility. Backs both `MapGL`'s
+  `onTilesLoaded` prop and `offscreenCapture.ts`'s `createCapturer`.
+- **`src/offscreenCapture.ts`** — `createCapturer(map, settleOptions)` builds the `MapCapturer`
+  object (`map`/`waitUntilSettled`/`capture`/`captureWhenSettled`) handed to `MapGL`'s
+  `onCapturerReady` callback when its `offscreen` prop is set — see [MapGL](#mapgl). Deliberately
+  stops at "a settled map instance and a way to grab its canvas" (`capture()` returns a
+  `toDataURL()` string) — no document/PDF library is exported or assumed here, so consumers keep
+  whichever one they already use for laying out the actual document. This module (and
+  `tilesSettled.ts`) aren't meant to be used standalone outside a SolidJS tree — reach for `MapGL`'s
+  `offscreen`/`onCapturerReady` props instead of calling `createCapturer` directly.

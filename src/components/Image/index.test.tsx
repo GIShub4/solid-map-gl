@@ -1,7 +1,8 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
 import { cleanup } from "@solidjs/testing-library";
 import { createSignal } from "solid-js";
-import { MGL_Image } from "./index";
+import { MGL_Image, symbolList, patternList } from "./index";
+import { SYMBOL } from "./shapes";
 import { renderWithMap } from "../../testUtils/renderWithMap";
 import { createMockMap, tick } from "../../testUtils/mockMap";
 
@@ -22,9 +23,11 @@ function stubCanvasContext() {
     fill: vi.fn(),
     getImageData: vi.fn(() => ({ width: 1, height: 1, data: new Uint8Array(4) })),
   };
-  return vi
+  const spy = vi
     .spyOn(HTMLCanvasElement.prototype, "getContext")
     .mockReturnValue(fakeCtx);
+  (spy as any).fakeCtx = fakeCtx;
+  return spy;
 }
 
 describe("MGL_Image", () => {
@@ -50,7 +53,7 @@ describe("MGL_Image", () => {
 
   it("generates a canvas-backed pattern via onAdd/render instead of calling loadImage", async () => {
     const { map } = renderWithMap(() => (
-      <MGL_Image id="hatch" pattern={{ type: "diagonal_l", color: "#000", background: "#fff", lineWith: 1 }} />
+      <MGL_Image id="hatch" pattern={{ type: "diagonal_l", color: "#000", background: "#fff", lineWidth: 1 }} />
     ));
     await tick();
     expect(map.loadImage).not.toHaveBeenCalled();
@@ -87,7 +90,7 @@ describe("MGL_Image", () => {
 
   it("throws if neither source nor pattern is given", () => {
     expect(() => renderWithMap(() => <MGL_Image id="broken" />)).toThrow(
-      /Image or Pattern is required/,
+      /Image, Pattern or Symbol is required/,
     );
   });
 
@@ -144,6 +147,88 @@ describe("MGL_Image", () => {
     const [loadedSource] = map.loadImage.mock.calls[0];
     expect(loadedSource).toContain('fill="#f00"');
     expect(loadedSource).toContain('stroke="#00f"');
+  });
+
+  it("resolves a predefined symbol name to its built-in markup", async () => {
+    const { map } = renderWithMap(() => <MGL_Image id="tri" symbol="triangle" />);
+    await tick();
+    await tick();
+
+    expect(map.loadImage).toHaveBeenCalledWith(
+      SYMBOL.triangle,
+      expect.any(Function),
+    );
+  });
+
+  it("treats full custom SVG markup passed to symbol the same as a source SVG", async () => {
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg"><rect width="1" height="1"/></svg>';
+    const { map } = renderWithMap(() => (
+      <MGL_Image id="custom" symbol={svg} options={{ fill: "#0f0" } as any} />
+    ));
+    await tick();
+    await tick();
+
+    const [loadedSource] = map.loadImage.mock.calls[0];
+    expect(loadedSource).toContain("<rect");
+    expect(loadedSource).toContain('fill="#0f0"');
+  });
+
+  it("wraps a raw SVG path's d data passed to symbol in the shared viewBox template", async () => {
+    const { map } = renderWithMap(() => (
+      <MGL_Image id="custom-path" symbol="M0 0 10 10 0 10Z" />
+    ));
+    await tick();
+    await tick();
+
+    expect(map.loadImage).toHaveBeenCalledWith(
+      expect.stringContaining('d="M0 0 10 10 0 10Z"'),
+      expect.any(Function),
+    );
+  });
+
+  it("ignores symbol when source is also given", async () => {
+    const { map } = renderWithMap(() => (
+      <MGL_Image id="pin" source="pin.png" symbol="triangle" />
+    ));
+    await tick();
+    await tick();
+
+    expect(map.loadImage).toHaveBeenCalledWith("pin.png", expect.any(Function));
+  });
+
+  it("exports every built-in symbol/pattern name via symbolList/patternList", () => {
+    expect(symbolList).toEqual(
+      expect.arrayContaining([
+        "square",
+        "circle",
+        "triangle",
+        "diamond",
+        "pentagon",
+        "hexagon",
+        "octagon",
+        "cross",
+        "x",
+        "star",
+      ]),
+    );
+    expect(patternList).toEqual(
+      expect.arrayContaining([
+        "diagonal_l",
+        "diagonal_r",
+        "horizontal",
+        "vertical",
+        "cross",
+        "hash",
+        "chevron_h",
+        "chevron_v",
+        "square",
+        "hex",
+        "circle",
+        "grid",
+        "brick",
+        "wave",
+      ]),
+    );
   });
 
   it("falls back to canvas rendering when loadImage errors for a non-svg url", async () => {
@@ -227,7 +312,7 @@ describe("MGL_Image", () => {
     const { map } = renderWithMap(() => (
       <MGL_Image
         id="hatch"
-        pattern={{ type: "square", color: "#000", background: "#fff", lineWith: 2 }}
+        pattern={{ type: "square", color: "#000", background: "#fff", lineWidth: 2 }}
       />
     ));
     await tick();
@@ -334,6 +419,167 @@ describe("MGL_Image", () => {
 
     window.Image = OrigImage;
     window.devicePixelRatio = originalRatio;
+    restoreCanvas.mockRestore();
+  });
+
+  it("sets sdf:true on the addImage metadata and pads the raster before rasterizing when sdf is used", async () => {
+    const restoreCanvas = stubCanvasContext();
+    const fakeCtx = (restoreCanvas as any).fakeCtx;
+    let capturedImg: HTMLImageElement | undefined;
+    const OrigImage = window.Image;
+    // @ts-ignore
+    window.Image = class extends OrigImage {
+      constructor() {
+        super();
+        capturedImg = this;
+      }
+    };
+
+    const map = createMockMap();
+    map.loadImage.mockImplementation((_url: string, cb: any) => cb(new Error("fail")));
+    renderWithMap(
+      () => <MGL_Image id="pin" source="http://example.com/pin.png" sdf />,
+      { map },
+    );
+    await tick();
+
+    expect(capturedImg).toBeTruthy();
+    capturedImg!.onload!(new Event("load"));
+
+    const call = map.addImage.mock.calls.find((c: any[]) => c[0] === "pin");
+    expect(call[2]).toEqual(expect.objectContaining({ sdf: true }));
+    // Default radius is 8; devicePixelRatio is 1 in jsdom by default, so drawImage
+    // should be offset by 8px on each axis to leave room for the SDF's halo gradient.
+    expect(fakeCtx.drawImage).toHaveBeenCalledWith(
+      capturedImg,
+      8,
+      8,
+      expect.any(Number),
+      expect.any(Number),
+    );
+
+    window.Image = OrigImage;
+    restoreCanvas.mockRestore();
+  });
+
+  it("honors a custom radius passed as an sdf object", async () => {
+    const restoreCanvas = stubCanvasContext();
+    const fakeCtx = (restoreCanvas as any).fakeCtx;
+    let capturedImg: HTMLImageElement | undefined;
+    const OrigImage = window.Image;
+    // @ts-ignore
+    window.Image = class extends OrigImage {
+      constructor() {
+        super();
+        capturedImg = this;
+      }
+    };
+
+    const map = createMockMap();
+    map.loadImage.mockImplementation((_url: string, cb: any) => cb(new Error("fail")));
+    renderWithMap(
+      () => (
+        <MGL_Image id="pin" source="http://example.com/pin.png" sdf={{ radius: 2 }} />
+      ),
+      { map },
+    );
+    await tick();
+
+    capturedImg!.onload!(new Event("load"));
+
+    expect(fakeCtx.drawImage).toHaveBeenCalledWith(
+      capturedImg,
+      2,
+      2,
+      expect.any(Number),
+      expect.any(Number),
+    );
+
+    window.Image = OrigImage;
+    restoreCanvas.mockRestore();
+  });
+
+  // Regression test: loadImage's callback can hand back an ImageBitmap (no `.data`) just as
+  // readily as an ImageData — the success path (unlike the error/canvas-fallback path above,
+  // exercised by every other sdf test in this file) used to pass that straight into toSDF()
+  // unconverted, which throws at runtime for anything without a `.data` array.
+  it("pads and rasterizes an ImageBitmap-shaped loadImage result before SDF-encoding it", async () => {
+    const restoreCanvas = stubCanvasContext();
+    const fakeCtx = (restoreCanvas as any).fakeCtx;
+    // No `.data` — matches what mapbox-gl-js's real loadImage commonly resolves to
+    // (createImageBitmap) for a plain raster URL, unlike this repo's mock default.
+    const bitmap = { width: 10, height: 10 };
+
+    const map = createMockMap();
+    map.loadImage.mockImplementation((_url: string, cb: any) => cb(null, bitmap));
+    renderWithMap(() => <MGL_Image id="pin" source="http://example.com/pin.png" sdf />, {
+      map,
+    });
+    await tick();
+    await tick();
+
+    // Default radius is 8, so the padded canvas draws the bitmap offset by 8px on each axis.
+    expect(fakeCtx.drawImage).toHaveBeenCalledWith(bitmap, 8, 8, 10, 10);
+    const call = map.addImage.mock.calls.find((c: any[]) => c[0] === "pin");
+    expect(call[2]).toEqual(expect.objectContaining({ sdf: true }));
+
+    restoreCanvas.mockRestore();
+  });
+
+  it("pads an already-ImageData loadImage result via putImageData before SDF-encoding it", async () => {
+    const restoreCanvas = stubCanvasContext();
+    const fakeCtx = (restoreCanvas as any).fakeCtx;
+    fakeCtx.putImageData = vi.fn();
+    const imageData = { width: 10, height: 10, data: new Uint8ClampedArray(10 * 10 * 4) };
+
+    const map = createMockMap();
+    map.loadImage.mockImplementation((_url: string, cb: any) => cb(null, imageData));
+    renderWithMap(() => <MGL_Image id="pin" source="http://example.com/pin.png" sdf />, {
+      map,
+    });
+    await tick();
+    await tick();
+
+    expect(fakeCtx.putImageData).toHaveBeenCalledWith(imageData, 8, 8);
+    expect(fakeCtx.drawImage).not.toHaveBeenCalled();
+
+    restoreCanvas.mockRestore();
+  });
+
+  it("does not pad or tag addImage metadata when sdf is not set", async () => {
+    const restoreCanvas = stubCanvasContext();
+    const fakeCtx = (restoreCanvas as any).fakeCtx;
+    let capturedImg: HTMLImageElement | undefined;
+    const OrigImage = window.Image;
+    // @ts-ignore
+    window.Image = class extends OrigImage {
+      constructor() {
+        super();
+        capturedImg = this;
+      }
+    };
+
+    const map = createMockMap();
+    map.loadImage.mockImplementation((_url: string, cb: any) => cb(new Error("fail")));
+    renderWithMap(
+      () => <MGL_Image id="pin" source="http://example.com/pin.png" />,
+      { map },
+    );
+    await tick();
+
+    capturedImg!.onload!(new Event("load"));
+
+    const call = map.addImage.mock.calls.find((c: any[]) => c[0] === "pin");
+    expect(call[2]).not.toHaveProperty("sdf");
+    expect(fakeCtx.drawImage).toHaveBeenCalledWith(
+      capturedImg,
+      0,
+      0,
+      expect.any(Number),
+      expect.any(Number),
+    );
+
+    window.Image = OrigImage;
     restoreCanvas.mockRestore();
   });
 

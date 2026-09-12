@@ -7,30 +7,22 @@ import {
 } from 'solid-js'
 import { useMapContext } from '../MapProvider'
 import type { StyleImageInterface, Map as MapboxMap } from 'mapbox-gl'
+import { toSDF, sdfPadding, type SDFOptions } from './sdf'
+import {
+  PATTERN,
+  patternList,
+  SYMBOL,
+  symbolList,
+  wrapSymbolPath,
+  type PatternName,
+  type SymbolName,
+} from './shapes'
 
 // `StyleImageMetadata` isn't part of mapbox-gl's public type exports; derive it structurally
 // from `addImage`'s own options parameter instead of depending on an internal type name.
 type StyleImageMetadata = NonNullable<Parameters<MapboxMap['addImage']>[2]>
 
-const PATTERN = {
-  diagonal_l: { size: 20, path: 'M20 0 0 20M-10 10 10-10M10 30 30 10' },
-  diagonal_r: { size: 20, path: 'M0 0 20 20M30 10 10-10M10 30-10 10' },
-  horizontal: { size: 14, path: 'M7 0V20' },
-  vertical: { size: 14, path: 'M0 7H20' },
-  cross: { size: 18, path: 'M9 0V18M0 9H18' },
-  hash: { size: 30, path: 'M15 0 30 15 15 30 0 15Z' },
-  chevron_h: { size: 20, path: 'M-5 5 0 10 10 0 20 10 25 5M0 30 10 20 20 30' },
-  chevron_v: { size: 20, path: 'M5-5 10 0 0 10 10 20 5 25M25 15 20 10 25 5' },
-  square: { size: 20, path: 'M8 8H12V12H8Z', fill: true },
-  hex: { size: 50, path: 'M0 0V50L50 25ZM50 0V50L0 25ZM25 0V50' },
-  circle: {
-    size: 25,
-    path: 'M8 10A2.5 2.5 0 118.01 10M18 15A2.5 2.5 0 1018.01 15',
-    fill: true,
-  },
-}
-
-export const patternList = Object.keys(PATTERN)
+export { patternList, symbolList }
 
 export type Color =
   | `#${string}`
@@ -58,12 +50,22 @@ type Props = {
   }
   /**  The options for the image */
   pattern?: {
-    type: string
+    type: PatternName | (string & {})
     color: Color
     background: Color
-    lineWith: number
+    lineWidth: number
   }
   /** The pattern to be used for the image component. */
+  /** A predefined icon shape (see `symbolList`, e.g. `"triangle"`, `"hexagon"`), full custom
+   *  SVG markup, or a raw SVG path `d` string. Resolved the same way `source` is — including
+   *  `sdf` and `options.fill`/`options.stroke` — so it's just a convenient way to pick a
+   *  built-in shape instead of writing the markup yourself. Ignored if `source` is set. */
+  symbol?: SymbolName | (string & {})
+  /** Convert the rasterized source into a real signed-distance-field bitmap (not just
+   *  tagged with `sdf: true`), so `icon-color`/`icon-halo-color`/`icon-halo-width`/
+   *  `icon-halo-blur` can recolor and outline it crisply from layer paint properties.
+   *  Only applies to `source`/`symbol`, not `pattern`. */
+  sdf?: boolean | SDFOptions
 }
 
 export const MGL_Image: VoidComponent<Props> = props => {
@@ -101,8 +103,8 @@ export const MGL_Image: VoidComponent<Props> = props => {
   // Add or Update Image
   createEffect(() => {
     if (!props.id) throw new Error('Image - ID is required')
-    if (!props.source && !props.pattern)
-      throw new Error('Image - Image or Pattern is required')
+    if (!props.source && !props.pattern && !props.symbol)
+      throw new Error('Image - Image, Pattern or Symbol is required')
 
     // Match the screen's actual pixel density (same convention as `Source`'s `{r}` -> `@2x`
     // handling) instead of hard-coding 2, so patterns render crisply on both standard and
@@ -110,9 +112,18 @@ export const MGL_Image: VoidComponent<Props> = props => {
     const pixelRatio = Math.max(1, Math.round(window.devicePixelRatio || 2))
     const ops = props.pattern
       ? { pixelRatio, ...props.options }
-      : props.options
+      : props.sdf
+        ? { ...props.options, sdf: true }
+        : props.options
 
-    _loadImage(props.source || _createPattern(props.pattern, pixelRatio), (data, autoPixelRatio) => {
+    const symbolSource =
+      props.symbol &&
+      (SYMBOL[props.symbol] ||
+        (props.symbol.trimStart().startsWith('<svg')
+          ? props.symbol
+          : wrapSymbolPath(props.symbol)))
+
+    _loadImage(props.source || symbolSource || _createPattern(props.pattern, pixelRatio), (data, autoPixelRatio) => {
       // The SVG-rasterization fallback below reports the pixelRatio it actually rendered
       // at (`autoPixelRatio`) so mapbox displays it at the pre-oversampling CSS size instead
       // of the raw oversampled pixel size.
@@ -138,6 +149,11 @@ export const MGL_Image: VoidComponent<Props> = props => {
 
   // Load Image / SVG
   const _loadImage = (image, callback) => {
+    const sdfOpts: SDFOptions | null = props.sdf
+      ? typeof props.sdf === 'object'
+        ? props.sdf
+        : {}
+      : null
     if (typeof image == 'string' && image?.trimStart().startsWith('<svg')) {
       image = new DOMParser().parseFromString(image, 'image/svg+xml')
         .childNodes[0]
@@ -178,14 +194,20 @@ export const MGL_Image: VoidComponent<Props> = props => {
             props.options?.pixelRatio ??
             Math.max(1, Math.round(window.devicePixelRatio || 1))
           const scale = floorScale * pixelRatio
+          // SDF needs empty margin around the art for the outward halo gradient to
+          // fade into — without it, the distance field clips hard at the bitmap edge.
+          const padding = sdfOpts ? sdfPadding(sdfOpts) * pixelRatio : 0
+          const drawWidth = Math.round(img.width * scale)
+          const drawHeight = Math.round(img.height * scale)
           const canvas = document.createElement('canvas')
-          canvas.width = Math.round(img.width * scale)
-          canvas.height = Math.round(img.height * scale)
+          canvas.width = drawWidth + padding * 2
+          canvas.height = drawHeight + padding * 2
           const ctx = canvas.getContext('2d')
           ctx.imageSmoothingEnabled = true
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+          ctx.drawImage(img, padding, padding, drawWidth, drawHeight)
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
           return callback(
-            ctx.getImageData(0, 0, canvas.width, canvas.height),
+            sdfOpts ? toSDF(imageData, sdfOpts) : imageData,
             pixelRatio
           )
         }
@@ -197,7 +219,25 @@ export const MGL_Image: VoidComponent<Props> = props => {
           ? 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(image)
           : image
       } else {
-        return callback(imageData)
+        if (!sdfOpts) return callback(imageData)
+        // mapbox-gl's loadImage callback can hand back an ImageBitmap (no `.data`, so not
+        // usable as PixelData directly) as readily as an ImageData — and either way, the SDF
+        // transform needs the same empty margin the img.onload branch above pads in, or the
+        // field clips hard at the bitmap edge (see sdf.ts's own sdfPadding comment).
+        const { width, height } = imageData
+        const padding = sdfPadding(sdfOpts)
+        const canvas = document.createElement('canvas')
+        canvas.width = width + padding * 2
+        canvas.height = height + padding * 2
+        const c = canvas.getContext('2d')
+        c.imageSmoothingEnabled = true
+        if ('data' in imageData) {
+          c.putImageData(imageData, padding, padding)
+        } else {
+          c.drawImage(imageData, padding, padding, width, height)
+        }
+        const pixels = c.getImageData(0, 0, canvas.width, canvas.height)
+        return callback(toSDF(pixels, sdfOpts))
       }
     })
   }
@@ -222,7 +262,7 @@ export const MGL_Image: VoidComponent<Props> = props => {
         this.ctx.fillStyle = pattern.background || 'transparent'
         this.ctx.fillRect(0, 0, p.size, p.size)
         this.ctx.strokeStyle = this.ctx.fillStyle = pattern.color || 'black'
-        this.ctx.lineWidth = pattern.lineWith || 1
+        this.ctx.lineWidth = pattern.lineWidth || 1
         this.ctx.stroke(new Path2D(p.path))
         if (p.fill) this.ctx.fill(new Path2D(p.path))
         this.data = this.ctx.getImageData(0, 0, this.width, this.height).data

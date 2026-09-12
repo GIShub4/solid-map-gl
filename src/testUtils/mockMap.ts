@@ -101,6 +101,7 @@ export function createMockMap(opts: { isMapLibre?: boolean } = {}) {
     return map;
   });
   const isStyleLoaded = vi.fn(() => true);
+  const areTilesLoaded = vi.fn(() => true);
 
   const addControl = vi.fn((c: any, _position?: string) => {
     controls.add(c);
@@ -164,6 +165,7 @@ export function createMockMap(opts: { isMapLibre?: boolean } = {}) {
     getStyle,
     setStyle,
     isStyleLoaded,
+    areTilesLoaded,
 
     addControl,
     removeControl,

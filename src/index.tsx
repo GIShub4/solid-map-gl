@@ -8,11 +8,21 @@ export { Terrain } from "./components/Terrain";
 export { Control } from "./components/Control";
 export { Marker } from "./components/Marker";
 export { Popup } from "./components/Popup";
-export { MGL_Image as Image, patternList } from "./components/Image";
+export { MGL_Image as Image, patternList, symbolList } from "./components/Image";
+export { toSDF } from "./components/Image/sdf";
 export { Camera } from "./components/Camera";
 export { Light } from "./components/Light";
 export { Draw } from "./components/Draw";
 export { DeckOverlay } from "./components/DeckOverlay";
+export {
+  disableRasterFade,
+  settleAfterIdle,
+  waitForIdleAndSettle,
+} from "./tilesSettled";
+export type { SettleOptions, SettleableMap } from "./tilesSettled";
+export type { MapCapturer } from "./offscreenCapture";
 export type { Viewport } from "./components/MapGL";
 export type { Color } from "./components/Image";
+export type { PatternName, SymbolName } from "./components/Image/shapes";
+export type { SDFOptions, PixelData } from "./components/Image/sdf";
 export type { MapLibreSky } from "./components/Atmosphere";
