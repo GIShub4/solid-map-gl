@@ -10,6 +10,8 @@ rejected, what's still open), see `docs/dev-notes.md`.
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-09-14
+
 ### Added
 
 - **`<MapGL onTilesLoaded>`** — fires after `idle` once every currently-required tile has actually
