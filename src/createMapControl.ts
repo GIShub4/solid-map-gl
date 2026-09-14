@@ -1,5 +1,5 @@
 import { createEffect, onCleanup } from "solid-js";
-import { useMapContext } from "../components/MapProvider";
+import { useMapContext } from "./components/MapProvider";
 
 /**
  * Keeps an already-constructed `IControl` added to the map at `position`, moving it

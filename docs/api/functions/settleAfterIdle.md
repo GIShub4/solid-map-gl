@@ -8,7 +8,7 @@
 
 > **settleAfterIdle**(`map`, `options?`): `Promise`\<`void`\>
 
-Defined in: [tilesSettled.ts:82](https://github.com/GIShub4/solid-map-gl/blob/b14ea43af027c491ee8aae3c366959422b824819/src/tilesSettled.ts#L82)
+Defined in: [MapGL/tilesSettled.ts:82](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/MapGL/tilesSettled.ts#L82)
 
 The actual "is this map done, visually" check: polls `areTilesLoaded()`, confirms a real paint
 via two animation frames, then (unless `fadeMargin` is 0) waits out any raster-fade cross-fade

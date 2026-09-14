@@ -10,9 +10,9 @@ import { isServer } from "solid-js/web";
 import { MapProvider } from "../MapProvider";
 import { mapEvents } from "../../events";
 import { vectorStyleList } from "../../mapStyles";
-import { settleAfterIdle, disableRasterFade } from "../../tilesSettled";
-import { createCapturer } from "../../offscreenCapture";
-import type { MapCapturer } from "../../offscreenCapture";
+import { settleAfterIdle, disableRasterFade } from "./tilesSettled";
+import { createCapturer } from "./offscreenCapture";
+import type { MapCapturer } from "./offscreenCapture";
 import type { mapEventTypes } from "../../events";
 import type mapboxgl from "mapbox-gl";
 import type {

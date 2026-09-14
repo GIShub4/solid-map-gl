@@ -1,8 +1,8 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { cleanup } from "@solidjs/testing-library";
 import { useControlPosition } from "./createMapControl";
-import { renderWithMap } from "../testUtils/renderWithMap";
-import { tick } from "../testUtils/mockMap";
+import { renderWithMap } from "./testUtils/renderWithMap";
+import { tick } from "./testUtils/mockMap";
 
 afterEach(cleanup);
 

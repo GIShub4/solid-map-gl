@@ -8,8 +8,8 @@ import {
 import { useMapContext } from "../MapProvider";
 import { useSourceId } from "../Source";
 import { layerEvents } from "../../events";
-import { baseStyle, layoutStyles } from "../../styles";
-import { resolveColor as resolveColorValue, toRgbaComponents } from "../../colors";
+import { baseStyle, layoutStyles } from "./styles";
+import { resolveColor as resolveColorValue, toRgbaComponents } from "./colors";
 import type { layerEventTypes } from "../../events";
 import type { FilterSpecification, CustomLayerInterface } from "mapbox-gl";
 

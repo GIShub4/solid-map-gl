@@ -18,9 +18,9 @@ export {
   disableRasterFade,
   settleAfterIdle,
   waitForIdleAndSettle,
-} from "./tilesSettled";
-export type { SettleOptions, SettleableMap } from "./tilesSettled";
-export type { MapCapturer } from "./offscreenCapture";
+} from "./components/MapGL/tilesSettled";
+export type { SettleOptions, SettleableMap } from "./components/MapGL/tilesSettled";
+export type { MapCapturer } from "./components/MapGL/offscreenCapture";
 export type { Viewport } from "./components/MapGL";
 export type { Color } from "./components/Image";
 export type { PatternName, SymbolName } from "./components/Image/shapes";

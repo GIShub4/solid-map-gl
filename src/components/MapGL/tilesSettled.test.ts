@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
-import { createMockMap } from "./testUtils/mockMap";
+import { createMockMap } from "../../testUtils/mockMap";
 import {
   pollTilesLoaded,
   settleAfterIdle,

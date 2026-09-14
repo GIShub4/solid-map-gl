@@ -6,7 +6,7 @@
 
 # Interface: MapLibreSky
 
-Defined in: [components/Atmosphere/index.tsx:7](https://github.com/GIShub4/solid-map-gl/blob/b14ea43af027c491ee8aae3c366959422b824819/src/components/Atmosphere/index.tsx#L7)
+Defined in: [Atmosphere/index.tsx:7](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/Atmosphere/index.tsx#L7)
 
 MapLibre's `sky` style-spec object — a genuinely different shape from Mapbox's `Fog`,
 not a variant of it.
@@ -17,7 +17,7 @@ not a variant of it.
 
 > `optional` **atmosphere-blend?**: `number`
 
-Defined in: [components/Atmosphere/index.tsx:14](https://github.com/GIShub4/solid-map-gl/blob/b14ea43af027c491ee8aae3c366959422b824819/src/components/Atmosphere/index.tsx#L14)
+Defined in: [Atmosphere/index.tsx:14](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/Atmosphere/index.tsx#L14)
 
 ***
 
@@ -25,7 +25,7 @@ Defined in: [components/Atmosphere/index.tsx:14](https://github.com/GIShub4/soli
 
 > `optional` **fog-color?**: `string`
 
-Defined in: [components/Atmosphere/index.tsx:12](https://github.com/GIShub4/solid-map-gl/blob/b14ea43af027c491ee8aae3c366959422b824819/src/components/Atmosphere/index.tsx#L12)
+Defined in: [Atmosphere/index.tsx:12](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/Atmosphere/index.tsx#L12)
 
 ***
 
@@ -33,7 +33,7 @@ Defined in: [components/Atmosphere/index.tsx:12](https://github.com/GIShub4/soli
 
 > `optional` **fog-ground-blend?**: `number`
 
-Defined in: [components/Atmosphere/index.tsx:13](https://github.com/GIShub4/solid-map-gl/blob/b14ea43af027c491ee8aae3c366959422b824819/src/components/Atmosphere/index.tsx#L13)
+Defined in: [Atmosphere/index.tsx:13](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/Atmosphere/index.tsx#L13)
 
 ***
 
@@ -41,7 +41,7 @@ Defined in: [components/Atmosphere/index.tsx:13](https://github.com/GIShub4/soli
 
 > `optional` **horizon-color?**: `string`
 
-Defined in: [components/Atmosphere/index.tsx:10](https://github.com/GIShub4/solid-map-gl/blob/b14ea43af027c491ee8aae3c366959422b824819/src/components/Atmosphere/index.tsx#L10)
+Defined in: [Atmosphere/index.tsx:10](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/Atmosphere/index.tsx#L10)
 
 ***
 
@@ -49,7 +49,7 @@ Defined in: [components/Atmosphere/index.tsx:10](https://github.com/GIShub4/soli
 
 > `optional` **horizon-fog-blend?**: `number`
 
-Defined in: [components/Atmosphere/index.tsx:11](https://github.com/GIShub4/solid-map-gl/blob/b14ea43af027c491ee8aae3c366959422b824819/src/components/Atmosphere/index.tsx#L11)
+Defined in: [Atmosphere/index.tsx:11](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/Atmosphere/index.tsx#L11)
 
 ***
 
@@ -57,7 +57,7 @@ Defined in: [components/Atmosphere/index.tsx:11](https://github.com/GIShub4/soli
 
 > `optional` **sky-color?**: `string`
 
-Defined in: [components/Atmosphere/index.tsx:8](https://github.com/GIShub4/solid-map-gl/blob/b14ea43af027c491ee8aae3c366959422b824819/src/components/Atmosphere/index.tsx#L8)
+Defined in: [Atmosphere/index.tsx:8](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/Atmosphere/index.tsx#L8)
 
 ***
 
@@ -65,4 +65,4 @@ Defined in: [components/Atmosphere/index.tsx:8](https://github.com/GIShub4/solid
 
 > `optional` **sky-horizon-blend?**: `number`
 
-Defined in: [components/Atmosphere/index.tsx:9](https://github.com/GIShub4/solid-map-gl/blob/b14ea43af027c491ee8aae3c366959422b824819/src/components/Atmosphere/index.tsx#L9)
+Defined in: [Atmosphere/index.tsx:9](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/Atmosphere/index.tsx#L9)

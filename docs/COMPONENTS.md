@@ -189,7 +189,7 @@ On cleanup, removes any layers still referencing this source before removing the
 
 Wraps `map.addLayer`/`removeLayer`. `sourceId` defaults to `style.source`, then to the nearest
 `useSourceId()` from a parent `Source`. `style` is a flat Mapbox layer-style object; `updateStyle`
-(using `baseStyle`/`layoutStyles` from `src/styles.ts`) buckets each key into `paint` vs. `layout`
+(using `baseStyle`/`layoutStyles` from `src/components/Layer/styles.ts`) buckets each key into `paint` vs. `layout`
 automatically. On every reactive update, `diff()` compares the new bucketed style against the
 previous one and calls only the matching `setLayoutProperty`/`setPaintProperty`/`setFilter`/
 `setLayerZoomRange` — the layer itself is never removed and re-added for a style change. Supports
@@ -213,12 +213,12 @@ is left as the literal `"@name"` string and passed through unchanged, with a `de
 itself will then reject/ignore it, same as any other invalid property value.
 
 Only *after* constant resolution does a bucketed paint key ending in `color` also run through
-`resolveColor()` (→ `resolveColor()` in `src/colors.ts`, imported there as `resolveColorValue` to
+`resolveColor()` (→ `resolveColor()` in `src/components/Layer/colors.ts`, imported there as `resolveColorValue` to
 avoid the name clash) before reaching `addLayer`/`setPaintProperty` — so a constant's own value can
 itself be a Tailwind name or CSS Color 4 function and still resolve (e.g. `constants={{ primary:
 "blue-600" }}` with `fillColor: "@primary"`):
 - `'bg-{name} dark:bg-{name}'` (e.g. `fillColor: 'bg-blue-600 dark:bg-blue-400'`) resolves via a
-  *second*, separate detached probe (`resolveClassPair` in `src/colors.ts`) that gets the real
+  *second*, separate detached probe (`resolveClassPair` in `src/components/Layer/colors.ts`) that gets the real
   compiled Tailwind utility classes applied to it as a `className` (not an inline style) and reads
   back `getComputedStyle(...).backgroundColor` — whichever of the two the browser's own cascade
   picked wins, so this respects whatever dark-mode strategy the consuming app's Tailwind config
@@ -369,7 +369,7 @@ Thin wrapper over `map.addControl`/`removeControl`. Resolves the concrete contro
 already have a control instance (e.g. `@mapbox/mapbox-gl-traffic`,
 `@mapbox/mapbox-gl-language`). Re-adds the control whenever `type`/`options`/`custom` change; the
 position-tracking half of this (re-add at the new position without recreating the control instance,
-plus cleanup) is shared with `DeckOverlay` via `src/lib/createMapControl.ts`'s `useControlPosition`.
+plus cleanup) is shared with `DeckOverlay` via `src/createMapControl.ts`'s `useControlPosition`.
 
 ### Props
 
@@ -669,7 +669,7 @@ gives you the raw draw control for imperative API calls (`draw.add`, `draw.delet
 
 Adds a [deck.gl](https://deck.gl/) overlay as a map control, mirroring `Control`'s
 add/update/remove lifecycle via the same `useControlPosition` primitive
-(`src/lib/createMapControl.ts`). `solid-map-gl` never imports `@deck.gl/*` itself, not even as an
+(`src/createMapControl.ts`). `solid-map-gl` never imports `@deck.gl/*` itself, not even as an
 optional peer — you supply the overlay **class** (not an instance), matching whichever base
 library `MapGL` resolved to: `MapboxOverlay` from `@deck.gl/mapbox` for Mapbox, `MapLibreOverlay`
 from `@deck.gl/maplibre` for MapLibre (check `ctx.isMapLibre` if you need to pick dynamically —
@@ -699,28 +699,37 @@ import { ScatterplotLayer } from "@deck.gl/layers";
 
 ## Supporting modules
 
-These aren't components but are shared by several of the ones above:
+These aren't components. A module used by only one component lives inside that component's own
+folder (e.g. `src/components/Image/sdf.ts`) rather than at `src/` root — `src/` root is reserved
+for modules genuinely shared across components:
 
 - **`src/events.ts`** — canonical lists of event names (`mapEvents`, `layerEvents`, `drawEvents`)
   and their prop-type shapes (`mapEventTypes`, `layerEventTypes`, `drawEventTypes`), consumed by
   `MapGL`, `Layer`, and `Draw` to wire `on[Event]` props to the underlying Mapbox events.
-- **`src/styles.ts`** — `baseStyle` (top-level layer-spec keys like `id`, `type`, `filter`,
-  `source`, `minzoom`/`maxzoom`) and `layoutStyles` (the full list of Mapbox `layout` property
-  names), used by `Layer` to bucket a flat style object into `paint`/`layout`.
 - **`src/mapStyles.ts`** — `vectorStyleList` (`mb:*` Mapbox styles, `here:*`, `esri:*`) and
   `rasterStyleList` (`osm:*`, `carto:*`, `stamen:*`, `tf:*` raster tile templates with `{s}`/`{r}`/
   `{apikey}` placeholders), used by `MapGL` and `Source` to resolve basemap shorthand strings.
   Full list of shortcuts documented in `docs/styles.md`.
-- **`src/tilesSettled.ts`** — framework-agnostic (no SolidJS import) "is this map actually done,
-  visually" check: `settleAfterIdle(map, opts)` polls `areTilesLoaded()`, confirms a real paint via
-  two `requestAnimationFrame`s, then waits out any `raster-fade-duration` cross-fade still in flight
-  (`hasActiveFadeTransition`, plus a flat fallback margin since mapbox-gl-js exposes no public event
-  for "the fade finished" and its own internal transition tracking doesn't reliably cover imported
-  style fragments like Standard/Standard Satellite). `waitForIdleAndSettle` adds the `map.once('idle',
-  ...)` wait; `disableRasterFade` is the standalone raster-fade-zeroing utility. Backs both `MapGL`'s
-  `onTilesLoaded` prop and `offscreenCapture.ts`'s `createCapturer`.
-- **`src/offscreenCapture.ts`** — `createCapturer(map, settleOptions)` builds the `MapCapturer`
-  object (`map`/`waitUntilSettled`/`capture`/`captureWhenSettled`) handed to `MapGL`'s
+- **`src/createMapControl.ts`** — shared `addControl`/`removeControl` lifecycle (`useControlPosition`)
+  for `Control` and `DeckOverlay` — see [DeckOverlay](#deckoverlay).
+
+Component-local utility modules, colocated with their only consumer:
+
+- **`src/components/Layer/styles.ts`** — `baseStyle` (top-level layer-spec keys like `id`, `type`,
+  `filter`, `source`, `minzoom`/`maxzoom`) and `layoutStyles` (the full list of Mapbox `layout`
+  property names), used by `Layer` to bucket a flat style object into `paint`/`layout`.
+- **`src/components/Layer/colors.ts`** — `resolveColor`/`toRgbaComponents` (see [Layer](#layer)'s
+  color-resolution and `pulse` sections).
+- **`src/components/MapGL/tilesSettled.ts`** — framework-agnostic (no SolidJS import) "is this map
+  actually done, visually" check: `settleAfterIdle(map, opts)` polls `areTilesLoaded()`, confirms a
+  real paint via two `requestAnimationFrame`s, then waits out any `raster-fade-duration` cross-fade
+  still in flight (`hasActiveFadeTransition`, plus a flat fallback margin since mapbox-gl-js exposes
+  no public event for "the fade finished" and its own internal transition tracking doesn't reliably
+  cover imported style fragments like Standard/Standard Satellite). `waitForIdleAndSettle` adds the
+  `map.once('idle', ...)` wait; `disableRasterFade` is the standalone raster-fade-zeroing utility.
+  Backs both `MapGL`'s `onTilesLoaded` prop and `offscreenCapture.ts`'s `createCapturer`.
+- **`src/components/MapGL/offscreenCapture.ts`** — `createCapturer(map, settleOptions)` builds the
+  `MapCapturer` object (`map`/`waitUntilSettled`/`capture`/`captureWhenSettled`) handed to `MapGL`'s
   `onCapturerReady` callback when its `offscreen` prop is set — see [MapGL](#mapgl). Deliberately
   stops at "a settled map instance and a way to grab its canvas" (`capture()` returns a
   `toDataURL()` string) — no document/PDF library is exported or assumed here, so consumers keep

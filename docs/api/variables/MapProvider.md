@@ -8,4 +8,4 @@
 
 > `const` **MapProvider**: `ParentComponent`\<\{ `constants?`: `Record`\<`string`, `any`\>; `isMapLibre?`: `boolean`; `map?`: `Map`; `mapLib?`: `any`; `themeVersion?`: `number`; \}\>
 
-Defined in: [components/MapProvider/index.tsx:33](https://github.com/GIShub4/solid-map-gl/blob/b14ea43af027c491ee8aae3c366959422b824819/src/components/MapProvider/index.tsx#L33)
+Defined in: [MapProvider/index.tsx:33](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/MapProvider/index.tsx#L33)

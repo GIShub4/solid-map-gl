@@ -8,7 +8,7 @@
 
 > **SDFOptions** = `object`
 
-Defined in: [components/Image/sdf.ts:77](https://github.com/GIShub4/solid-map-gl/blob/b14ea43af027c491ee8aae3c366959422b824819/src/components/Image/sdf.ts#L77)
+Defined in: [Image/sdf.ts:77](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/Image/sdf.ts#L77)
 
 ## Properties
 
@@ -16,7 +16,7 @@ Defined in: [components/Image/sdf.ts:77](https://github.com/GIShub4/solid-map-gl
 
 > `optional` **cutoff?**: `number`
 
-Defined in: [components/Image/sdf.ts:83](https://github.com/GIShub4/solid-map-gl/blob/b14ea43af027c491ee8aae3c366959422b824819/src/components/Image/sdf.ts#L83)
+Defined in: [Image/sdf.ts:83](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/Image/sdf.ts#L83)
 
 Where along the gradient (0-1) the shape's "true" edge sits; matches mapbox's own
  glyph default.
@@ -27,7 +27,7 @@ Where along the gradient (0-1) the shape's "true" edge sits; matches mapbox's ow
 
 > `optional` **radius?**: `number`
 
-Defined in: [components/Image/sdf.ts:80](https://github.com/GIShub4/solid-map-gl/blob/b14ea43af027c491ee8aae3c366959422b824819/src/components/Image/sdf.ts#L80)
+Defined in: [Image/sdf.ts:80](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/Image/sdf.ts#L80)
 
 Pixels of gradient falloff encoded around each edge. Needs matching empty margin
  around the source art (see `sdfPadding`) or the field clips at the bitmap border.
