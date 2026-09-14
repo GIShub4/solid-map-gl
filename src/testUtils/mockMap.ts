@@ -2,7 +2,7 @@ import { vi } from "vitest";
 
 /**
  * Hand-rolled mock of the subset of the Mapbox/MapLibre `Map` API this library actually calls
- * (see docs/dev-notes.md — real third-party map mocks are unmaintained/dead). Built once,
+ * (see .claude/dev-notes.md — real third-party map mocks are unmaintained/dead). Built once,
  * reused across every component's test file — do not hand-roll a second mock elsewhere.
  */
 
