@@ -424,6 +424,25 @@ describe("Layer", () => {
     );
   });
 
+  it("does not mark non-click layer events as clickOnLayer", () => {
+    const map = createMockMap();
+    const onMouseMove = vi.fn();
+    renderWithMap(
+      () => (
+        <Source id="src" source={{ type: "geojson", data: {} as any }}>
+          <Layer id="l1" style={{ type: "fill" }} onMouseMove={onMouseMove} />
+        </Source>
+      ),
+      { map },
+    );
+
+    map.fire("mousemove", { lngLat: [0, 0] }, "l1");
+
+    expect(onMouseMove).toHaveBeenCalledWith(
+      expect.not.objectContaining({ clickOnLayer: true }),
+    );
+  });
+
   it("only re-applies visibility once it actually changes", async () => {
     const [visible, setVisible] = createSignal(true);
     const { map } = renderWithMap(() => (

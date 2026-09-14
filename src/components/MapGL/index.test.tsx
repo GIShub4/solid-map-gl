@@ -185,6 +185,22 @@ describe("Map", () => {
     expect(onClick).not.toHaveBeenCalled();
   });
 
+  it("still dispatches a map-level onMouseMove even if a layer stamped clickOnLayer", async () => {
+    const mapLib = createMockMapLib();
+    const onMouseMove = vi.fn();
+    render(() => <MapGL mapLib={mapLib} onMouseMove={onMouseMove} />);
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+
+    // A layer's own onMouseMove handler stamps clickOnLayer on the event (see Layer/index.tsx) —
+    // that flag should only suppress the map-level 'click' handler, not other event types, or
+    // hovering any layer would silently freeze map-level mousemove/mouseleave handlers.
+    map.fire("mousemove", { lngLat: [0, 0], clickOnLayer: true });
+    await new Promise((r) => setTimeout(r, 10));
+
+    expect(onMouseMove).toHaveBeenCalledWith(expect.objectContaining({ lngLat: [0, 0] }));
+  });
+
   it("dispatches an object-form (per-layer) map event prop", async () => {
     const mapLib = createMockMapLib();
     const onLayerClick = vi.fn();

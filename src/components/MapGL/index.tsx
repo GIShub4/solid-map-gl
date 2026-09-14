@@ -302,7 +302,7 @@ export const MapGL: Component<Props> = (props) => {
         if (typeof prop === "function") {
           map.on(event as any, (evt) => {
             setTimeout(() => {
-              if ((evt as any).clickOnLayer) return;
+              if (event === "click" && (evt as any).clickOnLayer) return;
               prop(evt);
               props.debugEvents && debug(`Map '${event}' event:`, evt);
             }, 0);
@@ -311,7 +311,7 @@ export const MapGL: Component<Props> = (props) => {
           Object.keys(prop).forEach((layerId) => {
             map.on(event as any, layerId, (evt) => {
               setTimeout(() => {
-                if ((evt as any).clickOnLayer) return;
+                if (event === "click" && (evt as any).clickOnLayer) return;
                 prop[layerId](evt);
                 props.debugEvents &&
                   debug(`Map '${event}' event on '${layerId}':`, evt);

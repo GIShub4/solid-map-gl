@@ -258,7 +258,7 @@ export const Layer: Component<Props> = (props) => {
     if (props[item]) {
       const event = item.slice(2).toLowerCase();
       ctx.map.on(event, layerId, (evt) => {
-        evt.clickOnLayer = true;
+        if (event === "click") evt.clickOnLayer = true;
         props[item](evt);
         ctx.map.debugEvents &&
           debug(`Layer '${event}' event on '${layerId}':`, evt);
