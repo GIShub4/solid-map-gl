@@ -1,6 +1,6 @@
 import { createEffect, VoidComponent } from "solid-js";
 import { useMapContext } from "../MapProvider";
-import { useControlPosition } from "../../createMapControl";
+import { useControlPosition } from "../../lib/createMapControl";
 
 type Props = {
   /** The deck.gl overlay class matching the active base library — `MapboxOverlay` from

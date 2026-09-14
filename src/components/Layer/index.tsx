@@ -7,10 +7,10 @@ import {
 } from "solid-js";
 import { useMapContext } from "../MapProvider";
 import { useSourceId } from "../Source";
-import { layerEvents } from "../../events";
+import { layerEvents } from "../../lib/events";
 import { baseStyle, layoutStyles } from "./styles";
 import { resolveColor as resolveColorValue, toRgbaComponents } from "./colors";
-import type { layerEventTypes } from "../../events";
+import type { layerEventTypes } from "../../lib/events";
 import type { FilterSpecification, CustomLayerInterface } from "mapbox-gl";
 
 // `style` accepts a mix of base layer keys (`type`, `filter`, `minzoom`/`maxzoom`,
@@ -151,7 +151,7 @@ const newKey = (key, type) =>
 
 // Lets paint colors be given as a Tailwind palette name (`fillColor: 'blue-600'`) or a CSS Color 4
 // function Mapbox can't parse (`fillColor: 'oklch(54.6% 0.245 262.881)'`), alongside any format
-// Mapbox already understands — see `resolveColorValue` in `src/colors.ts`.
+// Mapbox already understands — see `resolveColorValue` in `./colors.ts`.
 const resolveColor = (key: string, value: any) =>
   key.endsWith("color") && typeof value === "string"
     ? resolveColorValue(value)
@@ -270,7 +270,7 @@ export const Layer: Component<Props> = (props) => {
   createEffect((prev: FlatLayerStyle) => {
     // Read (not otherwise used) so any environment change MapGL noticed (a matchMedia firing, or
     // any attribute mutation on <html>/<body> — not just a "dark" class) re-runs this effect,
-    // needed to re-probe any "bg-x dark:bg-y" color pair (see resolveColor in src/colors.ts): the
+    // needed to re-probe any "bg-x dark:bg-y" color pair (see resolveColor in ./colors.ts): the
     // browser's cascade decides which of the two applies, but nothing tells Solid to re-read that
     // cascade on its own, so this stands in as the "please re-check" trigger.
     ctx.themeVersion;

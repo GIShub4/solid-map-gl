@@ -36,7 +36,7 @@ map instance via `useMapContext()`.
 
 The root component. Creates the `mapboxgl.Map` (or `maplibregl.Map`, via `mapLib`) instance in
 `onMount`, resolves style shorthands (see [mapStyles](#supporting-modules)), wires up every
-`mapEvents` entry from `src/events.ts`, tracks dark-mode via `matchMedia` + a `MutationObserver`
+`mapEvents` entry from `src/lib/events.ts`, tracks dark-mode via `matchMedia` + a `MutationObserver`
 watching for a `dark` class on both `<html>` and `<body>` (used for `darkStyle` switching), and
 separately bumps a plain `themeVersion` counter on *every* matchMedia/mutation firing regardless of
 that class check — threaded through `MapProvider` as `ctx.themeVersion`, purely as `Layer`'s
@@ -75,7 +75,7 @@ components can sit on top of the canvas.
 | `apikey` | `string` | API key substituted into `{apikey}` placeholders in style/tile URLs |
 | `constants` | `Record<string, string \| number>` | Named values reusable across every `<Layer>` by writing `"@name"` in a paint/layout style property instead of the literal value (e.g. `fillColor: "@primary"`). Updating this prop re-applies just the layers referencing a changed name. See [Layer](#layer)'s "Update Style" section |
 | `debug` / `debugEvents` | `boolean` | Enable `[MapGL]` console.debug logging |
-| `on[Event]` | see `mapEventTypes` in `src/events.ts` | Any Mapbox map event, e.g. `onMouseMove`, `onClick`, `onLoad` |
+| `on[Event]` | see `mapEventTypes` in `src/lib/events.ts` | Any Mapbox map event, e.g. `onMouseMove`, `onClick`, `onLoad` |
 | `children` | `JSX.Element` | Rendered once the map has loaded, inside `MapProvider` |
 
 `*required` fields: none — `viewport`/`options` are optional; an uncontrolled `<MapGL>` renders a
@@ -308,7 +308,7 @@ rather than on every frame, and interpolated component-wise (`lerpColor()`) into
 | `beforeId` | `string` | Insert before this layer id |
 | `featureState` | `{ id: number \| string, state: object }` | Sets feature state on `style["source-layer"]` |
 | `pulse` | `boolean \| PulseConfig \| PulseConfig[]` where `PulseConfig = { property?: string, from?: number \| string, to?: number \| string, duration?: number, waveform?: 'out' \| 'in' \| 'in-out' }` (all fields default) | Animate one or more paint properties via `requestAnimationFrame`; array entries share one frame loop |
-| `on[Event]` | see `layerEventTypes` in `src/events.ts` | Per-layer event, e.g. `onClick`, `onMouseEnter` |
+| `on[Event]` | see `layerEventTypes` in `src/lib/events.ts` | Per-layer event, e.g. `onClick`, `onMouseEnter` |
 | `children` | any | Rendered as-is (layers have no natural children in Mapbox, but this allows composition) |
 
 ### Example
@@ -369,7 +369,7 @@ Thin wrapper over `map.addControl`/`removeControl`. Resolves the concrete contro
 already have a control instance (e.g. `@mapbox/mapbox-gl-traffic`,
 `@mapbox/mapbox-gl-language`). Re-adds the control whenever `type`/`options`/`custom` change; the
 position-tracking half of this (re-add at the new position without recreating the control instance,
-plus cleanup) is shared with `DeckOverlay` via `src/createMapControl.ts`'s `useControlPosition`.
+plus cleanup) is shared with `DeckOverlay` via `src/lib/createMapControl.ts`'s `useControlPosition`.
 
 ### Props
 
@@ -648,7 +648,7 @@ gives you the raw draw control for imperative API calls (`draw.add`, `draw.delet
 | `getInstance` | `(draw) => void` | Access to the draw instance for imperative [API methods](https://github.com/mapbox/mapbox-gl-draw/blob/main/docs/API.md#api-methods) |
 | `showLength` | `boolean` | Show live length measurements while drawing lines |
 | `showArea` | `boolean` | Show live area measurements while drawing polygons |
-| `on[Event]` | see `drawEventTypes` in `src/events.ts` | `onCreate`, `onDelete`, `onCombine`, `onUncombine`, `onUpdate`, `onSelectionchange`, `onModechange`, `onRender`, `onActionable` |
+| `on[Event]` | see `drawEventTypes` in `src/lib/events.ts` | `onCreate`, `onDelete`, `onCombine`, `onUncombine`, `onUpdate`, `onSelectionchange`, `onModechange`, `onRender`, `onActionable` |
 
 ### Example
 
@@ -669,7 +669,7 @@ gives you the raw draw control for imperative API calls (`draw.add`, `draw.delet
 
 Adds a [deck.gl](https://deck.gl/) overlay as a map control, mirroring `Control`'s
 add/update/remove lifecycle via the same `useControlPosition` primitive
-(`src/createMapControl.ts`). `solid-map-gl` never imports `@deck.gl/*` itself, not even as an
+(`src/lib/createMapControl.ts`). `solid-map-gl` never imports `@deck.gl/*` itself, not even as an
 optional peer — you supply the overlay **class** (not an instance), matching whichever base
 library `MapGL` resolved to: `MapboxOverlay` from `@deck.gl/mapbox` for Mapbox, `MapLibreOverlay`
 from `@deck.gl/maplibre` for MapLibre (check `ctx.isMapLibre` if you need to pick dynamically —
@@ -700,17 +700,17 @@ import { ScatterplotLayer } from "@deck.gl/layers";
 ## Supporting modules
 
 These aren't components. A module used by only one component lives inside that component's own
-folder (e.g. `src/components/Image/sdf.ts`) rather than at `src/` root — `src/` root is reserved
+folder (e.g. `src/components/Image/sdf.ts`) rather than in `src/lib/` — `src/lib/` is reserved
 for modules genuinely shared across components:
 
-- **`src/events.ts`** — canonical lists of event names (`mapEvents`, `layerEvents`, `drawEvents`)
+- **`src/lib/events.ts`** — canonical lists of event names (`mapEvents`, `layerEvents`, `drawEvents`)
   and their prop-type shapes (`mapEventTypes`, `layerEventTypes`, `drawEventTypes`), consumed by
   `MapGL`, `Layer`, and `Draw` to wire `on[Event]` props to the underlying Mapbox events.
-- **`src/mapStyles.ts`** — `vectorStyleList` (`mb:*` Mapbox styles, `here:*`, `esri:*`) and
+- **`src/lib/mapStyles.ts`** — `vectorStyleList` (`mb:*` Mapbox styles, `here:*`, `esri:*`) and
   `rasterStyleList` (`osm:*`, `carto:*`, `stamen:*`, `tf:*` raster tile templates with `{s}`/`{r}`/
   `{apikey}` placeholders), used by `MapGL` and `Source` to resolve basemap shorthand strings.
   Full list of shortcuts documented in `docs/styles.md`.
-- **`src/createMapControl.ts`** — shared `addControl`/`removeControl` lifecycle (`useControlPosition`)
+- **`src/lib/createMapControl.ts`** — shared `addControl`/`removeControl` lifecycle (`useControlPosition`)
   for `Control` and `DeckOverlay` — see [DeckOverlay](#deckoverlay).
 
 Component-local utility modules, colocated with their only consumer:

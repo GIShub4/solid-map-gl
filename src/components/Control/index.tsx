@@ -1,6 +1,6 @@
 import { createSignal, createEffect, splitProps, untrack, VoidComponent } from "solid-js";
 import { useMapContext } from "../MapProvider";
-import { useControlPosition } from "../../createMapControl";
+import { useControlPosition } from "../../lib/createMapControl";
 import type {
   AttributionControlOptions,
   FullscreenControlOptions,

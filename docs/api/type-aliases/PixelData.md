@@ -8,7 +8,7 @@
 
 > **PixelData** = `object`
 
-Defined in: [Image/sdf.ts:95](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/Image/sdf.ts#L95)
+Defined in: [Image/sdf.ts:95](https://github.com/GIShub4/solid-map-gl/blob/ae7f29f3d8d8c10df04bbb4bc3a55ece605347b7/src/components/Image/sdf.ts#L95)
 
 ## Properties
 
@@ -16,7 +16,7 @@ Defined in: [Image/sdf.ts:95](https://github.com/GIShub4/solid-map-gl/blob/8fbe8
 
 > **data**: `Uint8Array` \| `Uint8ClampedArray`
 
-Defined in: [Image/sdf.ts:98](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/Image/sdf.ts#L98)
+Defined in: [Image/sdf.ts:98](https://github.com/GIShub4/solid-map-gl/blob/ae7f29f3d8d8c10df04bbb4bc3a55ece605347b7/src/components/Image/sdf.ts#L98)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [Image/sdf.ts:98](https://github.com/GIShub4/solid-map-gl/blob/8fbe8
 
 > **height**: `number`
 
-Defined in: [Image/sdf.ts:97](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/Image/sdf.ts#L97)
+Defined in: [Image/sdf.ts:97](https://github.com/GIShub4/solid-map-gl/blob/ae7f29f3d8d8c10df04bbb4bc3a55ece605347b7/src/components/Image/sdf.ts#L97)
 
 ***
 
@@ -32,4 +32,4 @@ Defined in: [Image/sdf.ts:97](https://github.com/GIShub4/solid-map-gl/blob/8fbe8
 
 > **width**: `number`
 
-Defined in: [Image/sdf.ts:96](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/Image/sdf.ts#L96)
+Defined in: [Image/sdf.ts:96](https://github.com/GIShub4/solid-map-gl/blob/ae7f29f3d8d8c10df04bbb4bc3a55ece605347b7/src/components/Image/sdf.ts#L96)

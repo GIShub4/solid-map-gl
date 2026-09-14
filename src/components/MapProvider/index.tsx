@@ -13,7 +13,7 @@ type MapContextState = {
    * light/dark judgment, just "something in the environment that could affect a resolved CSS
    * value just changed." Layer reads this only to know *when* to re-probe a "bg-x dark:bg-y"
    * color pair, never to decide which of the two applies (the browser's own cascade decides that,
-   * see resolveColor in src/colors.ts) — so it stays correct even for a dark-mode strategy (e.g. a
+   * see resolveColor in components/Layer/colors.ts) — so it stays correct even for a dark-mode strategy (e.g. a
    * `data-theme` attribute) MapGL's own class-based heuristic wouldn't recognize as "dark" */
   themeVersion: number
 }

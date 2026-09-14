@@ -8,7 +8,7 @@
 
 > **Viewport** = `object`
 
-Defined in: [MapGL/index.tsx:36](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/MapGL/index.tsx#L36)
+Defined in: [MapGL/index.tsx:36](https://github.com/GIShub4/solid-map-gl/blob/ae7f29f3d8d8c10df04bbb4bc3a55ece605347b7/src/components/MapGL/index.tsx#L36)
 
 ## Properties
 
@@ -16,7 +16,7 @@ Defined in: [MapGL/index.tsx:36](https://github.com/GIShub4/solid-map-gl/blob/8f
 
 > `optional` **bearing?**: `number`
 
-Defined in: [MapGL/index.tsx:43](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/MapGL/index.tsx#L43)
+Defined in: [MapGL/index.tsx:43](https://github.com/GIShub4/solid-map-gl/blob/ae7f29f3d8d8c10df04bbb4bc3a55ece605347b7/src/components/MapGL/index.tsx#L43)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [MapGL/index.tsx:43](https://github.com/GIShub4/solid-map-gl/blob/8f
 
 > `optional` **bounds?**: `LngLatBounds`
 
-Defined in: [MapGL/index.tsx:40](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/MapGL/index.tsx#L40)
+Defined in: [MapGL/index.tsx:40](https://github.com/GIShub4/solid-map-gl/blob/ae7f29f3d8d8c10df04bbb4bc3a55ece605347b7/src/components/MapGL/index.tsx#L40)
 
 ***
 
@@ -32,7 +32,7 @@ Defined in: [MapGL/index.tsx:40](https://github.com/GIShub4/solid-map-gl/blob/8f
 
 > `optional` **center?**: `LngLatLike`
 
-Defined in: [MapGL/index.tsx:39](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/MapGL/index.tsx#L39)
+Defined in: [MapGL/index.tsx:39](https://github.com/GIShub4/solid-map-gl/blob/ae7f29f3d8d8c10df04bbb4bc3a55ece605347b7/src/components/MapGL/index.tsx#L39)
 
 ***
 
@@ -40,7 +40,7 @@ Defined in: [MapGL/index.tsx:39](https://github.com/GIShub4/solid-map-gl/blob/8f
 
 > `optional` **id?**: `string`
 
-Defined in: [MapGL/index.tsx:37](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/MapGL/index.tsx#L37)
+Defined in: [MapGL/index.tsx:37](https://github.com/GIShub4/solid-map-gl/blob/ae7f29f3d8d8c10df04bbb4bc3a55ece605347b7/src/components/MapGL/index.tsx#L37)
 
 ***
 
@@ -48,7 +48,7 @@ Defined in: [MapGL/index.tsx:37](https://github.com/GIShub4/solid-map-gl/blob/8f
 
 > `optional` **inTransit?**: `boolean`
 
-Defined in: [MapGL/index.tsx:45](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/MapGL/index.tsx#L45)
+Defined in: [MapGL/index.tsx:45](https://github.com/GIShub4/solid-map-gl/blob/ae7f29f3d8d8c10df04bbb4bc3a55ece605347b7/src/components/MapGL/index.tsx#L45)
 
 ***
 
@@ -56,7 +56,7 @@ Defined in: [MapGL/index.tsx:45](https://github.com/GIShub4/solid-map-gl/blob/8f
 
 > `optional` **padding?**: `PaddingOptions`
 
-Defined in: [MapGL/index.tsx:44](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/MapGL/index.tsx#L44)
+Defined in: [MapGL/index.tsx:44](https://github.com/GIShub4/solid-map-gl/blob/ae7f29f3d8d8c10df04bbb4bc3a55ece605347b7/src/components/MapGL/index.tsx#L44)
 
 ***
 
@@ -64,7 +64,7 @@ Defined in: [MapGL/index.tsx:44](https://github.com/GIShub4/solid-map-gl/blob/8f
 
 > `optional` **pitch?**: `number`
 
-Defined in: [MapGL/index.tsx:42](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/MapGL/index.tsx#L42)
+Defined in: [MapGL/index.tsx:42](https://github.com/GIShub4/solid-map-gl/blob/ae7f29f3d8d8c10df04bbb4bc3a55ece605347b7/src/components/MapGL/index.tsx#L42)
 
 ***
 
@@ -72,7 +72,7 @@ Defined in: [MapGL/index.tsx:42](https://github.com/GIShub4/solid-map-gl/blob/8f
 
 > `optional` **point?**: `object`
 
-Defined in: [MapGL/index.tsx:38](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/MapGL/index.tsx#L38)
+Defined in: [MapGL/index.tsx:38](https://github.com/GIShub4/solid-map-gl/blob/ae7f29f3d8d8c10df04bbb4bc3a55ece605347b7/src/components/MapGL/index.tsx#L38)
 
 #### x
 
@@ -88,4 +88,4 @@ Defined in: [MapGL/index.tsx:38](https://github.com/GIShub4/solid-map-gl/blob/8f
 
 > `optional` **zoom?**: `number`
 
-Defined in: [MapGL/index.tsx:41](https://github.com/GIShub4/solid-map-gl/blob/8fbe8e36fa5f350afec275369270d8d47b1480f0/src/components/MapGL/index.tsx#L41)
+Defined in: [MapGL/index.tsx:41](https://github.com/GIShub4/solid-map-gl/blob/ae7f29f3d8d8c10df04bbb4bc3a55ece605347b7/src/components/MapGL/index.tsx#L41)

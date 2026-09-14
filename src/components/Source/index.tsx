@@ -8,7 +8,7 @@ import {
 } from 'solid-js'
 import { useMapContext } from '../MapProvider'
 import type { SourceSpecification } from 'mapbox-gl'
-import { rasterStyleList } from '../../mapStyles'
+import { rasterStyleList } from '../../lib/mapStyles'
 
 const SourceContext = createContext<string>()
 export const useSourceId = (): string => useContext(SourceContext)

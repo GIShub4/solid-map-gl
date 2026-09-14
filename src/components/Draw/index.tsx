@@ -1,7 +1,7 @@
 import { onCleanup, VoidComponent } from "solid-js";
 import { useMapContext } from "../MapProvider";
-import { drawEvents } from "../../events";
-import type { drawEventTypes } from "../../events";
+import { drawEvents } from "../../lib/events";
+import type { drawEventTypes } from "../../lib/events";
 import MultiPointMode from "./modes/multi_point";
 import LineStringeMode from "./modes/line_string";
 import PointMode from "./modes/point";

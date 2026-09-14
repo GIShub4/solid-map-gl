@@ -8,12 +8,12 @@ import {
 } from "solid-js";
 import { isServer } from "solid-js/web";
 import { MapProvider } from "../MapProvider";
-import { mapEvents } from "../../events";
-import { vectorStyleList } from "../../mapStyles";
+import { mapEvents } from "../../lib/events";
+import { vectorStyleList } from "../../lib/mapStyles";
 import { settleAfterIdle, disableRasterFade } from "./tilesSettled";
 import { createCapturer } from "./offscreenCapture";
 import type { MapCapturer } from "./offscreenCapture";
-import type { mapEventTypes } from "../../events";
+import type { mapEventTypes } from "../../lib/events";
 import type mapboxgl from "mapbox-gl";
 import type {
   MapboxOptions,
@@ -217,7 +217,7 @@ export const MapGL: Component<Props> = (props) => {
   // ping, not a light/dark judgment. `darkMode`'s own class-based heuristic only needs to be right
   // for *this* library's `darkStyle` switching; a consuming app's Tailwind dark variant might use
   // a class, a data-attribute, or nothing MapGL can name at all, so Layer's bg-*/dark: class-pair
-  // re-probing (src/colors.ts) depends on this instead — see MapProvider's `ctx.themeVersion`.
+  // re-probing (components/Layer/colors.ts) depends on this instead — see MapProvider's `ctx.themeVersion`.
   const [themeVersion, setThemeVersion] = createSignal(0);
   const [darkMode, setDarkMode] = createSignal(
     !isServer &&
