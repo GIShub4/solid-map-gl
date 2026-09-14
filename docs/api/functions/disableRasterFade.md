@@ -8,7 +8,7 @@
 
 > **disableRasterFade**(`map`): `void`
 
-Defined in: tilesSettled.ts:121
+Defined in: [tilesSettled.ts:121](https://github.com/GIShub4/solid-map-gl/blob/b14ea43af027c491ee8aae3c366959422b824819/src/tilesSettled.ts#L121)
 
 Zeros `raster-fade-duration` on every layer that supports it, so newly-loaded raster tiles
 appear at full opacity immediately instead of cross-fading in over mapbox-gl's default 300ms —

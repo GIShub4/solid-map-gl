@@ -9,7 +9,7 @@ import { useMapContext } from "../MapProvider";
 import { useSourceId } from "../Source";
 import { layerEvents } from "../../events";
 import { baseStyle, layoutStyles } from "../../styles";
-import { resolveColor as resolveColorValue } from "../../colors";
+import { resolveColor as resolveColorValue, toRgbaComponents } from "../../colors";
 import type { layerEventTypes } from "../../events";
 import type { FilterSpecification, CustomLayerInterface } from "mapbox-gl";
 
@@ -18,6 +18,72 @@ import type { FilterSpecification, CustomLayerInterface } from "mapbox-gl";
 // `updateStyle()` buckets into real `paint`/`layout` objects — never a literal `LayerSpecification`
 // or `StyleSpecification`, so those mapbox-gl types don't actually describe this shape.
 type FlatLayerStyle = Record<string, any>;
+
+type PulseConfig = {
+  /** The paint property to animate, e.g. `"icon-halo-width"`, `"icon-opacity"`, or a
+   *  `*-color` property (e.g. `"icon-halo-color"`) to fade/shift a color instead of a number.
+   *  Default `"icon-halo-width"` — override for anything other than a symbol layer's halo
+   *  (e.g. `"circle-radius"`/`"circle-opacity"` on a circle layer). */
+  property?: string;
+  /** Start value — a number for a plain paint property, or any CSS color string (hex, named,
+   *  rgb/rgba, a Tailwind name, ...) when animating a `*-color` property. Default `0`. */
+  from?: number | string;
+  /** Default `8`. */
+  to?: number | string;
+  /** Full cycle length, in ms. Default `1500`. */
+  duration?: number;
+  /** - `"out"` (default): a one-directional ease-out ramp from `from` to `to`, holding at `to`
+   *    for the last quarter of the cycle before resetting — Tailwind's `animate-ping` shape
+   *    (e.g. a ring that grows outward and fades, then disappears until the next cycle). The
+   *    most common "pulsing dot" look.
+   *  - `"in"`: the mirror of `"out"` — ramps from `to` down to `from`, holding at `from`.
+   *  - `"in-out"`: smooth back-and-forth between `from` and `to`, forever (sine-eased) — e.g. a
+   *    halo that grows and shrinks continuously, with no reset. */
+  waveform?: "in-out" | "out" | "in";
+};
+
+// Every field defaults so `pulse` (or `pulse={{}}`/`pulse={{ to: 16 }}`) works out of the box for
+// the common case — Tailwind's familiar `animate-ping` look on a symbol layer's halo — and only
+// needs overriding piece by piece (a different property, range, or layer type) as requirements grow.
+const PULSE_DEFAULTS = {
+  property: "icon-halo-width",
+  from: 0,
+  to: 8,
+  duration: 1500,
+  waveform: "out",
+} as const satisfies Required<PulseConfig>;
+
+// Tailwind's own `animate-ping` keyframes reach their end state at 75% of the cycle and hold
+// there for the remaining 25% before the animation repeats (an abrupt reset, not a smooth
+// return) — matched here so `"out"`/`"in"` look identical to the familiar CSS animation.
+const PULSE_RAMP_FRACTION = 0.75;
+const easeOutQuad = (t: number) => 1 - (1 - t) * (1 - t);
+
+// Resolves a `duration`-relative elapsed time to a 0..1 progress value along one pulse cycle,
+// independent of `from`/`to`/direction — `"in"` vs `"out"` is applied by the caller via which
+// end of `[from, to]` it lerps towards, not by a different shape here.
+const pulseShape = (
+  elapsed: number,
+  duration: number,
+  waveform: PulseConfig["waveform"],
+): number => {
+  const phase = (elapsed % duration) / duration;
+  if (waveform === "in-out") return (1 - Math.cos(phase * Math.PI * 2)) / 2;
+  const ramp = Math.min(phase / PULSE_RAMP_FRACTION, 1);
+  return easeOutQuad(ramp);
+};
+
+const lerpColor = (
+  from: [number, number, number, number],
+  to: [number, number, number, number],
+  t: number,
+): string => {
+  const r = Math.round(from[0] + (to[0] - from[0]) * t);
+  const g = Math.round(from[1] + (to[1] - from[1]) * t);
+  const b = Math.round(from[2] + (to[2] - from[2]) * t);
+  const a = from[3] + (to[3] - from[3]) * t;
+  return `rgba(${r}, ${g}, ${b}, ${a})`;
+};
 
 const diff = (
   newProps: FlatLayerStyle = {},
@@ -65,6 +131,15 @@ type Props = {
   /** A string that specifies the ID of the layer before which the current layer should be inserted. */
   featureState?: { id: number | string; state: Record<string, any> };
   /** An object that specifies the state of a feature in the layer. The object consists of an ID (either a number or a string) and an object containing the state. */
+  /** Continuously animates one paint property via `setPaintProperty` every animation frame —
+   *  e.g. a growing/fading `icon-halo-width`/`icon-halo-color` for a "pulsing dot" marker. Every
+   *  field defaults (see `PulseConfig`), so `pulse` alone or `pulse={{}}` already pulses a
+   *  symbol layer's halo — override only what you need to customize. Pass an array to drive
+   *  several properties at once (one shared `requestAnimationFrame` loop), e.g. `icon-halo-width`
+   *  and `icon-opacity` together for a combined ping. Driven by real paint properties (not a
+   *  swapped-out image), so it composes with any other paint value, including data-driven
+   *  expressions on other properties of the same layer. */
+  pulse?: boolean | PulseConfig | PulseConfig[];
   children?: any;
   /** Any content that should be rendered within the layer. */
 } & layerEventTypes;
@@ -272,6 +347,61 @@ export const Layer: Component<Props> = (props) => {
       },
       props.featureState.state,
     );
+  });
+
+  // Pulse Animation
+  createEffect(() => {
+    if (!props.pulse) return;
+
+    // `pulse` (bare) or `pulse={true}` is sugar for a single all-defaults config.
+    const configs =
+      props.pulse === true
+        ? [{}]
+        : Array.isArray(props.pulse)
+          ? props.pulse
+          : [props.pulse];
+    // Colors are parsed to [r,g,b,a] once here rather than on every frame — reparsing would mean
+    // re-running `resolveColor`'s DOM probe (Tailwind names/oklch/...) 60 times a second per
+    // config. `"in"` is just `"out"` lerping the other direction, so `from`/`to` are swapped once
+    // here rather than branched on inside the animation loop.
+    const resolved = configs.map((config) => {
+      const { property, from, to, duration, waveform } = {
+        ...PULSE_DEFAULTS,
+        ...config,
+      };
+      const isColor = typeof from === "string" || typeof to === "string";
+      const [a, b] = waveform === "in" ? [to, from] : [from, to];
+      return {
+        property,
+        duration,
+        waveform,
+        isColor,
+        fromNum: isColor ? 0 : (a as number),
+        toNum: isColor ? 0 : (b as number),
+        fromRgba: isColor ? toRgbaComponents(a as string) : null,
+        toRgba: isColor ? toRgbaComponents(b as string) : null,
+      };
+    });
+    const start = performance.now();
+    let frameId: number;
+
+    const loop = (now: number) => {
+      const elapsed = now - start;
+      resolved.forEach((cfg) => {
+        const t = pulseShape(elapsed, cfg.duration, cfg.waveform);
+        const value = cfg.isColor
+          ? lerpColor(cfg.fromRgba!, cfg.toRgba!, t)
+          : cfg.fromNum + (cfg.toNum - cfg.fromNum) * t;
+        ctx.map.setPaintProperty(layerId, cfg.property as any, value, {
+          validate: false,
+        });
+      });
+      frameId = window.requestAnimationFrame(loop);
+    };
+    frameId = window.requestAnimationFrame(loop);
+    debug(`Start Pulse (${layerId}):`, props.pulse);
+
+    onCleanup(() => window.cancelAnimationFrame(frameId));
   });
 
   //Remove Layer

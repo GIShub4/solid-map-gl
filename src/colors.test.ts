@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterEach } from "vitest";
-import { resolveColor } from "./colors";
+import { resolveColor, toRgbaComponents } from "./colors";
 
 afterEach(() => {
   document.documentElement.style.removeProperty("--color-blue-600");
@@ -71,5 +71,23 @@ describe("resolveColor bg-*/dark: class pair", () => {
   it("leaves the literal string unchanged when the classes were never generated", () => {
     const input = "bg-emerald-500 dark:bg-emerald-300";
     expect(resolveColor(input)).toBe(input);
+  });
+});
+
+describe("toRgbaComponents", () => {
+  it("parses rgba() into numeric [r, g, b, a]", () => {
+    expect(toRgbaComponents("rgba(37, 99, 235, 1)")).toEqual([37, 99, 235, 1]);
+    expect(toRgbaComponents("rgba(37, 99, 235, 0)")).toEqual([37, 99, 235, 0]);
+  });
+
+  it("defaults alpha to 1 for a color with no alpha channel (hex/rgb/named)", () => {
+    expect(toRgbaComponents("#2563eb")).toEqual([37, 99, 235, 1]);
+    expect(toRgbaComponents("rgb(37, 99, 235)")).toEqual([37, 99, 235, 1]);
+    expect(toRgbaComponents("red")).toEqual([255, 0, 0, 1]);
+  });
+
+  it("resolves a Tailwind name through resolveColor before parsing", () => {
+    document.documentElement.style.setProperty("--color-blue-600", "#2563eb");
+    expect(toRgbaComponents("blue-600")).toEqual([37, 99, 235, 1]);
   });
 });

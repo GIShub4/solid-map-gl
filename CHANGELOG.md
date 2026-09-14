@@ -31,6 +31,12 @@ rejected, what's still open), see `docs/dev-notes.md`.
   path `d` string), as an alternative to `pattern`'s tiling fills, resolved through the same
   rasterization/SDF path a hand-authored `source` SVG would use. New `symbolList`/`SymbolName`
   exports alongside the existing `patternList`/`PatternName`.
+- **`<Layer pulse>`** — continuously animates one or more paint properties (numeric or `*-color`)
+  via a shared `requestAnimationFrame` loop and `setPaintProperty`, for a "pulsing dot" marker
+  effect. Every field defaults, so bare `pulse`/`pulse={{}}` already pulses a symbol layer's halo
+  with Tailwind's `animate-ping` look; `waveform: 'in' | 'out' | 'in-out'` selects the easing
+  shape. Color interpolation reuses `colors.ts`'s browser-engine normalization via a new
+  `toRgbaComponents` export.
 
 ### Fixed
 

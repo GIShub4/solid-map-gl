@@ -527,4 +527,351 @@ describe("Layer", () => {
       { hover: true },
     );
   });
+
+  it("ramps a paint property back and forth via requestAnimationFrame when pulse is set", async () => {
+    let raf: FrameRequestCallback | undefined;
+    const rafSpy = vi
+      .spyOn(window, "requestAnimationFrame")
+      .mockImplementation((cb) => {
+        raf = cb;
+        return 0;
+      });
+    const nowSpy = vi.spyOn(performance, "now").mockReturnValue(0);
+    const map = createMockMap();
+    renderWithMap(
+      () => (
+        <Layer
+          id="l1"
+          style={{ type: "symbol" }}
+          pulse={{
+            property: "icon-halo-width",
+            from: 0,
+            to: 8,
+            duration: 1000,
+            waveform: "in-out",
+          }}
+        />
+      ),
+      { map },
+    );
+    await tick();
+
+    expect(raf).toBeTruthy();
+    nowSpy.mockReturnValue(250); // quarter cycle in
+    raf!(250);
+
+    const [layerId, property, value, opts] = map.setPaintProperty.mock.calls[0];
+    expect(layerId).toBe("l1");
+    expect(property).toBe("icon-halo-width");
+    expect(value).toBeCloseTo(4); // sine-eased midpoint of the 0->8 ramp at phase 0.25
+    expect(opts).toEqual({ validate: false });
+
+    rafSpy.mockRestore();
+    nowSpy.mockRestore();
+  });
+
+  it("stops the pulse animation frame loop on cleanup", async () => {
+    const rafSpy = vi
+      .spyOn(window, "requestAnimationFrame")
+      .mockImplementation(() => 42);
+    const cafSpy = vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {});
+    const map = createMockMap();
+    const { unmount } = renderWithMap(
+      () => (
+        <Layer
+          id="l1"
+          style={{ type: "symbol" }}
+          pulse={{ property: "icon-halo-width", from: 0, to: 8 }}
+        />
+      ),
+      { map },
+    );
+    await tick();
+    unmount();
+
+    expect(cafSpy).toHaveBeenCalledWith(42);
+
+    rafSpy.mockRestore();
+    cafSpy.mockRestore();
+  });
+
+  it("does not start a pulse animation when the prop is unset", async () => {
+    const rafSpy = vi.spyOn(window, "requestAnimationFrame");
+    const map = createMockMap();
+    renderWithMap(() => <Layer id="l1" style={{ type: "fill" }} />, { map });
+    await tick();
+
+    expect(rafSpy).not.toHaveBeenCalled();
+    rafSpy.mockRestore();
+  });
+
+  it("pulses icon-halo-width 0->8 over 1500ms with no config at all (pulse={true})", async () => {
+    let raf: FrameRequestCallback | undefined;
+    const rafSpy = vi
+      .spyOn(window, "requestAnimationFrame")
+      .mockImplementation((cb) => {
+        raf = cb;
+        return 0;
+      });
+    const nowSpy = vi.spyOn(performance, "now").mockReturnValue(0);
+    const map = createMockMap();
+    renderWithMap(() => <Layer id="l1" style={{ type: "symbol" }} pulse />, {
+      map,
+    });
+    await tick();
+
+    nowSpy.mockReturnValue(1125); // 75% of the default 1500ms cycle -> 'out' ramp reaches `to`
+    raf!(1125);
+
+    expect(map.setPaintProperty).toHaveBeenCalledWith(
+      "l1",
+      "icon-halo-width",
+      8,
+      { validate: false },
+    );
+
+    rafSpy.mockRestore();
+    nowSpy.mockRestore();
+  });
+
+  it("fills in only the fields left unset when pulse is a partial config", async () => {
+    let raf: FrameRequestCallback | undefined;
+    const rafSpy = vi
+      .spyOn(window, "requestAnimationFrame")
+      .mockImplementation((cb) => {
+        raf = cb;
+        return 0;
+      });
+    const nowSpy = vi.spyOn(performance, "now").mockReturnValue(0);
+    const map = createMockMap();
+    renderWithMap(
+      () => (
+        <Layer id="l1" style={{ type: "symbol" }} pulse={{ to: 20 }} />
+      ),
+      { map },
+    );
+    await tick();
+
+    nowSpy.mockReturnValue(1125); // 75% of the default 1500ms cycle -> 'out' ramp reaches `to`
+    raf!(1125);
+
+    // `property`/`from`/`duration`/`waveform` all fall back to PULSE_DEFAULTS; only `to` changes.
+    expect(map.setPaintProperty).toHaveBeenCalledWith(
+      "l1",
+      "icon-halo-width",
+      20,
+      { validate: false },
+    );
+
+    rafSpy.mockRestore();
+    nowSpy.mockRestore();
+  });
+
+  it("drives multiple paint properties from a single pulse array off one shared frame loop", async () => {
+    let raf: FrameRequestCallback | undefined;
+    const rafSpy = vi
+      .spyOn(window, "requestAnimationFrame")
+      .mockImplementation((cb) => {
+        raf = cb;
+        return 0;
+      });
+    const nowSpy = vi.spyOn(performance, "now").mockReturnValue(0);
+    const map = createMockMap();
+    renderWithMap(
+      () => (
+        <Layer
+          id="l1"
+          style={{ type: "symbol" }}
+          pulse={[
+            {
+              property: "icon-halo-width",
+              from: 0,
+              to: 8,
+              duration: 1000,
+              waveform: "in-out",
+            },
+            {
+              property: "icon-opacity",
+              from: 1,
+              to: 0,
+              duration: 1000,
+              waveform: "in-out",
+            },
+          ]}
+        />
+      ),
+      { map },
+    );
+    await tick();
+
+    // Only one requestAnimationFrame loop drives both configs, not one per config.
+    expect(rafSpy).toHaveBeenCalledTimes(1);
+
+    nowSpy.mockReturnValue(500); // half cycle -> in-out sine peak (t=1 -> both reach `to`)
+    raf!(500);
+
+    expect(map.setPaintProperty).toHaveBeenCalledWith(
+      "l1",
+      "icon-halo-width",
+      8,
+      { validate: false },
+    );
+    expect(map.setPaintProperty).toHaveBeenCalledWith(
+      "l1",
+      "icon-opacity",
+      0,
+      { validate: false },
+    );
+
+    rafSpy.mockRestore();
+    nowSpy.mockRestore();
+  });
+
+  it("'out' waveform ease-out ramps then holds at `to` for the last quarter of the cycle", async () => {
+    let raf: FrameRequestCallback | undefined;
+    const rafSpy = vi
+      .spyOn(window, "requestAnimationFrame")
+      .mockImplementation((cb) => {
+        raf = cb;
+        return 0;
+      });
+    const nowSpy = vi.spyOn(performance, "now").mockReturnValue(0);
+    const map = createMockMap();
+    renderWithMap(
+      () => (
+        <Layer
+          id="l1"
+          style={{ type: "symbol" }}
+          pulse={{
+            property: "icon-halo-width",
+            from: 0,
+            to: 8,
+            duration: 1000,
+            waveform: "out",
+          }}
+        />
+      ),
+      { map },
+    );
+    await tick();
+
+    nowSpy.mockReturnValue(375); // half of the 75%-of-cycle ramp -> quadratic ease-out midpoint
+    raf!(375);
+    expect(map.setPaintProperty).toHaveBeenLastCalledWith(
+      "l1",
+      "icon-halo-width",
+      6, // 1 - (1 - 0.5)^2 = 0.75 -> 0 + 8 * 0.75
+      { validate: false },
+    );
+
+    nowSpy.mockReturnValue(900); // past 75% -> held at `to`, not reset
+    raf!(900);
+    expect(map.setPaintProperty).toHaveBeenLastCalledWith(
+      "l1",
+      "icon-halo-width",
+      8,
+      { validate: false },
+    );
+
+    rafSpy.mockRestore();
+    nowSpy.mockRestore();
+  });
+
+  it("'in' waveform mirrors 'out', starting at `to` and ramping down to `from`", async () => {
+    let raf: FrameRequestCallback | undefined;
+    const rafSpy = vi
+      .spyOn(window, "requestAnimationFrame")
+      .mockImplementation((cb) => {
+        raf = cb;
+        return 0;
+      });
+    const nowSpy = vi.spyOn(performance, "now").mockReturnValue(0);
+    const map = createMockMap();
+    renderWithMap(
+      () => (
+        <Layer
+          id="l1"
+          style={{ type: "symbol" }}
+          pulse={{
+            property: "icon-halo-width",
+            from: 0,
+            to: 8,
+            duration: 1000,
+            waveform: "in",
+          }}
+        />
+      ),
+      { map },
+    );
+    await tick();
+
+    raf!(0); // start of cycle -> begins at `to`
+    expect(map.setPaintProperty).toHaveBeenLastCalledWith(
+      "l1",
+      "icon-halo-width",
+      8,
+      { validate: false },
+    );
+
+    nowSpy.mockReturnValue(900); // past 75% -> held at `from`
+    raf!(900);
+    expect(map.setPaintProperty).toHaveBeenLastCalledWith(
+      "l1",
+      "icon-halo-width",
+      0,
+      { validate: false },
+    );
+
+    rafSpy.mockRestore();
+    nowSpy.mockRestore();
+  });
+
+  it("interpolates a *-color property's alpha channel when from/to are color strings", async () => {
+    let raf: FrameRequestCallback | undefined;
+    const rafSpy = vi
+      .spyOn(window, "requestAnimationFrame")
+      .mockImplementation((cb) => {
+        raf = cb;
+        return 0;
+      });
+    const nowSpy = vi.spyOn(performance, "now").mockReturnValue(0);
+    const map = createMockMap();
+    renderWithMap(
+      () => (
+        <Layer
+          id="l1"
+          style={{ type: "symbol", paint: { "icon-halo-width": 6 } }}
+          pulse={{
+            property: "icon-halo-color",
+            from: "rgba(37, 99, 235, 1)",
+            to: "rgba(37, 99, 235, 0)",
+            duration: 1000,
+            waveform: "in-out",
+          }}
+        />
+      ),
+      { map },
+    );
+    await tick();
+
+    raf!(0);
+    expect(map.setPaintProperty).toHaveBeenLastCalledWith(
+      "l1",
+      "icon-halo-color",
+      "rgba(37, 99, 235, 1)",
+      { validate: false },
+    );
+
+    nowSpy.mockReturnValue(500); // half cycle -> in-out sine peak (t=1 -> fully `to`)
+    raf!(500);
+    expect(map.setPaintProperty).toHaveBeenLastCalledWith(
+      "l1",
+      "icon-halo-color",
+      "rgba(37, 99, 235, 0)",
+      { validate: false },
+    );
+
+    rafSpy.mockRestore();
+    nowSpy.mockRestore();
+  });
 });

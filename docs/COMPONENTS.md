@@ -262,6 +262,37 @@ Both cases convert via the browser's own CSS engine — a detached probe `<div>`
 oklch/lab color-space math, so it stays correct for whatever color functions the browser supports.
 Anything else (hex, rgb/hsl, named CSS colors, Mapbox expressions) passes through unchanged.
 
+`pulse` runs its own `createEffect`/`onCleanup` pair independent of the style-update effect above:
+a single `window.requestAnimationFrame` loop per `<Layer>` reads `performance.now()` each frame
+and calls `setPaintProperty(layerId, property, value, { validate: false })` directly for every
+entry in `pulse` (normalized to an array even when a single object is passed) — bypassing
+`updateStyle`/`diff()` entirely, since this needs to run on every animation frame rather than only
+when `props.style` changes. `onCleanup` cancels the one frame loop, regardless of how many `pulse`
+entries are active. This is the idiomatic Mapbox technique for a "pulsing dot" marker (ramping
+`icon-halo-width`/`circle-radius`/opacity), kept as a `Layer`-level concern since it drives
+`setPaintProperty` on a specific layer id, which `Image` (which only ever calls `addImage`) has no
+access to.
+
+Every `PulseConfig` field has a default (`PULSE_DEFAULTS`: `property: "icon-halo-width"`,
+`from: 0`, `to: 8`, `duration: 1500`, `waveform: "out"`), and `pulse={true}` (or the bare `pulse`
+JSX attribute) is sugar for a single all-defaults config — so `pulse` alone already animates a
+symbol layer's halo with Tailwind's `animate-ping` look, and only needs overriding field by field.
+
+Each `pulse` entry's `from`/`to` progress through one cycle via `pulseShape()`, which computes a
+0..1 value from `(elapsed % duration) / duration` according to `waveform`:
+- `"out"` (default)/`"in"`: a quadratic ease-out (`1 - (1 - x)²`) over the ramp's own `[0, 0.75]`
+  sub-range of the cycle (`PULSE_RAMP_FRACTION = 0.75`), clamped to 1 for the remaining 25% —
+  reaching and holding at the end value before an abrupt reset, matching Tailwind's `animate-ping`
+  timing exactly. `"in"` is implemented as `"out"` with `from`/`to` swapped once at setup (not
+  branched per frame), so the shape function itself has no notion of direction.
+- `"in-out"`: `(1 - cos(phase * 2π)) / 2` — continuous sine back-and-forth, no reset.
+
+When `from`/`to` are strings (used for a `*-color` property, e.g. fading `icon-halo-color`'s alpha
+without changing `icon-halo-width`), they're parsed once via `colors.ts`'s `toRgbaComponents()`
+(reusing `resolveColor`'s browser-engine normalization, so Tailwind names/`oklch()`/etc. all work)
+rather than on every frame, and interpolated component-wise (`lerpColor()`) into a fresh
+`rgba(...)` string per frame.
+
 ### Props
 
 | Name | Type | Description |
@@ -276,6 +307,7 @@ Anything else (hex, rgb/hsl, named CSS colors, Mapbox expressions) passes throug
 | `beforeType` | `string` | Insert before the first layer of this Mapbox layer type |
 | `beforeId` | `string` | Insert before this layer id |
 | `featureState` | `{ id: number \| string, state: object }` | Sets feature state on `style["source-layer"]` |
+| `pulse` | `boolean \| PulseConfig \| PulseConfig[]` where `PulseConfig = { property?: string, from?: number \| string, to?: number \| string, duration?: number, waveform?: 'out' \| 'in' \| 'in-out' }` (all fields default) | Animate one or more paint properties via `requestAnimationFrame`; array entries share one frame loop |
 | `on[Event]` | see `layerEventTypes` in `src/events.ts` | Per-layer event, e.g. `onClick`, `onMouseEnter` |
 | `children` | any | Rendered as-is (layers have no natural children in Mapbox, but this allows composition) |
 

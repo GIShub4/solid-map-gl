@@ -43,6 +43,7 @@ one locally instead.
 - [Add Heatmap](https://stackblitz.com/fork/github/gishub4/solid-map-gl/tree/main/examples/heatmap?file=src%2Findex.tsx)
 - [Add Custom Layer](https://stackblitz.com/fork/github/gishub4/solid-map-gl/tree/main/examples/custom-layer?file=src%2Findex.tsx)
 - [Dynamic Pattern](https://stackblitz.com/fork/github/gishub4/solid-map-gl/tree/main/examples/pattern?file=src%2Findex.tsx)
+- [Pulsing Marker](https://stackblitz.com/fork/github/gishub4/solid-map-gl/tree/main/examples/pulsing-marker?file=src%2Findex.tsx)
   {% endtab %}
 
 {% tab title="Overlay" %}

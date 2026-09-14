@@ -17,6 +17,7 @@ description: Layer Component
 | beforeType   | string                                                                                            | background \| fill \| line \| symbol \| raster \| circle \| fill-extrusion \| heatmap \| hillshade \| sky |
 | beforeId     | string                                                                                            | Id of Layer to insert Layer before                                                                        |
 | featureState | object                                                                                            | Define Feature State                                                                                      |
+| pulse        | `boolean \| PulseConfig \| PulseConfig[]`                                                          | Continuously animate one or more paint properties, every field defaulted (see [Pulsing a paint property](#pulsing-a-paint-property) below) |
 
 _\*required_
 
@@ -87,3 +88,73 @@ your own source (not just the bare color name) so Tailwind's build actually gene
 ```jsx
 <Layer style={{ type: 'fill', paint: { 'fill-color': 'bg-blue-600 dark:bg-blue-400' } }} />
 ```
+
+### Pulsing a paint property
+
+`pulse` continuously animates one or more paint properties via `setPaintProperty` on every
+animation frame — the standard way to build a "pulsing dot" marker, growing/fading a symbol's
+halo around a static icon. Every field defaults, so the bare prop already gives you Tailwind's
+familiar [`animate-ping`](https://tailwindcss.com/docs/animation) look on a symbol layer's halo:
+
+```jsx
+<Source source={{ type: 'geojson', data: pointFeature }}>
+  <Image id="dot" symbol="circle" sdf />
+  <Layer
+    style={{
+      type: 'symbol',
+      layout: { 'icon-image': 'dot', 'icon-size': 0.5 },
+      paint: { 'icon-color': '#2563eb', 'icon-halo-color': '#2563eb' },
+    }}
+    pulse
+  />
+</Source>
+```
+
+Each entry accepts:
+
+```ts
+{
+  property?: string        // e.g. "icon-halo-width", "icon-opacity", "icon-halo-color"; default "icon-halo-width"
+  from?: number | string    // a number, or any CSS color string for a *-color property; default 0
+  to?: number | string      // default 8
+  duration?: number         // full cycle length in ms, default 1500
+  waveform?: 'in-out' | 'out' | 'in'  // default 'out'
+}
+```
+
+`waveform` controls the shape of the cycle:
+
+- **`out`** (default) — a one-directional ease-out ramp from `from` to `to`, holding at `to` for
+  the last quarter of the cycle before resetting — the ping shape above (a ring that grows
+  outward and fades, then disappears until the next cycle). The most common "pulsing dot" look.
+- **`in`** — the mirror of `out`: starts at `to` and ramps down to `from`, holding at `from`.
+- **`in-out`** — smooth, continuous back-and-forth between `from` and `to` (sine-eased), with no
+  reset — a halo that breathes rather than pings.
+
+Pass an **array** to animate several properties together off one shared frame loop — e.g. growing
+the halo *and* fading it out at once, so the ring visibly disappears instead of holding at full
+width once it stops growing:
+
+```jsx
+<Layer
+  style={{ type: 'symbol', layout: { 'icon-image': 'dot' } }}
+  pulse={[
+    { property: 'icon-halo-width', from: 0, to: 12, duration: 1500, waveform: 'out' },
+    { property: 'icon-halo-color', from: 'rgba(37, 99, 235, 1)', to: 'rgba(37, 99, 235, 0)', duration: 1500, waveform: 'out' },
+  ]}
+/>
+```
+
+That second entry is also how to fade *only* the halo's transparency without changing its size:
+Mapbox has no standalone numeric halo-opacity property, so `pulse` interpolates the alpha channel
+of a `*-color` property directly when `from`/`to` are color strings (parsed once up front, not
+re-parsed every frame). Animating `icon-opacity` instead is simpler but fades the whole icon
+(core and halo together), not the halo alone.
+
+The same properties work equally well on the symbol itself, not just its halo — e.g. `icon-size`
+or `icon-opacity` with any of the three waveforms, for a pulsing/blinking icon instead of a
+pulsing ring.
+
+Since this drives real paint properties (not a swapped-out image), it composes with any other
+paint value on the same layer, including data-driven expressions on other properties. Only one
+`requestAnimationFrame` loop runs per `<Layer>` regardless of how many `pulse` entries it has.

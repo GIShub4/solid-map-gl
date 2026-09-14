@@ -72,3 +72,16 @@ export const resolveColor = (value: string): string => {
   }
   return value;
 };
+
+/** Parses any CSS color string (hex, named, rgb/rgba, hsl/hsla, a Tailwind name, or a CSS
+ *  Color 4 function like `oklch()`) into numeric `[r, g, b, a]` components, via the same
+ *  browser-engine normalization `resolveColor` uses rather than reimplementing color-space
+ *  math. Needed by `Layer`'s `pulse` to interpolate a color (e.g. fading `icon-halo-color`'s
+ *  alpha channel) frame-by-frame, where a plain string diff isn't enough. */
+export const toRgbaComponents = (value: string): [number, number, number, number] => {
+  const rgb = toRgbString(resolveColor(value)) ?? value;
+  const match = rgb.match(/rgba?\(([^)]+)\)/i);
+  if (!match) return [0, 0, 0, 1];
+  const [r, g, b, a = 1] = match[1].split(",").map(Number);
+  return [r, g, b, a];
+};
