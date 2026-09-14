@@ -1,7 +1,4 @@
-import length from "@turf/length";
-import area from "@turf/area";
-import midpoint from "@turf/midpoint";
-import { centerOfMass } from "@turf/center-of-mass";
+import { length, area, midpoint, centerOfMass } from "./geo";
 
 export const getCoords = (coords) => {
   return (
@@ -23,17 +20,8 @@ export const getCoords = (coords) => {
 export const getLength = (coordinates, meta?): any => {
   // length calculation in kilometers or miles
   const lengthValue = length(
-    {
-      type: "Feature",
-      properties: {},
-      geometry: {
-        type: "LineString",
-        coordinates,
-      },
-    },
-    {
-      units: window.navigator.language === "en-US" ? "miles" : "kilometers",
-    },
+    coordinates,
+    window.navigator.language === "en-US" ? "miles" : "kilometers",
   );
 
   const label =
@@ -58,22 +46,14 @@ export const getLength = (coordinates, meta?): any => {
     },
     geometry: {
       type: "Point",
-      coordinates: midpoint(coordinates[0], coordinates[1]).geometry
-        .coordinates,
+      coordinates: midpoint(coordinates[0], coordinates[1]),
     },
   };
 };
 
 export const getArea = (coordinates, meta?): any => {
   // area calculation in square meters
-  const areaValue = area({
-    type: "Feature",
-    properties: {},
-    geometry: {
-      type: "Polygon",
-      coordinates,
-    },
-  });
+  const areaValue = area(coordinates);
 
   const areaLabel =
     window.navigator.language === "en-US"
@@ -97,9 +77,9 @@ export const getArea = (coordinates, meta?): any => {
       value: areaLabel,
       ...meta,
     },
-    geometry: centerOfMass({
-      type: "Polygon",
-      coordinates,
-    }).geometry,
+    geometry: {
+      type: "Point",
+      coordinates: centerOfMass(coordinates),
+    },
   };
 };

@@ -96,13 +96,6 @@
       "optional": true
     }
   },
-  "dependencies": {
-    "@turf/area": "^7.3.4",
-    "@turf/center-of-mass": "^7.3.4",
-    "@turf/centroid": "^7.3.4",
-    "@turf/length": "^7.3.4",
-    "@turf/midpoint": "^7.3.4"
-  },
   "browser": {},
   "typesVersions": {}
 }

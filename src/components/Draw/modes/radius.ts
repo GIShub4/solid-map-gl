@@ -2,7 +2,7 @@
 // shows a center point, radius line, and circle polygon while drawing
 // forces draw.create on creation of second vertex
 
-import length from "@turf/length";
+import { length } from "./geo";
 import { getLength } from "./measurements";
 
 function createVertex(parentId, coordinates, path, selected) {
@@ -118,7 +118,9 @@ const RadiusMode = (lib) => ({
     state.line.removeCoordinate("0");
     if (state.line.isValid()) {
       const lineGeoJson = state.line.toGeoJSON();
-      const radius = (length(lineGeoJson) * 1000).toFixed(1);
+      const radius = (
+        length(lineGeoJson.geometry.coordinates) * 1000
+      ).toFixed(1);
       const center = lineGeoJson.geometry.coordinates[0];
 
       this.deleteFeature([state.line.id], { silent: true });
@@ -174,7 +176,7 @@ const RadiusMode = (lib) => ({
     display(
       createGeoJSONCircle(
         geojson.geometry.coordinates[0],
-        length(geojson),
+        length(geojson.geometry.coordinates),
         state.line.id,
       ),
     );

@@ -629,9 +629,9 @@ works unpatched either way. Merges in a set of custom draw modes from
 `draw_polygon` modes so `showLength`/`showArea` work through the control's normal toolbar buttons
 with no extra setup; four more (`multi_point`, `radius`, `rectangle`, `rectangle_assisted`) have no
 built-in equivalent and are opt-in via `draw.changeMode("radius")` etc. (see `Draw/README.md`).
-`showLength`/`showArea` turn on live measurement labels computed with Turf.js
-(`modes/measurements.ts`: `getLength` uses `@turf/length` + `@turf/midpoint`; `getArea` uses
-`@turf/area` + `@turf/center-of-mass`, both formatted with `Intl.NumberFormat` and localized
+`showLength`/`showArea` turn on live measurement labels computed with `modes/geo.ts`'s
+self-contained geodesic formulas (`modes/measurements.ts`: `getLength` uses `length` +
+`midpoint`; `getArea` uses `area` + `centerOfMass`), both formatted with `Intl.NumberFormat` and localized
 imperial/metric units based on `navigator.language`) — both return a GeoJSON `Feature` styled by
 `drawingStyles.jsx`'s `measure-label` layer (filters on `user_type === "measure"`). All
 `drawEvents` (`onCreate`, `onDelete`, `onUpdate`, `onSelectionchange`, `onModechange`, ...) are
