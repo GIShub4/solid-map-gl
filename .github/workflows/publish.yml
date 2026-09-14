@@ -1,0 +1,51 @@
+name: Publish to npm
+
+# Finishes what release-pr.yml starts: once a "chore(release): vX.Y.Z" PR
+# (opened after a dependency update changed dependencies/peerDependencies)
+# merges into main, this builds and publishes that already-bumped version to
+# npm, then tags it to match the repo's existing vX.Y.Z tag history.
+#
+# Publishes via npm Trusted Publishing (OIDC) rather than a stored NPM_TOKEN
+# secret — nothing here holds a long-lived publish credential. This requires
+# a one-time setup on npmjs.com: package settings -> Trusted Publisher ->
+# GitHub Actions, pointing at this repo and this workflow filename
+# (publish.yml). `id-token: write` below is what lets npm's CLI exchange this
+# job's GitHub-issued OIDC token for a short-lived publish token.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    if: "${{ startsWith(github.event.head_commit.message, 'chore(release): v') }}"
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 12
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: "https://registry.npmjs.org"
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+
+      # Trusted Publishing needs a recent npm CLI; Node 22's bundled npm predates it.
+      - run: npm install -g npm@latest
+
+      - run: npm publish
+
+      - name: Tag release
+        run: |
+          version=$(node -p "require('./package.json').version")
+          git tag "v$version"
+          git push origin "v$version"

@@ -1,0 +1,84 @@
+name: Open release PR after a dependency update
+
+# Runs after auto-merge.yml lands a dependency-update PR on main. Most weekly
+# bumps only touch devDependencies (test tooling, typedoc, etc.) and don't
+# change anything a consumer of the published package actually gets, so this
+# only cuts a release when the merge changed `dependencies`/`peerDependencies`
+# themselves.
+#
+# This can't just `npm version patch` and push straight to main: main
+# requires the "build-and-test" status check, and that check can only ever
+# have run against a commit that already exists on some ref — a brand new
+# commit created here has no status yet, so a direct push would be rejected.
+# Routing the version bump through its own PR lets it pick up a real
+# "build-and-test" run and merge through the exact same gate as every other
+# change. publish.yml picks up from there and does the actual `npm publish`
+# once that PR's merge commit lands.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-pr:
+    runs-on: ubuntu-latest
+    # Guards against this job's own release-PR merge commit re-triggering itself
+    # (that commit is authored by github-actions[bot], not dependabot[bot]).
+    if: ${{ github.event.head_commit.author.username == 'dependabot[bot]' }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+
+      # Diffs package.json's declared ranges, not pnpm-lock.yaml's resolved
+      # versions: an in-range bump (dependabot bumping a caret range's
+      # resolved version without touching the range string itself) won't
+      # show up here. That's fine today because `dependencies` is empty (see
+      # geo.ts) and the peer libs are externalized, never bundled into
+      # dist/ - so an in-range lockfile-only bump can't change published
+      # output. If a real bundled runtime dependency gets added back, this
+      # check needs to also compare pnpm-lock.yaml's resolved version for
+      # that package, or in-range bumps to it will silently skip releasing.
+      - name: Check whether a runtime dependency changed
+        id: check
+        run: |
+          before=$(git show HEAD^:package.json | jq -S '{dependencies, peerDependencies}')
+          after=$(jq -S '{dependencies, peerDependencies}' package.json)
+          if [ "$before" = "$after" ]; then
+            echo "devDependency-only bump -- skipping release"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Bump patch version
+        if: steps.check.outputs.changed == 'true'
+        id: bump
+        run: |
+          npm version patch --no-git-tag-version
+          echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Open release PR
+        if: steps.check.outputs.changed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.bump.outputs.version }}
+          TRIGGER_SHA: ${{ github.sha }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "release/v$VERSION"
+          git commit -am "chore(release): v$VERSION"
+          git push origin "release/v$VERSION"
+          gh pr create \
+            --title "chore(release): v$VERSION" \
+            --body "Automated patch release: a dependency update on \`main\` ($TRIGGER_SHA) changed \`dependencies\`/\`peerDependencies\`." \
+            --base main \
+            --head "release/v$VERSION"
+          # No review requested/approved here: branch protection on main
+          # doesn't require one (only the "build-and-test" status check), and
+          # this token can't approve its own PR anyway.
+          gh pr merge --auto --squash "release/v$VERSION"
