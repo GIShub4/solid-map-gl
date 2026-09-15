@@ -10,6 +10,8 @@ rejected, what's still open), see `.claude/dev-notes.md`.
 
 ## [Unreleased]
 
+## [2.2.1] - 2026-09-16
+
 ### Added
 
 - **`<MapGL onError>`** — called if map initialization fails (e.g. `mapLib.supported()` reports the
