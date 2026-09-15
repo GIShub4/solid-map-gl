@@ -9,3 +9,8 @@ overrides:
   browserslist: ">=4.28.7"
   baseline-browser-mapping: ">=2.11.0"
   "@babel/core": ">=7.29.6"
+  # Pin below magic-string@1.3.2 (pulled in transitively by the vitest@5.0.0 bump) — it was
+  # published too recently to clear this repo's minimumReleaseAge supply-chain check in CI
+  # (disabled in local dev, so it wasn't caught before pushing). 1.3.1 still satisfies vitest's
+  # own `^1.2.3` requirement; drop this override once 1.3.2 has aged past the cutoff.
+  magic-string: "1.3.1"
