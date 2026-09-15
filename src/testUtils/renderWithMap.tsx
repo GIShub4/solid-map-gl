@@ -14,7 +14,13 @@ export function renderWithMap(
     map?: MockMap;
     constants?: Record<string, any>;
   } = {},
-) {
+  // Explicit return type, not inferred: `render()`'s real return type includes a `debug()` method
+  // typed against `@testing-library/dom`'s re-exported `pretty-format` options, a package this
+  // library doesn't itself depend on — bundling this entry's public .d.ts (`solid-map-gl/testing`)
+  // needs a type it can print by reference (this expression) rather than one it has to infer and
+  // expand structurally, which fails with TS2883 ("cannot be named without a reference to
+  // 'PrettyFormatOptions'") since that package isn't reachable from a consumer's own install.
+): ReturnType<typeof render> & { map: MockMap; mapLib: ReturnType<typeof createMockMapLib> } {
   const map = opts.map || createMockMap({ isMapLibre: opts.isMapLibre });
   const mapLib = createMockMapLib({ isMapLibre: opts.isMapLibre });
 
