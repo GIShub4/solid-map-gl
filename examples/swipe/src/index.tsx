@@ -10,11 +10,11 @@ const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 // shared `id` keeps them in lockstep) stacked absolutely, with the top one
 // clipped by a slider-controlled clip-path.
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     id: "compare",
     center: [-122.41, 37.78],
     zoom: 11,
-  } as Viewport);
+  });
   const [split, setSplit] = createSignal(50);
 
   return (

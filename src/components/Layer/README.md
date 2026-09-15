@@ -31,10 +31,10 @@ import MapGL, { Viewport, Source, Layer } from "solid-map-gl";
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const App: Component = (props) => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-122.45, 37.78],
     zoom: 6,
-  } as Viewport);
+  });
 
   return (
     <MapGL

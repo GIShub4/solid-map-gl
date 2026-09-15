@@ -25,11 +25,11 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { SceneLoader } from '@babylonjs/core/Loading';
 import '@babylonjs/loaders';
 
-const [viewport, setViewport] = createSignal({
+const [viewport, setViewport] = createSignal<Viewport>({
   center: [148.9819, -35.3981],
   zoom: 18,
   pitch: 60,
-} as Viewport);
+});
 
 const App: Component = () => (
   <MapGL

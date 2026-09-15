@@ -9,10 +9,10 @@ const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 // A `heatmap` layer style is a flat prop object like any other — Layer's
 // diffing (src/styles.ts) buckets `heatmap-*` paint properties correctly.
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-122.41, 37.78],
     zoom: 10,
-  } as Viewport);
+  });
 
   return (
     <MapGL

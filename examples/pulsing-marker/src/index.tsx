@@ -53,10 +53,10 @@ const markers: { coordinates: [number, number]; label: string; pulse: any }[] = 
 ];
 
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-77.425, 25.0575],
     zoom: 12,
-  } as Viewport);
+  });
 
   return (
     <MapGL

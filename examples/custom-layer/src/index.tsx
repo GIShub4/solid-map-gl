@@ -71,10 +71,10 @@ const highlightLayer: CustomLayerInterface = {
 } as CustomLayerInterface;
 
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [24.9384, 60.1699],
     zoom: 10,
-  } as Viewport);
+  });
 
   return (
     <MapGL

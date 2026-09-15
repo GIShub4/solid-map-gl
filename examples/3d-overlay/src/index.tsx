@@ -10,12 +10,12 @@ const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 // `building` layer renders the standard "3D buildings" overlay — no
 // <Source> needed since it targets a layer already baked into the style.
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-74.0066, 40.7135],
     zoom: 15.5,
     pitch: 45,
     bearing: -17.6,
-  } as Viewport);
+  });
 
   return (
     <MapGL

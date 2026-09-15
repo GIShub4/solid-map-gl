@@ -12,11 +12,11 @@ const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 // CustomLayerInterface — `origin` anchors the scene's [0,0,0] to a real-world
 // lng/lat, and onAdd receives the constructed Scene to populate.
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [148.9819, -35.3981],
     zoom: 18,
     pitch: 60,
-  } as Viewport);
+  });
 
   return (
     <MapGL

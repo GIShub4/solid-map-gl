@@ -9,10 +9,10 @@ const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 // Passing onViewportChange makes the map interactive — pan/zoom feed back
 // into the viewport signal instead of being ignored.
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-122.41, 37.78],
     zoom: 11,
-  } as Viewport);
+  });
 
   return (
     <MapGL

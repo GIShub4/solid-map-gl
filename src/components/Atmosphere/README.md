@@ -27,11 +27,11 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 
 const App: Component = () => {
   // Create a state hook for the viewport settings
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [0, 52], // Longitude, Latitude
     zoom: 6,         // Zoom level
     pitch: 100       // Map pitch in degrees
-  } as Viewport);
+  });
 
   // Define the style for the atmosphere effect (Mapbox Fog shape — see the MapLibre Sky shape
   // in the Props table above if you're targeting MapLibre instead)

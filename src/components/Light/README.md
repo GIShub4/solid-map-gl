@@ -21,11 +21,11 @@ import MapGL, { Viewport, Light } from "solid-map-gl";
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [0, 52],
     zoom: 6,
     pitch: 100
-  } as Viewport);
+  });
 
   return (
     <MapGL

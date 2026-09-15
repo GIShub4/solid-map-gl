@@ -9,10 +9,10 @@ const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 // `data` can also be a URL — the source fetches and parses the GeoJSON
 // itself, same as calling map.addSource with a `data: url` string.
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-122.45, 37.78],
     zoom: 8,
-  } as Viewport);
+  });
 
   return (
     <MapGL

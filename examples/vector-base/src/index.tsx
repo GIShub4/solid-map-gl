@@ -11,10 +11,10 @@ const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const styles = ["light", "dark", "street", "outdoor", "sat_street"];
 
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-122.45, 37.78],
     zoom: 11,
-  } as Viewport);
+  });
   const [style, setStyle] = createSignal("light");
 
   return (

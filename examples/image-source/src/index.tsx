@@ -9,10 +9,10 @@ const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 // An `image` source drapes a single static image over four georeferenced
 // corner coordinates ([top-left, top-right, bottom-right, bottom-left]).
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-80.425, 46.437],
     zoom: 5,
-  } as Viewport);
+  });
 
   return (
     <MapGL

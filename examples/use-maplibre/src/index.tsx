@@ -11,10 +11,10 @@ import "maplibre-gl/dist/maplibre-gl.css";
 // even in this MapLibre-only setup (see this example's package.json, which
 // installs it as the `empty-npm-package` placeholder) — see docs/start.md.
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-122.41, 37.78],
     zoom: 11,
-  } as Viewport);
+  });
 
   return (
     <MapGL

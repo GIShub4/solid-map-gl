@@ -13,10 +13,10 @@ const MAPBOX_ACCESS_TOKEN =
 // `options.projection: "globe"` renders the map as a 3D globe; `<Camera rotateGlobe>` spins it
 // automatically until the user interacts with the map (see Camera's README for the option shape).
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [40, -10],
     zoom: 2,
-  } as Viewport);
+  });
   const [rotation, setRotation] = createSignal(true);
 
   return (

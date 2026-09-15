@@ -10,10 +10,10 @@ const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 // coordinates, same shape as an `image` source but with multiple `urls` for
 // browser-format fallback.
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-122.514426, 37.562984],
     zoom: 17,
-  } as Viewport);
+  });
 
   return (
     <MapGL

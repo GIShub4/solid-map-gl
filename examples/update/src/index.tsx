@@ -23,10 +23,10 @@ const randomPoint = (center: [number, number]) => ({
 // recreating the source, and keeps working even mid-tile-load.
 const App: Component = () => {
   const center: [number, number] = [-122.41, 37.78];
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center,
     zoom: 10,
-  } as Viewport);
+  });
   const [features, setFeatures] = createSignal([randomPoint(center)]);
 
   const timer = setInterval(() => {

@@ -15,10 +15,10 @@ const rasterStyles = {
 // Swapping a raster <Source>'s `url` reactively re-points the tile source —
 // no base MapGL `style` swap needed for a pure-raster basemap.
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-122.41, 37.78],
     zoom: 10,
-  } as Viewport);
+  });
   const [url, setUrl] = createSignal("osm:org");
 
   return (

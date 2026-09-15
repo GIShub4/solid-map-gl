@@ -9,10 +9,10 @@ const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 // <Marker> is draggable and owns an optional popup (`showPopup` + children)
 // — dragging updates `lngLat` reactively via onDrag/onDragEnd.
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [0, 52],
     zoom: 6,
-  } as Viewport);
+  });
   const [lngLat, setLngLat] = createSignal<[number, number]>([0, 52]);
   const [showPopup, setShowPopup] = createSignal(false);
 

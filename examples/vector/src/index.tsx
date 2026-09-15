@@ -9,10 +9,10 @@ const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 // Vector sources need `source-layer` on the <Layer> style — it picks which
 // layer inside the vector tile's own schema to render.
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-122.447303, 37.753574],
     zoom: 13,
-  } as Viewport);
+  });
 
   return (
     <MapGL

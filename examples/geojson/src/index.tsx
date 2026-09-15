@@ -27,10 +27,10 @@ const data = {
 // <Source> takes an inline GeoJSON object directly — no `id` needed here
 // since the nested <Layer> picks up the source id from context.
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-122.486052, 37.830348],
     zoom: 14,
-  } as Viewport);
+  });
 
   return (
     <MapGL

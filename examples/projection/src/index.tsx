@@ -9,10 +9,10 @@ const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 // `options.projection` is forwarded straight to mapbox-gl's Map constructor
 // and re-applied reactively — see the style-spec's `projection` property.
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-40, 30],
     zoom: 1.5,
-  } as Viewport);
+  });
   const [projection, setProjection] = createSignal<"mercator" | "globe">(
     "globe",
   );

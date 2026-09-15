@@ -85,10 +85,10 @@ import MapGL, { Viewport, Source, Layer } from "solid-map-gl";
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-122.45, 37.78],
     zoom: 11,
-  } as Viewport);
+  });
 
   return (
     <MapGL
@@ -143,10 +143,10 @@ import * as maplibre from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-122.45, 37.78],
     zoom: 11,
-  } as Viewport);
+  });
 
   return (
     <MapGL

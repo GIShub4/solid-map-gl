@@ -15,10 +15,10 @@ const PMTILES_URL =
   "https://protomaps.github.io/basemaps-assets/protomaps(vector)ODbL_firenze.pmtiles";
 
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [11.2558, 43.7696],
     zoom: 12,
-  } as Viewport);
+  });
 
   return (
     <MapGL

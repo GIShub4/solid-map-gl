@@ -11,11 +11,11 @@ const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 // onAdd receives the Scene (already anchored to `origin`'s lng/lat) to
 // populate; the camera/projection matrix per frame is handled internally.
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [148.9819, -35.3981],
     zoom: 18,
     pitch: 60,
-  } as Viewport);
+  });
 
   return (
     <MapGL

@@ -39,10 +39,10 @@ import MapboxDraw from "@mapbox/mapbox-gl-draw";
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
 
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-77.4144, 25.0759],
     zoom: 6,
-  } as Viewport);
+  });
 
   return (
     <MapGL

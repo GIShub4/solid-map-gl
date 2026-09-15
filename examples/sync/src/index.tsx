@@ -12,11 +12,11 @@ const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 // which is also how a single map avoids feeding its own movement back into
 // itself.
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     id: "synced",
     center: [-122.41, 37.78],
     zoom: 11,
-  } as Viewport);
+  });
 
   return (
     <div style={{ display: "flex", width: "100%", height: "100%" }}>

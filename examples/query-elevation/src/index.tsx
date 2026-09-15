@@ -20,11 +20,11 @@ const ElevationOnClick: Component<{
 };
 
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [138.74, 35.3],
     zoom: 11,
     pitch: 60,
-  } as Viewport);
+  });
   const [elevation, setElevation] = createSignal<number | null>(null);
 
   return (

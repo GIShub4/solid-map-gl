@@ -22,10 +22,10 @@ const MapReadyLogger: Component = () => {
 };
 
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-122.41, 37.78],
     zoom: 11,
-  } as Viewport);
+  });
 
   return (
     <MapGL

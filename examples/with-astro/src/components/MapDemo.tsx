@@ -7,10 +7,10 @@ import "mapbox-gl/dist/mapbox-gl.css";
 // Astro only exposes client-side env vars prefixed `PUBLIC_`, not Vite's `VITE_` — pass the token
 // explicitly rather than relying on MapGL's built-in `VITE_MAPBOX_ACCESS_TOKEN` fallback.
 const MapDemo: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-122.45, 37.78],
     zoom: 11,
-  } as Viewport);
+  });
 
   return (
     <MapGL

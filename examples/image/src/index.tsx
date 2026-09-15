@@ -9,10 +9,10 @@ const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 // <Image> registers a sprite via map.addImage(id, ...) so a symbol layer's
 // icon-image can reference it by id.
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-77.4144, 25.0759],
     zoom: 6,
-  } as Viewport);
+  });
 
   return (
     <MapGL

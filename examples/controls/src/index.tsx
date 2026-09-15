@@ -15,10 +15,10 @@ const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const controlTypes = ["navigation", "scale", "fullscreen", "geolocate"] as const;
 
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [0, 52],
     zoom: 6,
-  } as Viewport);
+  });
   const [enabled, setEnabled] = createSignal<Set<string>>(
     new Set(["navigation"]),
   );

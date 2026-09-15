@@ -43,10 +43,10 @@ import { ScatterplotLayer } from "@deck.gl/layers";
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [0, 52],
     zoom: 6,
-  } as Viewport);
+  });
 
   return (
     <MapGL

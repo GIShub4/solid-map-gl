@@ -10,10 +10,10 @@ const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 // built-in hatch/geometric SVG patterns instead of loading an image file —
 // swapping `pattern.type` reactively regenerates the registered image.
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-122.45, 37.78],
     zoom: 11,
-  } as Viewport);
+  });
   const [pattern, setPattern] = createSignal(patternList[0]);
 
   return (

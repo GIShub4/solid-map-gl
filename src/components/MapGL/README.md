@@ -62,10 +62,10 @@ import MapGL, { Viewport } from "solid-map-gl";
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-122.41, 37.78],
     zoom: 11,
-  } as Viewport);
+  });
 
   return (
     <MapGL
@@ -107,10 +107,10 @@ import MapGL, { Viewport } from "solid-map-gl";
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-122.45, 37.78],
     zoom: 11,
-  } as Viewport);
+  });
   const [style, setStyle] = createSignal('basic');
 
   return (
@@ -147,7 +147,7 @@ import type { MapCapturer } from "solid-map-gl";
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({ center: [-122.45, 37.78], zoom: 14 } as Viewport);
+  const [viewport, setViewport] = createSignal<Viewport>({ center: [-122.45, 37.78], zoom: 14 });
   let capturer: MapCapturer;
 
   const captureLocation = async (center: [number, number]) => {

@@ -9,10 +9,10 @@ const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 // A `hillshade` layer reads the same `raster-dem` source Terrain uses, but
 // renders shaded relief instead of (or alongside) 3D elevation.
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [138.74, 35.3],
     zoom: 10,
-  } as Viewport);
+  });
 
   return (
     <MapGL

@@ -10,10 +10,10 @@ const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 // (Mapbox `Fog` shape here — see its README for the MapLibre `Sky` shape)
 // adds the space/atmosphere backdrop around it.
 const App: Component = () => {
-  const [viewport, setViewport] = createSignal({
+  const [viewport, setViewport] = createSignal<Viewport>({
     center: [-40, 30],
     zoom: 1.5,
-  } as Viewport);
+  });
 
   return (
     <MapGL
