@@ -176,6 +176,67 @@ describe("Layer", () => {
     expect(call[0].layout).toEqual({ "text-field": "@handle" });
   });
 
+  it("resolves an \"@name\" reference nested inside a Mapbox expression, not just a bare property value", () => {
+    const { map } = renderWithMap(
+      () => (
+        <Source id="src" source={{ type: "geojson", data: {} as any }}>
+          <Layer
+            id="l1"
+            style={{
+              type: "fill",
+              fillColor: ["case", ["boolean", ["feature-state", "hover"], false], "@hoverFill", "#000"],
+            }}
+          />
+        </Source>
+      ),
+      { constants: { hoverFill: "#123456" } },
+    );
+    const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
+    expect(call[0].paint).toEqual({
+      "fill-color": ["case", ["boolean", ["feature-state", "hover"], false], "#123456", "#000"],
+    });
+  });
+
+  it("chains a constant resolved inside an expression into resolveColor, so a Tailwind name works there too", () => {
+    document.documentElement.style.setProperty("--color-blue-600", "#123456");
+    const { map } = renderWithMap(
+      () => (
+        <Source id="src" source={{ type: "geojson", data: {} as any }}>
+          <Layer
+            id="l1"
+            style={{
+              type: "fill",
+              fillColor: ["case", ["boolean", ["feature-state", "hover"], false], "@hoverFill", "#000"],
+            }}
+          />
+        </Source>
+      ),
+      { constants: { hoverFill: "blue-600" } },
+    );
+    const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
+    expect(call[0].paint).toEqual({
+      "fill-color": ["case", ["boolean", ["feature-state", "hover"], false], "rgb(18, 52, 86)", "#000"],
+    });
+  });
+
+  it("leaves an unknown \"@name\" reference nested inside an expression unresolved instead of throwing", () => {
+    const { map } = renderWithMap(
+      () => (
+        <Source id="src" source={{ type: "geojson", data: {} as any }}>
+          <Layer
+            id="l1"
+            style={{ type: "fill", fillColor: ["case", ["==", ["get", "x"], 1], "@missing", "#000"] }}
+          />
+        </Source>
+      ),
+      { constants: { primary: "#123456" } },
+    );
+    const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
+    expect(call[0].paint).toEqual({
+      "fill-color": ["case", ["==", ["get", "x"], 1], "@missing", "#000"],
+    });
+  });
+
   it("resolves a 'bg-x dark:bg-y' pair to the light class when not in dark mode", () => {
     const { map } = renderWithMap(() => (
       <Source id="src" source={{ type: "geojson", data: {} as any }}>
@@ -504,7 +565,11 @@ describe("Layer", () => {
     );
   });
 
-  it("applies props.filter (independent of style.filter), awaiting styledata if not yet loaded", async () => {
+  it("applies props.filter (independent of style.filter) immediately, without waiting on styledata", async () => {
+    // Regression test: an earlier version of this effect gated setFilter behind
+    // `!isStyleLoaded() && await map.once("styledata")`, which could hang indefinitely if no
+    // further "styledata" event happened to fire — addLayer above is unguarded/synchronous, so the
+    // layer always already exists by the time this effect runs and setFilter is safe immediately.
     const map = createMockMap();
     map.isStyleLoaded.mockReturnValue(false);
     renderWithMap(
@@ -515,10 +580,38 @@ describe("Layer", () => {
       ),
       { map },
     );
-    map.fire("styledata", {});
     await tick();
 
     expect(map.setFilter).toHaveBeenCalledWith("l1", ["==", "a", 1]);
+  });
+
+  it("clears props.filter on the map once it goes back to undefined after having been set", async () => {
+    const [filter, setFilter] = createSignal<any>(["==", "a", 1]);
+    const { map } = renderWithMap(() => (
+      <Source id="src" source={{ type: "geojson", data: {} as any }}>
+        <Layer id="l1" style={{ type: "fill" }} filter={filter()} />
+      </Source>
+    ));
+    await tick();
+    expect(map.setFilter).toHaveBeenLastCalledWith("l1", ["==", "a", 1]);
+
+    setFilter(undefined);
+    await tick();
+
+    expect(map.setFilter).toHaveBeenLastCalledWith("l1", null);
+  });
+
+  it("never touches the map filter when props.filter is never used, so style.filter isn't clobbered", async () => {
+    const { map } = renderWithMap(() => (
+      <Source id="src" source={{ type: "geojson", data: {} as any }}>
+        <Layer id="l1" style={{ type: "fill", filter: ["==", "a", 1] }} />
+      </Source>
+    ));
+    await tick();
+
+    const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
+    expect(call[0].filter).toEqual(["==", "a", 1]);
+    expect(map.setFilter).not.toHaveBeenCalled();
   });
 
   it("sets and clears feature state", async () => {
@@ -579,7 +672,10 @@ describe("Layer", () => {
     nowSpy.mockReturnValue(250); // quarter cycle in
     raf!(250);
 
-    const [layerId, property, value, opts] = map.setPaintProperty.mock.calls[0];
+    // calls[0] is the up-front `icon-halo-width-transition` disable, not the animated value.
+    const [layerId, property, value, opts] = map.setPaintProperty.mock.calls.find(
+      ([, prop]) => prop === "icon-halo-width",
+    )!;
     expect(layerId).toBe("l1");
     expect(property).toBe("icon-halo-width");
     expect(value).toBeCloseTo(4); // sine-eased midpoint of the 0->8 ramp at phase 0.25

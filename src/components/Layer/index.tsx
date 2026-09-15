@@ -160,13 +160,21 @@ const newKey = (key, type) =>
     ? ""
     : type + "-") + key.replace(/[A-Z]/g, (s) => "-" + s.toLowerCase());
 
+// `<Layer>` prop names that belong at the top level (as a `Props` field), not inside `style` —
+// easy to mistype since some of them (`slot`, `visible`) read like style-ish concepts. None of
+// these are in `baseStyle`, so without this check they'd silently fall through `updateStyle`'s
+// bucketing into a bogus paint property (e.g. a `style={{ slot: 'top' }}` typo becomes a
+// `circle-slot`/`symbol-slot` paint property mapbox-gl just ignores) instead of erroring.
+const misplacedTopLevelProps = ["slot", "filter", "visible", "beforeId", "beforeType"];
+
 // Lets paint colors be given as a Tailwind palette name (`fillColor: 'blue-600'`) or a CSS Color 4
 // function Mapbox can't parse (`fillColor: 'oklch(54.6% 0.245 262.881)'`), alongside any format
 // Mapbox already understands — see `resolveColorValue` in `./colors.ts`.
-const resolveColor = (key: string, value: any) =>
-  key.endsWith("color") && typeof value === "string"
-    ? resolveColorValue(value)
-    : value;
+const resolveColor = (key: string, value: any): any => {
+  if (!key.endsWith("color")) return value;
+  if (Array.isArray(value)) return value.map((v) => resolveColor(key, v));
+  return typeof value === "string" ? resolveColorValue(value) : value;
+};
 
 const constantRef = /^@(.+)$/;
 
@@ -175,14 +183,18 @@ const constantRef = /^@(.+)$/;
 // Mapbox GL style spec itself dropped after v7. Reads `constants[name]` directly (rather than e.g.
 // `in`/`hasOwnProperty`) so a plain property access on the `solid-js/store` proxy is what
 // establishes the reactive dependency, letting a `constants` prop change re-run just the Layer
-// effects that reference the changed name. Applied to every paint/layout value, not just colors,
-// since a constant can hold a width or any other value type just as well as a color.
+// effects that reference the changed name. Recurses into Mapbox expression arrays (e.g.
+// `["case", cond, "@hoverFill", CIRCLE_COLOR]`) so a constant can be used anywhere inside an
+// expression, not just as a paint/layout property's entire value — a bare `"@name"` string is the
+// only leaf ever swapped, since a real expression operator/argument never matches `constantRef`.
 const resolveConstant = (
   key: string,
   value: any,
   constants: Record<string, any>,
   debug: (text: string, value?: any) => void,
-) => {
+): any => {
+  if (Array.isArray(value))
+    return value.map((v) => resolveConstant(key, v, constants, debug));
   if (typeof value !== "string") return value;
   const match = value.match(constantRef);
   if (!match) return value;
@@ -210,6 +222,10 @@ const updateStyle = (
   Object.entries(oldStyle).forEach(([key, value]) => {
     if (baseStyle.includes(key)) style[key] = value;
     else {
+      if (misplacedTopLevelProps.includes(key))
+        debug(
+          `"${key}" is a <Layer> prop, not a style property — belongs outside "style", not inside it. Treating it as a paint/layout property instead.`,
+        );
       const nk = newKey(key, oldStyle.type);
       layoutStyles.includes(nk)
         ? (layout[nk] = resolveConstant(nk, value, constants, debug))
@@ -331,14 +347,30 @@ export const Layer: Component<Props> = (props) => {
     return getBeforeId();
   }, getBeforeId());
 
-  // Update Filter
-  createEffect(async () => {
-    if (!props.filter) return;
+  // Update Filter — independent from style.filter. Once props.filter has actually been used, a
+  // later falsy value must still clear it (e.g. toggling every excluded value back on collapses
+  // combineFilters() back to undefined) — only the never-used case is left alone, so layers that
+  // rely on style.filter instead aren't clobbered by this effect running on mount.
+  //
+  // No isStyleLoaded()/styledata gating here (unlike the old version of this effect) — the layer
+  // is always already on the map by the time this runs (addLayer above is synchronous, unguarded),
+  // so setFilter is safe immediately, same as the ungated setFilter in the "Update Style" effect
+  // above for style.filter. Gating on isStyleLoaded() was actively harmful: under Mapbox Standard's
+  // continuous background asset streaming, isStyleLoaded() can read false for extended idle
+  // stretches with no further "styledata" event to resolve the `await` — sibling <Layer>s in the
+  // same reactive flush (e.g. PatientLayer.tsx's pulse + circle layers, both filtered off the same
+  // hiddenUrgencyLevels signal) would each hit this gate, and whichever one's `await` won the race
+  // could end up stuck for a minute or more, until some unrelated later styledata event happened to
+  // resolve it — symptom: re-enabling the last hidden urgency level appeared to do nothing on the
+  // map, sometimes indefinitely.
+  createEffect((prev: FilterSpecification | undefined) => {
+    if (props.filter === prev) return prev;
+    if (prev === undefined && !props.filter) return prev;
 
-    !ctx.map.isStyleLoaded() && (await ctx.map.once("styledata"));
-    ctx.map.setFilter(layerId, props.filter);
+    ctx.map.setFilter(layerId, props.filter ?? null);
     debug(`Update Filter (${layerId}):`, props.filter);
-  });
+    return props.filter;
+  }, undefined);
 
   // Update Feature State
   createEffect(async () => {
@@ -393,6 +425,21 @@ export const Layer: Component<Props> = (props) => {
         toRgba: isColor ? toRgbaComponents(b as string) : null,
       };
     });
+    // Mapbox applies each paint property's own transition (default ~300ms ease) to every
+    // setPaintProperty call, including the ones the loop below makes every frame. That's invisible
+    // while ramping, since frame-to-frame deltas are tiny, but "out"/"in"'s reset is a big jump back
+    // to the start of the cycle — without this, mapbox visibly eases that jump instead of snapping,
+    // looking like an extra shrink/grow instead of a clean reset. Disabling the transition once, up
+    // front, for whichever property is pulsed makes every waveform's reset instant.
+    resolved.forEach((cfg) => {
+      ctx.map.setPaintProperty(
+        layerId,
+        `${cfg.property}-transition` as any,
+        { duration: 0, delay: 0 },
+        { validate: false },
+      );
+    });
+
     const start = performance.now();
     let frameId: number;
 
