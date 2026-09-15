@@ -19,16 +19,17 @@ _\*required_
 ## Predefined symbols
 
 `symbol` picks one of a small set of built-in point-icon shapes (`symbolList`: `square`,
-`circle`, `triangle`, `diamond`, `pentagon`, `hexagon`, `octagon`, `cross`, `x`, `star`)
-without you having to hand-author the SVG markup:
+`circle`, `triangle`, `diamond`, `pentagon`, `hexagon`, `octagon`, `cross`, `x`, `star`,
+`heart`, `pin`, `drop`, `chevron`) without you having to hand-author the SVG markup:
 
 ```jsx
 <Image id="triangle" symbol="triangle" sdf />
 ```
 
 You're not limited to the built-ins — `symbol` also accepts full custom SVG markup, or just
-a raw path's `d` data (wrapped in the same 64×64 `viewBox` template the built-ins use), so
-it's a drop-in convenience rather than a separate system from `source`:
+a raw path's `d` data (wrapped in the same 24×24 `viewBox`/on-map-size template the built-ins
+use — see the SDF notes below for why 24), so it's a drop-in convenience rather than a
+separate system from `source`:
 
 ```jsx
 {/* equivalent to the built-in "triangle" symbol, just written as raw path data */}
@@ -83,8 +84,34 @@ Notes:
 - `options.fill`/`options.stroke` stop mattering once `sdf` is on — an SDF image only
   encodes a silhouette (alpha), not color; color comes entirely from paint properties.
 - `radius` (default `8`) controls how many pixels of gradient falloff are encoded around
-  each edge, and how much transparent margin is added around the art to make room for
-  it — raise it if you need a wide `icon-halo-width`/`icon-halo-blur`.
+  each edge, and how much transparent margin is added around the art to make room for it.
+  It only affects how soft/crisp that gradient looks — it does **not** raise how wide an
+  `icon-halo-width` you can use. mapbox-gl-js's symbol shader hardcodes an `icon-halo-width`
+  vs. `icon-size` relationship (independent of the source image entirely): once
+  `icon-halo-width` exceeds roughly `6 * icon-size`, the halo stops being a ring and fills
+  the *entire* icon with solid `icon-halo-color`. Keep `icon-halo-width` under that ceiling
+  (or raise `icon-size`) instead — see the `pulse` warning in `Layer`'s README, which hits
+  the same ceiling when animating `icon-halo-width`.
+
+  The built-in `symbol` shapes (see [Predefined symbols](#predefined-symbols)) are authored at
+  24 CSS px (both `viewBox` and the SVG's natural `width`/`height` — the thing that actually
+  determines on-map size — are `0 0 24 24`/`24`, so 1 unit of a shape's point data is 1 on-map
+  px), matching the typical Maki-icon point-marker size, so `icon-size: 1` already gives you a
+  normal-looking marker with the full `~6px` of `icon-halo-width` headroom from the ceiling
+  above, instead of needing a small `icon-size` multiplier that eats into it. (A `source`/
+  `symbol` image below the 50px raster-crispness floor — true for these built-ins — is
+  automatically oversampled for a crisp rasterization, but still displays at its authored 24px
+  CSS size, not the oversampled one, so that oversampling doesn't cost you any `icon-size`
+  headroom either.)
+- Any transparent margin the SDF gradient needs around the art is added automatically —
+  `radius` pixels of empty canvas on every side, scaled to match rasterization — regardless of
+  how tight or generous the source SVG's own `viewBox` margin is; see `sdfPadding` in `sdf.ts`.
+  The rasterizer doesn't clip to the path's own bounding box either (it renders into the SVG's
+  full declared `width`/`height` canvas, transparent background included), so there's no need
+  to hand-author extra empty space around a symbol's artwork for halo room — that space is
+  reserved by `radius`, not by anything in the SVG. What the SVG's own fill-vs-margin ratio does
+  affect is purely how "big" the shape itself looks inside its own box, not how far a halo can
+  extend outward from it.
 - `cutoff` (default `0.25`) shifts where along that gradient the shape's "true" edge
   sits; matches mapbox's own glyph-rendering default.
 - This applies to `source`, not `pattern` — `pattern`'s hatch/fill textures (diagonal

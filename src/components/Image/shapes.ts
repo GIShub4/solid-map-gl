@@ -55,42 +55,77 @@ export const PATTERN: Record<string, Pattern> = {
 export const patternList = Object.keys(PATTERN)
 export type PatternName = keyof typeof PATTERN
 
-const svg = (body: string) =>
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">${body}</svg>`
+// `viewBox`/`width`/`height` are all the same 24 units — no separate large authoring space
+// scaled down for display — so 1 unit below is 1 on-map CSS px at `icon-size: 1`. 24px matches
+// the typical point-marker size (Maki icon convention) so `icon-size: 1` is usable directly
+// instead of needing a small multiplier that eats into `icon-halo-width` headroom — see the
+// `icon-halo-width`/`icon-size` ceiling note in `Image/README.md`'s SDF section. Padding for the
+// SDF halo's outward gradient is *not* this margin's job — `_loadImage` in `index.tsx` already
+// pads the rasterized canvas by `sdfPadding(radius)` before running `toSDF`, independent of
+// whatever margin a source SVG does or doesn't have — so there's no need to bake extra empty
+// space into the viewBox for halo room.
+// `stroke-linecap`/`stroke-linejoin: round` here are what make every shape below look
+// rounded — each shape is plain straight-line `M`/`L`/`Z` path data (no curve commands), kept
+// hand-editable on purpose, with a `stroke` in the *same* color as its `fill` and thick enough
+// that its round joins visibly bevel every vertex. The rounding is this stroke trick, not curved
+// path data: to change how round a shape's corners look, change its `stroke-width`, not its `d`.
+const svg = (path: string) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke-linecap="round" stroke-linejoin="round">
+    <path d="${path}" fill="#000" stroke="#000" stroke-width="3"/>
+  </svg>`
 
 // Filled with a solid, overridable default (`options.fill`/`options.stroke` on `<Image>` patch
 // these same attributes) so every symbol renders sensibly even without `sdf` or a custom color.
-// Each shape fills a generous ~87% of the 64x64 viewBox on its tightest axis, leaving enough
-// margin that a moderate `sdf` halo doesn't touch the art itself.
+// Path coordinates stay within roughly 3-21 (a 3-unit margin on all sides of the 24 viewBox) so
+// that margin can absorb the `stroke-width="3"` round join's own 1.5-unit half-width without any
+// vertex's rounded corner reaching — and being clipped at — the viewBox boundary. Most shapes
+// below are straight `M`/`L`/`Z` polygons; `heart`/`pin`/`drop` (and `circle`) use `A` (arc)
+// commands instead, since they're genuinely round rather than round-*cornered* — the stroke
+// trick only bevels individual vertices, it can't stand in for an actual circular curve.
 export const SYMBOL: Record<string, string> = {
-  square: svg('<rect x="8" y="8" width="48" height="48" fill="#000"/>'),
-  circle: svg('<circle cx="32" cy="32" r="28" fill="#000"/>'),
-  triangle: svg('<polygon points="32,6 60,56 4,56" fill="#000"/>'),
-  diamond: svg('<polygon points="32,4 60,32 32,60 4,32" fill="#000"/>'),
-  pentagon: svg('<polygon points="32,4 59,23 48,55 16,55 5,23" fill="#000"/>'),
-  hexagon: svg('<polygon points="32,4 56,18 56,46 32,60 8,46 8,18" fill="#000"/>'),
+  square: svg('M3,3 L21,3 L21,21 L3,21 Z'),
+  // Two semicircular arcs sharing one center/radius, traced in the same direction both times
+  // (the standard "circle via two arcs" trick). The requested `1,1` radius is far smaller than
+  // half the 16-unit chord between the two points, so per the SVG spec it's scaled up to the
+  // minimum radius that can still connect them (8, i.e. exactly a semicircle each) — the circle
+  // ends up centered on the chord's midpoint (12,11), not on the literal "1".
+  circle: svg('M 12 4 A 1 1 0 0 0 12 20 A 1 1 0 0 0 12 4 Z'),
+  triangle: svg('M 12 2 L 22 19 H 2 Z'),
+  diamond: svg('M 12 1 L 19 12 L 12 23 L 5 12 Z'),
+  pentagon: svg('M12,3 L21,9 L17,19 L7,19 L3,9 Z'),
+  hexagon: svg('M12,3 L20,7.5 L20,16.5 L12,21 L4,16.5 L4,7.5 Z'),
   // A square with corners cut at 2/7 of its side, the standard construction for a regular
   // octagon (stop-sign proportions) without resorting to trig.
-  octagon: svg(
-    '<polygon points="20,4 44,4 60,20 60,44 44,60 20,60 4,44 4,20" fill="#000"/>'
-  ),
-  cross: svg(
-    '<polygon points="20,4 44,4 44,20 60,20 60,44 44,44 44,60 20,60 20,44 4,44 4,20 20,20" fill="#000"/>'
-  ),
+  octagon: svg('M 8 3 Q 12 3.3 16 3 Q 18.3 5.7 21 8 Q 20.7 12 21 16 Q 18.3 18.3 16 21 Q 12 20.7 8 21 Q 5.8 18.2 3 16 Q 3.3 12 3 8 Q 5.7 5.7 8 3 Z'),
+  cross: svg('M 10.5 3 h 3 v 7.5 h 7.5 v 3 h -7.5 v 7.5 h -3 v -7.5 h -7.5 v -3 h 7.5 Z'),
   // The same 12-point "+" as `cross` above, rotated 45° about the center.
-  x: svg(
-    '<polygon points="43,4 60,21 49,32 60,43 43,60 32,49 21,60 4,43 15,32 4,21 21,4 32,15" fill="#000"/>'
-  ),
-  // A regular 5-pointed star: outer vertices every 72° (radius 30) alternating with inner
-  // vertices every 72° offset by 36° (radius ~11.5, the usual ratio for a balanced star).
-  star: svg(
-    '<polygon points="32,2 39,23 61,23 43,36 50,56 32,44 14,56 21,36 4,23 25,23" fill="#000"/>'
-  ),
+  x: svg('M 18 4 L 20 6 L 14 12 L 20 18 L 18 20 L 12 14 L 6 20 L 4 18 L 10 12 L 4 6 L 6 4 L 12 10 Z'),
+  // A regular 5-pointed star: outer vertices every 72° alternating with inner vertices every
+  // 72° offset by 36° (inner radius ~40% of the outer radius, the usual ratio for a balanced star).
+  star: svg('M12,3 L14,9 L20.5,9 L15.5,13 L17.5,19.5 L12,15.5 L6.5,19.5 L8.5,13 L3.5,9 L10,9 Z'),
+  // Two circular lobes (centers 8.5,8 / 15.5,8, radius 4.5 apart enough to overlap) joined by
+  // straight tangent lines down to a bottom point. The notch between the lobes is the two
+  // circles' actual intersection point (computed, not eyeballed), so both arcs land on it
+  // exactly with no seam.
+  heart: svg('M 12 21 L 3 11 A 4.5 4.5 0 1 1 11 8 L 13 8 A 4.5 4.5 0 1 1 21 11 Z'),
+  // A map-pin/teardrop: a circle (center 12,10, r6) with two lines tangent to it converging on a
+  // point below, so the straight edges meet the round top without a kink — the tangent points
+  // and angles come from `acos(r / distance-to-point)`, not eyeballing.
+  pin: svg('M 12 21 L 7 11 A 6 6 0 0 1 12 2 A 6 6 0 0 1 17 11 Z'),
+  // The same tangent-circle construction as `pin`, just with the circle bigger relative to how
+  // far below it the point sits (r6/d11 there vs r7.5/d10.5 here) — a shorter, wider point on a
+  // rounder body: "a circle with one pointy edge" rather than a full elongated marker.
+  drop: svg('M 4 21 V 12 A 7.5 7.5 0 0 1 12 4 A 7.5 7.5 0 0 1 13 21 Z'),
+  // A thick chevron/bracket built as a filled ribbon, not a stroked open line: the outer and
+  // inner edges of a constant-width "V", offset perpendicular to each arm and mitered where the
+  // arms meet (both at the outer point and the inner notch). Has to be a closed silhouette like
+  // every other symbol here, since `sdf` only encodes a filled alpha shape, not a stroke.
+  chevron: svg('M 8 4 L 14 12 L 8 20 H 5 L 11 12 L 5 4 Z'),
 }
 
 export const symbolList = Object.keys(SYMBOL)
 export type SymbolName = keyof typeof SYMBOL
 
-/** A raw SVG path's `d` data, wrapped in the same 64x64 viewBox template the built-in
+/** A raw SVG path's `d` data, wrapped in the same 24x24 viewBox template the built-in
  *  `SYMBOL` shapes use, so a hand-authored path composes the same way they do. */
-export const wrapSymbolPath = (d: string) => svg(`<path d="${d}" fill="#000"/>`)
+export const wrapSymbolPath = (d: string) => svg(d)

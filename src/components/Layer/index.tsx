@@ -28,7 +28,8 @@ type PulseConfig = {
   /** Start value — a number for a plain paint property, or any CSS color string (hex, named,
    *  rgb/rgba, a Tailwind name, ...) when animating a `*-color` property. Default `0`. */
   from?: number | string;
-  /** Default `8`. */
+  /** Default `4` — see `PULSE_DEFAULTS`'s comment for why this stays under mapbox's fixed
+   *  `icon-halo-width <~ 6 * icon-size` ceiling before the halo fills the whole icon. */
   to?: number | string;
   /** Full cycle length, in ms. Default `1500`. */
   duration?: number;
@@ -45,10 +46,20 @@ type PulseConfig = {
 // Every field defaults so `pulse` (or `pulse={{}}`/`pulse={{ to: 16 }}`) works out of the box for
 // the common case — Tailwind's familiar `animate-ping` look on a symbol layer's halo — and only
 // needs overriding piece by piece (a different property, range, or layer type) as requirements grow.
+//
+// `to: 4` (not a rounder-looking 8) because mapbox-gl-js's symbol fragment shader hardcodes
+// `SDF_PX = 8.0` and computes the halo's visible band as
+// `(6.0 - icon-halo-width * scaleFactor / icon-size) / SDF_PX` — once `icon-halo-width` exceeds
+// roughly `6 * icon-size`, that goes negative and the *entire* icon quad (not just a ring) paints
+// solid `icon-halo-color`, not just at `to` but for every frame past that point in the ramp. This
+// is a fixed relationship in the shader, independent of the image's own resolution/`sdf` `radius`
+// (see `Image`'s SDF notes) — it only cares about the `icon-halo-width`/`icon-size` paint values.
+// `4` stays under that ceiling through the whole ramp for `icon-size` down to `~0.67`; scale it
+// down further (or scale `icon-size` up) for smaller icons.
 const PULSE_DEFAULTS = {
   property: "icon-halo-width",
   from: 0,
-  to: 8,
+  to: 4,
   duration: 1500,
   waveform: "out",
 } as const satisfies Required<PulseConfig>;

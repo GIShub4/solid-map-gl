@@ -422,6 +422,38 @@ describe("MGL_Image", () => {
     restoreCanvas.mockRestore();
   });
 
+  it("folds the 50px raster-crispness floor-scale into the reported pixelRatio, not just devicePixelRatio", async () => {
+    const restoreCanvas = stubCanvasContext();
+    let capturedImg: HTMLImageElement | undefined;
+    const OrigImage = window.Image;
+    // @ts-ignore
+    window.Image = class extends OrigImage {
+      constructor() {
+        super();
+        capturedImg = this;
+      }
+    };
+
+    const map = createMockMap();
+    map.loadImage.mockImplementation((_url: string, cb: any) => cb(new Error("fail")));
+    renderWithMap(() => <MGL_Image id="pin" source="http://example.com/pin.png" />, { map });
+    await tick();
+
+    expect(capturedImg).toBeTruthy();
+    // A 20px source needs a 50/20 = 2.5x floor-scale to reach the 50px raster-crispness floor.
+    // If that factor isn't folded into the reported pixelRatio alongside devicePixelRatio (1 in
+    // jsdom), mapbox displays the icon at 2.5x its authored 20px CSS size instead of 20px.
+    Object.defineProperty(capturedImg, "width", { value: 20, configurable: true });
+    Object.defineProperty(capturedImg, "height", { value: 20, configurable: true });
+    capturedImg!.onload!(new Event("load"));
+
+    const call = map.addImage.mock.calls.find((c: any[]) => c[0] === "pin");
+    expect(call[2]).toEqual(expect.objectContaining({ pixelRatio: 2.5 }));
+
+    window.Image = OrigImage;
+    restoreCanvas.mockRestore();
+  });
+
   it("sets sdf:true on the addImage metadata and pads the raster before rasterizing when sdf is used", async () => {
     const restoreCanvas = stubCanvasContext();
     const fakeCtx = (restoreCanvas as any).fakeCtx;

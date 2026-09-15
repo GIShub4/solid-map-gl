@@ -102,7 +102,7 @@ familiar [`animate-ping`](https://tailwindcss.com/docs/animation) look on a symb
   <Layer
     style={{
       type: 'symbol',
-      layout: { 'icon-image': 'dot', 'icon-size': 0.5 },
+      layout: { 'icon-image': 'dot' },
       paint: { 'icon-color': '#2563eb', 'icon-halo-color': '#2563eb' },
     }}
     pulse
@@ -116,11 +116,20 @@ Each entry accepts:
 {
   property?: string        // e.g. "icon-halo-width", "icon-opacity", "icon-halo-color"; default "icon-halo-width"
   from?: number | string    // a number, or any CSS color string for a *-color property; default 0
-  to?: number | string      // default 8
+  to?: number | string      // default 4
   duration?: number         // full cycle length in ms, default 1500
   waveform?: 'in-out' | 'out' | 'in'  // default 'out'
 }
 ```
+
+> [!WARNING]
+> mapbox-gl-js's symbol shader hardcodes the relationship between `icon-halo-width` and
+> `icon-size` — once `icon-halo-width` exceeds roughly `6 * icon-size`, the halo stops being a
+> ring and fills the *entire* icon with solid `icon-halo-color`. This is a fixed constant in
+> mapbox's fragment shader, not something `solid-map-gl`'s `Image`/`sdf` options control (raising
+> `sdf`'s `radius` doesn't move the ceiling). If your layer sets a small `icon-size` (e.g. `0.5`),
+> scale `pulse`'s `to`/`from` down to match (or bump `icon-size` up) — `to: 4` (the `pulse`
+> default) needs `icon-size` of at least `~0.67` to stay clear of it.
 
 `waveform` controls the shape of the cycle:
 
@@ -139,7 +148,7 @@ width once it stops growing:
 <Layer
   style={{ type: 'symbol', layout: { 'icon-image': 'dot' } }}
   pulse={[
-    { property: 'icon-halo-width', from: 0, to: 12, duration: 1500, waveform: 'out' },
+    { property: 'icon-halo-width', from: 0, to: 5, duration: 1500, waveform: 'out' },
     { property: 'icon-halo-color', from: 'rgba(37, 99, 235, 1)', to: 'rgba(37, 99, 235, 0)', duration: 1500, waveform: 'out' },
   ]}
 />

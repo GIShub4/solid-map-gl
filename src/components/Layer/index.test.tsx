@@ -624,7 +624,7 @@ describe("Layer", () => {
     rafSpy.mockRestore();
   });
 
-  it("pulses icon-halo-width 0->8 over 1500ms with no config at all (pulse={true})", async () => {
+  it("pulses icon-halo-width 0->4 over 1500ms with no config at all (pulse={true})", async () => {
     let raf: FrameRequestCallback | undefined;
     const rafSpy = vi
       .spyOn(window, "requestAnimationFrame")
@@ -645,7 +645,7 @@ describe("Layer", () => {
     expect(map.setPaintProperty).toHaveBeenCalledWith(
       "l1",
       "icon-halo-width",
-      8,
+      4,
       { validate: false },
     );
 

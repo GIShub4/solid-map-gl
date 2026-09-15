@@ -274,9 +274,16 @@ entries are active. This is the idiomatic Mapbox technique for a "pulsing dot" m
 access to.
 
 Every `PulseConfig` field has a default (`PULSE_DEFAULTS`: `property: "icon-halo-width"`,
-`from: 0`, `to: 8`, `duration: 1500`, `waveform: "out"`), and `pulse={true}` (or the bare `pulse`
+`from: 0`, `to: 4`, `duration: 1500`, `waveform: "out"`), and `pulse={true}` (or the bare `pulse`
 JSX attribute) is sugar for a single all-defaults config — so `pulse` alone already animates a
 symbol layer's halo with Tailwind's `animate-ping` look, and only needs overriding field by field.
+`to` defaults to `4`, not a rounder `8`, because mapbox-gl-js's symbol fragment shader hardcodes
+`SDF_PX = 8.0` and derives the halo's visible band from
+`(6.0 - icon-halo-width * scaleFactor / icon-size) / SDF_PX` — once `icon-halo-width` exceeds
+roughly `6 * icon-size`, that goes negative and the *entire* icon (not just a ring) paints solid
+`icon-halo-color`. `4` stays under that ceiling through the whole ramp down to `icon-size ~0.67`;
+below that, scale `to` down (or `icon-size` up) to match — see `Image`'s SDF notes in its own
+README, which hits the same ceiling.
 
 Each `pulse` entry's `from`/`to` progress through one cycle via `pulseShape()`, which computes a
 0..1 value from `(elapsed % duration) / duration` according to `waveform`:
@@ -405,11 +412,24 @@ the built-in hatch/geometric *tiling* patterns (`patternList`: `diagonal_l`, `di
 without pre-baked image assets, but meant for `fill-pattern` backgrounds, not discrete point
 icons. Set `symbol` instead for a discrete `icon-image` shape — either a built-in name
 (`symbolList`: `square`, `circle`, `triangle`, `diamond`, `pentagon`, `hexagon`, `octagon`,
-`cross`, `x`, `star`), full custom SVG markup, or a raw path `d` string (auto-wrapped in
-`shapes.ts`'s shared 64x64 `viewBox` template via `wrapSymbolPath`); it resolves to markup and
+`cross`, `x`, `star`, `heart`, `pin`, `drop`, `chevron`), full custom SVG markup, or a raw
+path `d` string (auto-wrapped in
+`shapes.ts`'s shared 24x24 `viewBox` template via `wrapSymbolPath`); it resolves to markup and
 goes through the exact same rasterization path a hand-authored `source` SVG would, so `sdf` and
 `options.fill`/`options.stroke` both work on it. `symbol` is ignored if `source` is set.
 Re-adds the image automatically after a `style.load` event (base-style swaps wipe custom images).
+
+A vector `source`/`symbol` under the 50px raster-crispness floor gets rasterized at a
+`floorScale`-oversampled canvas size (see `_loadImage`'s `img.onload` handler) purely so the
+bitmap itself isn't blurry — the reported `addImage` `pixelRatio` folds `floorScale` in alongside
+`devicePixelRatio` (as `scale = floorScale * pixelRatio`) so mapbox always displays the icon at
+its *authored* CSS size regardless of how much it was oversampled for raster quality. Reporting only the `devicePixelRatio` portion (an earlier bug) let `floorScale` leak into the
+on-map size — inflating small source art up toward 50 CSS px at `icon-size: 1` regardless of its
+authored size, forcing a smaller `icon-size` than the source's own dimensions would otherwise need
+just to get a normal marker size on screen. Combined with the `icon-halo-width`/`icon-size` shader
+ceiling above (which the built-in `symbol` shapes' fixed 64×64 authored size runs into for the
+same reason — see `Image/README.md`'s SDF notes), a small `icon-size` plus any meaningful
+`icon-halo-width` is how icons end up washing out solid `icon-halo-color`.
 
 `sdf` (boolean or `{ radius?, cutoff? }`) runs the rasterized `source`/`symbol` through a real
 signed-distance-field transform (`src/components/Image/sdf.ts`, a from-scratch port of the exact

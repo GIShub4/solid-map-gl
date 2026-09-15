@@ -184,19 +184,25 @@ export const MGL_Image: VoidComponent<Props> = props => {
         img.onload = () => {
           // Scale both axes by the same factor so a non-square source keeps its aspect ratio
           // instead of being stretched into a square canvas — only the smaller axis needs to
-          // reach the 50px floor; the other is scaled by the same amount to match.
-          const floorScale = Math.max(1, 50 / Math.min(img.width, img.height))
-          // Honor an explicit `options.pixelRatio` (oversample to match it exactly); otherwise
-          // oversample for the actual screen so the vector source rasterizes crisply, and
-          // report that ratio back so the caller can tag it — keeping the on-map CSS size the
-          // same as an un-oversampled render would have been.
+          // reach the 50px floor; the other is scaled by the same amount to match. Guarded
+          // against a 0-sized image (e.g. a broken/never-decoded source) so that doesn't divide
+          // out to `Infinity` and NaN the canvas dimensions below.
+          const minAxis = Math.min(img.width, img.height)
+          const floorScale = minAxis > 0 ? Math.max(1, 50 / minAxis) : 1
           const pixelRatio =
             props.options?.pixelRatio ??
             Math.max(1, Math.round(window.devicePixelRatio || 1))
+          // The `floorScale` oversampling above is purely for raster crispness on tiny source
+          // art — it must be folded into the reported ratio alongside `pixelRatio`, or mapbox
+          // displays the image at `floorScale` times its authored CSS size instead of an
+          // un-oversampled render's size (the whole point of reporting a ratio back at all).
           const scale = floorScale * pixelRatio
-          // SDF needs empty margin around the art for the outward halo gradient to
-          // fade into — without it, the distance field clips hard at the bitmap edge.
-          const padding = sdfOpts ? sdfPadding(sdfOpts) * pixelRatio : 0
+          // SDF needs empty margin around the art for the outward halo gradient to fade into —
+          // without it, the distance field clips hard at the bitmap edge. Scaled by the full
+          // `scale` (not just `pixelRatio`) to match: `toSDF`'s `radius` is a fixed number of
+          // *canvas* pixels, and the canvas itself is oversampled by `scale`, so the margin has
+          // to grow with it to keep the gradient's on-map CSS width constant.
+          const padding = sdfOpts ? sdfPadding(sdfOpts) * scale : 0
           const drawWidth = Math.round(img.width * scale)
           const drawHeight = Math.round(img.height * scale)
           const canvas = document.createElement('canvas')
@@ -208,7 +214,7 @@ export const MGL_Image: VoidComponent<Props> = props => {
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
           return callback(
             sdfOpts ? toSDF(imageData, sdfOpts) : imageData,
-            pixelRatio
+            scale
           )
         }
         // Without onerror, a data URI that fails to decode (e.g. unescaped characters below)
