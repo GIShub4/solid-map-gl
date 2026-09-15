@@ -27,6 +27,7 @@ map instance via `useMapContext()`.
 - [Draw](#draw)
 - [DeckOverlay](#deckoverlay)
 - [Supporting modules](#supporting-modules)
+- [Testing](#testing)
 
 ---
 
@@ -756,3 +757,20 @@ Component-local utility modules, colocated with their only consumer:
   whichever one they already use for laying out the actual document. This module (and
   `tilesSettled.ts`) aren't meant to be used standalone outside a SolidJS tree — reach for `MapGL`'s
   `offscreen`/`onCapturerReady` props instead of calling `createCapturer` directly.
+
+## Testing
+
+`solid-map-gl/testing` (`src/testing.tsx`) re-exports this library's own internal test doubles —
+`createMockMap`/`createMockMapLib`/`createMockDrawLib`/`tick` and `renderWithMap`, otherwise only
+`src/testUtils/mockMap.ts`/`renderWithMap.tsx`, used directly (relative import) by every component's
+own test file. Real `mapboxgl.Map`/`maplibregl.Map` construction depends on a real WebGL context,
+which environments like Vitest/jsdom don't have — `<MapGL>` throws (see its `onError` prop) rather
+than mount in one, so a consumer testing a component that renders `<MapGL>` needs a fake `mapLib` to
+pass to it. `renderWithMap(ui, opts)` mounts `ui` inside a `<MapProvider>` backed by
+`createMockMap()`/`createMockMapLib()` directly, skipping `<MapGL>` (and its real-vs-mock `mapLib`
+detection) entirely — reach for `createMockMapLib()` instead when the test specifically needs to
+exercise `<MapGL>` itself (e.g. asserting on `map.setConfigProperty` calls).
+
+This entry pulls in `vitest` (for `vi.fn()`) and `@solidjs/testing-library` (for `render()`), so
+both are declared as optional peer dependencies — install them to use it. See `#158` in
+`.claude/dev-notes.md` for why this exists.

@@ -16,6 +16,12 @@ rejected, what's still open), see `.claude/dev-notes.md`.
   environment can't run Mapbox/MapLibre GL JS, such as any WebGL-less context, or the underlying
   `new mapLib.Map(...)` constructor itself throws). Always logged via `console.error` in addition,
   so nothing is silently lost if this isn't provided.
+- **`solid-map-gl/testing`** — a new entry point re-exporting this library's own internal mock
+  `mapboxgl.Map`/`maplibregl.Map` and `<MapProvider>` render helper (`createMockMap`,
+  `createMockMapLib`, `createMockDrawLib`, `renderWithMap`, `tick`), the same test doubles this
+  library's own test suite uses to render components without a real WebGL context. Requires
+  `vitest` and `@solidjs/testing-library`, both now optional peer dependencies. See `#158` in
+  `.claude/dev-notes.md`.
 
 ### Fixed
 

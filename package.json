@@ -27,20 +27,29 @@
     "dist"
   ],
   "source": "./dist/index.jsx",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/index/index.js",
+  "module": "./dist/index/index.js",
+  "types": "./dist/index/index.d.ts",
   "exports": {
+    "./package.json": "./package.json",
     ".": {
-      "types": "./dist/index.d.ts",
-      "solid": "./dist/index.jsx",
+      "types": "./dist/index/index.d.ts",
+      "solid": "./dist/index/index.jsx",
       "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
+        "types": "./dist/index/index.d.ts",
+        "default": "./dist/index/index.js"
       },
-      "default": "./dist/index.js"
+      "default": "./dist/index/index.js"
     },
-    "./package.json": "./package.json"
+    "./testing": {
+      "types": "./dist/testing/index.d.ts",
+      "solid": "./dist/testing/index.jsx",
+      "import": {
+        "types": "./dist/testing/index.d.ts",
+        "default": "./dist/testing/index.js"
+      },
+      "default": "./dist/testing/index.js"
+    }
   },
   "scripts": {
     "build": "tsup",
@@ -77,13 +86,18 @@
   },
   "peerDependencies": {
     "@babylonjs/core": "^6.24.0",
+    "@solidjs/testing-library": "^0.8.0",
     "mapbox-gl": "^3.0.0",
     "maplibre-gl": "^4.0.0 || ^5.0.0 || ^6.0.0",
     "solid-js": "^1.8.0 <2.0.0",
-    "three": "^0.157.0"
+    "three": "^0.157.0",
+    "vitest": "^5.0.0"
   },
   "peerDependenciesMeta": {
     "@babylonjs/core": {
+      "optional": true
+    },
+    "@solidjs/testing-library": {
       "optional": true
     },
     "mapbox-gl": {
@@ -94,8 +108,17 @@
     },
     "three": {
       "optional": true
+    },
+    "vitest": {
+      "optional": true
     }
   },
   "browser": {},
-  "typesVersions": {}
+  "typesVersions": {
+    "*": {
+      "testing": [
+        "./dist/testing/index.d.ts"
+      ]
+    }
+  }
 }
