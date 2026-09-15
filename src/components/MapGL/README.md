@@ -20,6 +20,7 @@
 | tilesLoadedFadeMargin | number                       | Extra flat delay (ms) to outlast a `raster-fade-duration` cross-fade still in flight (default `400`; set to `0` to disable) |
 | offscreen         | `{ width, height, disableRasterFade? }` | Renders the map off-screen (fixed, far outside the viewport) instead of filling its container — for capturing map images without showing them. `<Source>`/`<Layer>` children work unchanged |
 | onCapturerReady   | `(capturer) => void`            | Called once, after load, when `offscreen` is set. `capturer.captureWhenSettled()` waits for the map to fully settle and returns a canvas data URL, ready for any PDF/document library |
+| onError           | `(error: Error) => void`        | Called if map initialization fails (unsupported environment, or the underlying map constructor throws). Always logged via `console.error` too, so nothing is silently lost if this isn't given |
 | cursorStyle       | string                          | Map cursor                                                                                   |
 | darkStyle         | object \| string                | Map style when application or browser is in dark mode                                        |
 | disableResize     | boolean                         | disable listener for resizing map container                                                  |

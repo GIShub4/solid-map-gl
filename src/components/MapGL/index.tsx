@@ -154,6 +154,12 @@ type Props = {
    * before reading the canvas. The result (a data URL) can be handed to any PDF/document library —
    * this doesn't depend on or assume one. */
   onCapturerReady?: (capturer: MapCapturer) => void;
+  /** Called if map initialization fails — e.g. `mapLib.supported()` reports the environment can't
+   * run Mapbox/MapLibre GL JS (any WebGL-less context, including Vitest/jsdom), or the underlying
+   * `new mapLib.Map(...)` constructor itself throws. Always logged via `console.error` in addition
+   * to this callback, so nothing is silently lost if it isn't provided — pass it to show fallback
+   * UI instead of (or alongside) the console log. */
+  onError?: (error: Error) => void;
   /** Displays Map Tile Borders */
   showTileBoundaries?: boolean;
   /** Displays Wireframe if Terrain is visible */
@@ -259,6 +265,15 @@ export const MapGL: Component<Props> = (props) => {
   };
 
   onMount(async () => {
+    try {
+      await setupMap();
+    } catch (error) {
+      console.error("[MapGL] Failed to initialize map:", error);
+      props.onError?.(error as Error);
+    }
+  });
+
+  const setupMap = async () => {
     mapLib = props.mapLib || (await import("mapbox-gl"));
     if (!mapLib.Map) mapLib = window["maplibregl"] || window["mapboxgl"];
 
@@ -453,14 +468,14 @@ export const MapGL: Component<Props> = (props) => {
         props.onViewportChange(viewport);
       });
     });
-  });
+  };
 
   // Hook up viewport event
   createEffect(
     on(
       () => props.viewport,
       (vp: any) => {
-        if (props.id !== vp?.id) return;
+        if (!map || props.id !== vp?.id) return;
         // If we're currently expecting our own move/moveend echo to come back through
         // props.viewport, this change is it — consume the flag and ignore it. Anything else is
         // a genuinely new request and should interrupt whatever's in flight right away.

@@ -649,20 +649,54 @@ describe("Map", () => {
     delete window.maplibregl;
   });
 
-  it("throws when the map library reports it isn't supported", async () => {
+  // Regression test for GitHub #158: mapLib.supported() reliably returns false under
+  // Vitest/jsdom (no WebGL context), which used to surface as an unhandled promise rejection
+  // (onMount's async body had no error handling) instead of something a consumer/test runner
+  // could react to. Now caught, always logged, and handed to onError if given.
+  it("reports (not throws) when the map library reports it isn't supported", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const mapLib = createMockMapLib();
+    (mapLib as any).supported = () => false;
+    const onError = vi.fn();
+
+    render(() => <MapGL mapLib={mapLib} onError={onError} />);
+    await waitForLoad();
+
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringMatching(/not supported/) }));
+    expect(errorSpy).toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
+
+  // Same failure, but with no onError given — the error must still be surfaced (via
+  // console.error) rather than silently swallowed now that it's caught.
+  it("logs to console.error when unsupported and no onError is given", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const mapLib = createMockMapLib();
     (mapLib as any).supported = () => false;
 
-    // The throw happens inside MapGL's async onMount, so it surfaces as an unhandled
-    // rejection rather than a synchronous throw from render().
-    const rejection = new Promise<Error>((resolve) => {
-      process.once("unhandledRejection", (reason) => resolve(reason as Error));
-    });
-
     render(() => <MapGL mapLib={mapLib} />);
-    const err = await rejection;
+    await waitForLoad();
 
-    expect(err.message).toMatch(/not supported/);
+    expect(errorSpy).toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
+
+  // Regression test for GitHub #158's second half: the viewport-sync effect used to call
+  // `map.stop()` unconditionally with no `!map` guard, so once construction failed above, the
+  // very next `viewport` prop update threw `TypeError: Cannot read properties of undefined
+  // (reading 'stop')` instead of just staying inert.
+  it("does not throw updating viewport after failed map initialization", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const mapLib = createMockMapLib();
+    (mapLib as any).supported = () => false;
+    const [viewport, setViewport] = createSignal<any>({ center: [0, 0], zoom: 5 });
+
+    render(() => <MapGL mapLib={mapLib} viewport={viewport()} />);
+    await waitForLoad();
+
+    expect(() => setViewport({ center: [1, 1], zoom: 8 })).not.toThrow();
+    await tick();
+    errorSpy.mockRestore();
   });
 
   it("inserts a consumer layer anchored by beforeId (not just beforeType)", async () => {
@@ -820,16 +854,19 @@ describe("Map", () => {
   });
 
   it("dynamically imports mapbox-gl when no mapLib prop is given", async () => {
-    const rejection = new Promise<Error>((resolve) => {
-      process.once("unhandledRejection", (reason) => resolve(reason as Error));
-    });
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const onError = vi.fn();
 
-    render(() => <MapGL />);
-    const err = await rejection;
+    render(() => <MapGL onError={onError} />);
+
+    // The real `import("mapbox-gl")` is genuine module resolution, not just a microtask, so wait
+    // for it rather than a fixed number of ticks.
+    await vi.waitFor(() => expect(onError).toHaveBeenCalled());
 
     // Real mapbox-gl's `supported()` reliably reports false under jsdom (no WebGL context),
     // which is exactly what confirms the dynamic import actually ran and returned the real module.
-    expect(err.message).toMatch(/not supported/);
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringMatching(/not supported/) }));
+    errorSpy.mockRestore();
   });
 
   it("falls back to window.mapboxgl when neither the given mapLib nor window.maplibregl has .Map", async () => {

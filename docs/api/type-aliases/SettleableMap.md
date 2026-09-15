@@ -8,7 +8,7 @@
 
 > **SettleableMap** = `object`
 
-Defined in: [MapGL/tilesSettled.ts:11](https://github.com/GIShub4/solid-map-gl/blob/6b33ac0f95d23dd495f7bca07513b2c548c0d6e2/src/components/MapGL/tilesSettled.ts#L11)
+Defined in: [MapGL/tilesSettled.ts:11](https://github.com/GIShub4/solid-map-gl/blob/5ee346996e8b9e65ad3bc09aedf09c5db0cce393/src/components/MapGL/tilesSettled.ts#L11)
 
 Any object shaped enough like `mapboxgl.Map`/`maplibregl.Map` for the functions in this module —
 kept loose (not the real `mapboxgl.Map` type) so this file has no hard dependency on either
@@ -20,7 +20,7 @@ library's types.
 
 > `optional` **style?**: `object`
 
-Defined in: [MapGL/tilesSettled.ts:15](https://github.com/GIShub4/solid-map-gl/blob/6b33ac0f95d23dd495f7bca07513b2c548c0d6e2/src/components/MapGL/tilesSettled.ts#L15)
+Defined in: [MapGL/tilesSettled.ts:15](https://github.com/GIShub4/solid-map-gl/blob/5ee346996e8b9e65ad3bc09aedf09c5db0cce393/src/components/MapGL/tilesSettled.ts#L15)
 
 #### hasTransitions?
 
@@ -36,7 +36,7 @@ Defined in: [MapGL/tilesSettled.ts:15](https://github.com/GIShub4/solid-map-gl/b
 
 > **areTilesLoaded**(): `boolean`
 
-Defined in: [MapGL/tilesSettled.ts:12](https://github.com/GIShub4/solid-map-gl/blob/6b33ac0f95d23dd495f7bca07513b2c548c0d6e2/src/components/MapGL/tilesSettled.ts#L12)
+Defined in: [MapGL/tilesSettled.ts:12](https://github.com/GIShub4/solid-map-gl/blob/5ee346996e8b9e65ad3bc09aedf09c5db0cce393/src/components/MapGL/tilesSettled.ts#L12)
 
 #### Returns
 
@@ -48,7 +48,7 @@ Defined in: [MapGL/tilesSettled.ts:12](https://github.com/GIShub4/solid-map-gl/b
 
 > **once**(`event`, `cb`): `unknown`
 
-Defined in: [MapGL/tilesSettled.ts:14](https://github.com/GIShub4/solid-map-gl/blob/6b33ac0f95d23dd495f7bca07513b2c548c0d6e2/src/components/MapGL/tilesSettled.ts#L14)
+Defined in: [MapGL/tilesSettled.ts:14](https://github.com/GIShub4/solid-map-gl/blob/5ee346996e8b9e65ad3bc09aedf09c5db0cce393/src/components/MapGL/tilesSettled.ts#L14)
 
 #### Parameters
 
@@ -70,7 +70,7 @@ Defined in: [MapGL/tilesSettled.ts:14](https://github.com/GIShub4/solid-map-gl/b
 
 > **triggerRepaint**(): `void`
 
-Defined in: [MapGL/tilesSettled.ts:13](https://github.com/GIShub4/solid-map-gl/blob/6b33ac0f95d23dd495f7bca07513b2c548c0d6e2/src/components/MapGL/tilesSettled.ts#L13)
+Defined in: [MapGL/tilesSettled.ts:13](https://github.com/GIShub4/solid-map-gl/blob/5ee346996e8b9e65ad3bc09aedf09c5db0cce393/src/components/MapGL/tilesSettled.ts#L13)
 
 #### Returns
 
