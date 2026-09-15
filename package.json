@@ -61,7 +61,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gishub4/solid-map-gl.git"
+    "url": "git+https://github.com/GIShub4/solid-map-gl.git"
   },
   "browserList": [
     "defaults",
