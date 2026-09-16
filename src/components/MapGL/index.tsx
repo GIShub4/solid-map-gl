@@ -18,7 +18,7 @@ import type mapboxgl from "mapbox-gl";
 import type {
   MapboxOptions,
   LngLatLike,
-  LngLatBounds,
+  LngLatBoundsLike,
   PaddingOptions,
   StyleSpecification,
 } from "mapbox-gl";
@@ -37,7 +37,7 @@ export type Viewport = {
   id?: string;
   point?: { x: number; y: number };
   center?: LngLatLike;
-  bounds?: LngLatBounds;
+  bounds?: LngLatBoundsLike;
   zoom?: number;
   pitch?: number;
   bearing?: number;
@@ -58,10 +58,11 @@ type Props = {
   };
   /** Current Map View */
   viewport?: Viewport;
-  /** Mapbox Options
+  /** Mapbox Options. `container` is always set internally (see setupMap below) and is omitted
+   * from this type since a consumer-supplied value would just be silently overridden.
    * @see https://docs.mapbox.com/mapbox-gl-js/api/map/#map-parameters
    */
-  options?: MapboxOptions;
+  options?: Omit<MapboxOptions, "container">;
   /** Mapbox Standard / Standard Satellite style configuration — Mapbox-only, no-op on MapLibre.
    * @see https://docs.mapbox.com/mapbox-gl-js/guides/styles/#configure-a-style
    */

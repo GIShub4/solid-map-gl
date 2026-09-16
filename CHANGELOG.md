@@ -10,6 +10,23 @@ rejected, what's still open), see `.claude/dev-notes.md`.
 
 ## [Unreleased]
 
+### Changed
+
+- **`<Layer pulse>` (breaking)** — redesigned from a continuous per-frame `requestAnimationFrame`
+  loop to a periodic reset/ramp/hold "ping" driven by Mapbox's own paint-property transition.
+  `setPaintProperty` is now called twice per cycle per entry instead of ~90 times/sec, and — more
+  importantly — the map now reaches `'idle'`/`map.loaded()` during each cycle's hold phase; the old
+  per-frame loop kept the map permanently "dirty" for as long as it was mounted, which silently
+  starved anything waiting on that state (`@mapbox/mapbox-gl-draw`'s own layer-mounting logic, and
+  this library's own `captureWhenSettled()`/`waitUntilSettled()`). `PulseConfig`'s `property`/
+  `from`/`to` are now required (no more defaults biased toward a symbol layer's `icon-halo-width` —
+  see `docs/COMPONENTS.md`'s `Layer` section for why); `waveform` is removed (only the `'out'`
+  "ping" shape remains, the one thing actually used in practice — `'in-out'`'s continuous
+  back-and-forth had no hold phase and could never let the map idle); a new `holdFraction` (default
+  `0.25`) replaces the old hardcoded ramp/hold split. `colors.ts`'s `toRgbaComponents` (only ever
+  used by the old per-frame color lerp) is removed. See `.claude/dev-notes.md`'s "Pulse animation
+  redesign" entry for the full incident.
+
 ## [2.2.1] - 2026-09-16
 
 ### Added

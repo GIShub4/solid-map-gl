@@ -6,12 +6,13 @@ import "mapbox-gl/dist/mapbox-gl.css";
 // Get a token at https://www.mapbox.com/studio/account/tokens/
 const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
-// Four markers, each demonstrating a different <Layer> `pulse` waveform — see
-// docs/COMPONENTS.md's "Layer" section (or Layer/README.md) for the full pulse API.
+// Three markers, each demonstrating a different <Layer> `pulse` shape — see docs/COMPONENTS.md's
+// "Layer" section (or Layer/README.md) for the full pulse API. Every cycle is a "ping": reset to
+// `from`, ramp to `to` (via Mapbox's own paint-property transition, not a per-frame loop), hold,
+// repeat — so the map genuinely goes idle between pings instead of staying dirty forever.
 const markers: { coordinates: [number, number]; label: string; pulse: any }[] = [
   {
-    // `waveform` defaults to "out" — this marker just uses `pulse`'s own defaults.
-    label: "out (default): ping — grows outward and fades, then resets",
+    label: "ring: grows outward and fades, then resets (the classic 'pulsing dot')",
     coordinates: [-77.45, 25.085],
     pulse: [
       { property: "icon-halo-width", from: 0, to: 16 },
@@ -23,31 +24,25 @@ const markers: { coordinates: [number, number]; label: string; pulse: any }[] = 
     ],
   },
   {
-    label: "in: the mirror of ping — collapses inward",
+    label: "mostly held: a short ramp, then a long hold before the next ping",
     coordinates: [-77.4, 25.085],
     pulse: [
-      { property: "icon-halo-width", from: 0, to: 16, waveform: "in" },
+      { property: "icon-halo-width", from: 0, to: 16, holdFraction: 0.85 },
       {
         property: "icon-halo-color",
         from: "rgba(37, 99, 235, 1)",
         to: "rgba(37, 99, 235, 0)",
-        waveform: "in",
+        holdFraction: 0.85,
       },
     ],
   },
   {
-    label: "in-out: halo breathes continuously, no reset",
-    coordinates: [-77.45, 25.03],
-    pulse: { from: 0, to: 10, waveform: "in-out" },
-  },
-  {
     label: "halo-only fade: width stays fixed, only transparency changes",
-    coordinates: [-77.4, 25.03],
+    coordinates: [-77.45, 25.03],
     pulse: {
       property: "icon-halo-color",
       from: "rgba(37, 99, 235, 1)",
       to: "rgba(37, 99, 235, 0.15)",
-      waveform: "in-out",
     },
   },
 ];

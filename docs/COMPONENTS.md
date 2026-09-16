@@ -263,43 +263,56 @@ Both cases convert via the browser's own CSS engine — a detached probe `<div>`
 oklch/lab color-space math, so it stays correct for whatever color functions the browser supports.
 Anything else (hex, rgb/hsl, named CSS colors, Mapbox expressions) passes through unchanged.
 
-`pulse` runs its own `createEffect`/`onCleanup` pair independent of the style-update effect above:
-a single `window.requestAnimationFrame` loop per `<Layer>` reads `performance.now()` each frame
-and calls `setPaintProperty(layerId, property, value, { validate: false })` directly for every
-entry in `pulse` (normalized to an array even when a single object is passed) — bypassing
-`updateStyle`/`diff()` entirely, since this needs to run on every animation frame rather than only
-when `props.style` changes. `onCleanup` cancels the one frame loop, regardless of how many `pulse`
-entries are active. This is the idiomatic Mapbox technique for a "pulsing dot" marker (ramping
-`icon-halo-width`/`circle-radius`/opacity), kept as a `Layer`-level concern since it drives
-`setPaintProperty` on a specific layer id, which `Image` (which only ever calls `addImage`) has no
-access to.
+`pulse` runs its own `createEffect`/`onCleanup` pair independent of the style-update effect above
+— bypassing `updateStyle`/`diff()` entirely, since it drives `setPaintProperty` on its own
+schedule rather than in response to `props.style` changing. For each entry in `pulse` (normalized
+to an array even when a single object is passed), a `beat()` closure:
+1. Sets `${property}-transition` to `{ duration: 0, delay: 0 }` and the property itself to `from`
+   — an instant, untransitioned reset.
+2. One `requestAnimationFrame` later (needed so the reset above actually gets rendered — see the
+   comment at the call site for why two `setPaintProperty` calls in the same tick would collapse
+   into just the second one, discussed more below), sets `${property}-transition` to
+   `{ duration: rampMs, delay: 0 }` (`rampMs = duration * (1 - holdFraction)`) and the property to
+   `to` — Mapbox's own transition system interpolates this on its own, no further JS calls needed
+   until the hold ends.
 
-Every `PulseConfig` field has a default (`PULSE_DEFAULTS`: `property: "icon-halo-width"`,
-`from: 0`, `to: 4`, `duration: 1500`, `waveform: "out"`), and `pulse={true}` (or the bare `pulse`
-JSX attribute) is sugar for a single all-defaults config — so `pulse` alone already animates a
-symbol layer's halo with Tailwind's `animate-ping` look, and only needs overriding field by field.
-`to` defaults to `4`, not a rounder `8`, because mapbox-gl-js's symbol fragment shader hardcodes
-`SDF_PX = 8.0` and derives the halo's visible band from
-`(6.0 - icon-halo-width * scaleFactor / icon-size) / SDF_PX` — once `icon-halo-width` exceeds
-roughly `6 * icon-size`, that goes negative and the *entire* icon (not just a ring) paints solid
-`icon-halo-color`. `4` stays under that ceiling through the whole ramp down to `icon-size ~0.67`;
-below that, scale `to` down (or `icon-size` up) to match — see `Image`'s SDF notes in its own
-README, which hits the same ceiling.
+`beat()` itself is called once immediately (so the pulse starts right away) and then again every
+`duration` ms via `window.setInterval` — one interval per `pulse` entry, all started together in
+the same effect run so multi-entry pulses (e.g. a growing radius + fading color) stay in lockstep
+as long as their `duration`s match. `onCleanup` clears every interval. This is a deliberate
+trade-off versus the previous per-frame `requestAnimationFrame` loop: `setPaintProperty` is now
+called twice per cycle per entry instead of ~90 times/sec, and — more importantly than the raw call
+count — mapbox-gl-js only reaches `'idle'`/`map.loaded()` when nothing is actively transitioning,
+so the old implementation (dirtying the style every single frame, forever, for as long as `pulse`
+was mounted) permanently starved anything waiting on that state: `@mapbox/mapbox-gl-draw`'s own
+`onAdd` (which only calls its layer-mounting `addLayers()` once `map.loaded()` is `true`) and this
+library's own `captureWhenSettled()`/`waitUntilSettled()` (both `once('idle', ...)`-based) alike.
+The reset+ramp+hold shape leaves a genuine idle gap every cycle (`duration * holdFraction`) for
+those to resolve in — see `.claude/dev-notes.md`'s "Pulse animation redesign" entry for the full
+incident this fixes.
 
-Each `pulse` entry's `from`/`to` progress through one cycle via `pulseShape()`, which computes a
-0..1 value from `(elapsed % duration) / duration` according to `waveform`:
-- `"out"` (default)/`"in"`: a quadratic ease-out (`1 - (1 - x)²`) over the ramp's own `[0, 0.75]`
-  sub-range of the cycle (`PULSE_RAMP_FRACTION = 0.75`), clamped to 1 for the remaining 25% —
-  reaching and holding at the end value before an abrupt reset, matching Tailwind's `animate-ping`
-  timing exactly. `"in"` is implemented as `"out"` with `from`/`to` swapped once at setup (not
-  branched per frame), so the shape function itself has no notion of direction.
-- `"in-out"`: `(1 - cos(phase * 2π)) / 2` — continuous sine back-and-forth, no reset.
+`PulseConfig`'s `property`/`from`/`to` have no defaults (unlike the rest of this library's props) —
+the old defaults (`property: "icon-halo-width"`, `to: 4`) were calibrated specifically around
+mapbox-gl-js's symbol-halo shader ceiling (`icon-halo-width` can't exceed roughly `6 * icon-size`
+before the halo stops being a ring and fills the entire icon solid — a fixed constant in mapbox's
+fragment shader, not something `solid-map-gl` controls), which doesn't generalize to `pulse`'s
+other common target, a `circle` layer's `circle-radius`/`circle-color` (no such ceiling). Requiring
+all three explicitly is a small ergonomics cost that removes a footgun: the default `to: 4` looked
+identical for either layer type but silently painted a solid disc past `icon-size ~0.67` on a
+symbol layer, exactly the failure this library's own consumer (tb-mapper) hit before moving its
+pulsing marker to a `circle` layer. `waveform` (`'out' | 'in' | 'in-out'`) is gone entirely — only
+`pulse`'s actual real-world usage (the "ping" shape, `'out'`'s old default) survives, since
+`'in-out'`'s continuous back-and-forth had no hold phase at all and could never let the map idle,
+directly conflicting with this redesign's goal. `holdFraction` (default `0.25`, matching Tailwind's
+`animate-ping` timing) replaces the old hardcoded `PULSE_RAMP_FRACTION`.
 
-When `from`/`to` are strings (used for a `*-color` property, e.g. fading `icon-halo-color`'s alpha
-without changing `icon-halo-width`), they're parsed once via `colors.ts`'s `toRgbaComponents()`
-(reusing `resolveColor`'s browser-engine normalization, so Tailwind names/`oklch()`/etc. all work)
-rather than on every frame, and interpolated component-wise (`lerpColor()`) into a fresh
-`rgba(...)` string per frame.
+`from`/`to` on a `*-color` property are resolved once per `beat()` via the same file-level
+`resolveColor(key, value)` wrapper every other paint value on the layer already goes through (not
+a separate `pulse`-only code path) — Tailwind names/`oklch()`/etc. all work, and it's a no-op for a
+plain numeric property. The resolved string is handed directly to `setPaintProperty`; mapbox-gl-js
+interpolates a `*-color` property's transition (including its alpha channel) internally, so
+`pulse` no longer parses colors into `[r,g,b,a]` components or lerps them itself — `colors.ts`'s
+former `toRgbaComponents` export (only ever used by the old per-frame loop) is gone.
 
 ### Props
 
@@ -315,7 +328,7 @@ rather than on every frame, and interpolated component-wise (`lerpColor()`) into
 | `beforeType` | `string` | Insert before the first layer of this Mapbox layer type |
 | `beforeId` | `string` | Insert before this layer id |
 | `featureState` | `{ id: number \| string, state: object }` | Sets feature state on `style["source-layer"]` |
-| `pulse` | `boolean \| PulseConfig \| PulseConfig[]` where `PulseConfig = { property?: string, from?: number \| string, to?: number \| string, duration?: number, waveform?: 'out' \| 'in' \| 'in-out' }` (all fields default) | Animate one or more paint properties via `requestAnimationFrame`; array entries share one frame loop |
+| `pulse` | `PulseConfig \| PulseConfig[]` where `PulseConfig = { property: string, from: number \| string, to: number \| string, duration?: number, holdFraction?: number }` (`property`/`from`/`to` required; `duration` default `1500`, `holdFraction` default `0.25`) | Periodic reset/ramp/hold "ping" of one or more paint properties, via Mapbox's own paint-property transition (not a per-frame loop) |
 | `on[Event]` | see `layerEventTypes` in `src/lib/events.ts` | Per-layer event, e.g. `onClick`, `onMouseEnter` |
 | `children` | any | Rendered as-is (layers have no natural children in Mapbox, but this allows composition) |
 
