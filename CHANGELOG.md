@@ -10,6 +10,8 @@ rejected, what's still open), see `.claude/dev-notes.md`.
 
 ## [Unreleased]
 
+## [2.2.2] - 2026-09-16
+
 ### Changed
 
 - **`<Layer pulse>` (breaking)** — redesigned from a continuous per-frame `requestAnimationFrame`
