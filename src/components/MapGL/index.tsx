@@ -147,12 +147,12 @@ type Props = {
      * Default `true`. */
     disableRasterFade?: boolean;
   };
-  /** Called once, after the map loads, with a capturer for grabbing the canvas as an image — only
-   * meaningful together with `offscreen`. Change `viewport`/`<Source>`'s `data` the normal
-   * declarative way, then call `capturer.captureWhenSettled()`, which waits for the map to fully
-   * settle (see `onTilesLoaded`, reusing this same `tilesLoadedTimeout`/`tilesLoadedFadeMargin`)
-   * before reading the canvas. The result (a data URL) can be handed to any PDF/document library —
-   * this doesn't depend on or assume one. */
+  /** Called once, after the map loads, with a capturer for grabbing the canvas as an image — works
+   * on any map, `offscreen` or not. Change `viewport`/`<Source>`'s `data` the normal declarative
+   * way, then call `capturer.captureWhenSettled()`, which waits for the map to fully settle (see
+   * `onTilesLoaded`, reusing this same `tilesLoadedTimeout`/`tilesLoadedFadeMargin`) before reading
+   * the canvas. The result (a data URL) can be handed to any PDF/document library — this doesn't
+   * depend on or assume one. */
   onCapturerReady?: (capturer: MapCapturer) => void;
   /** Called if map initialization fails — e.g. `mapLib.supported()` reports the environment can't
    * run Mapbox/MapLibre GL JS (any WebGL-less context, including Vitest/jsdom), or the underlying
@@ -358,9 +358,11 @@ export const MapGL: Component<Props> = (props) => {
       setMapLoaded(map);
       debug("Map loaded");
 
-      if (props.offscreen) {
-        if (props.offscreen.disableRasterFade !== false) disableRasterFade(map);
-        props.onCapturerReady?.(
+      if (props.offscreen && props.offscreen.disableRasterFade !== false) disableRasterFade(map);
+      // Not gated on `offscreen` — a capturer is just as meaningful against the normal, on-screen
+      // map (e.g. exporting whatever's currently visible on click) as it is against a headless one.
+      if (props.onCapturerReady) {
+        props.onCapturerReady(
           createCapturer(map, {
             timeout: props.tilesLoadedTimeout ?? 10000,
             fadeMargin: props.tilesLoadedFadeMargin ?? 400,

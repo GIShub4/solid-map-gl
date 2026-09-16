@@ -100,12 +100,17 @@ export async function settleAfterIdle(map: SettleableMap, options: SettleOptions
 
 /** Waits for the map's next 'idle' event, then `settleAfterIdle`. The convenience entry point for
  * off-screen/headless capture: call your own `jumpTo`/`fitBounds`/`setData` first, then `await` this
- * before reading the canvas. */
+ * before reading the canvas. Calls `triggerRepaint()` itself before waiting — 'idle' only fires on
+ * the *transition into* idle, so a map that's already idle with nothing queued (e.g. capturing
+ * whatever's on screen with no preceding camera/data change) would otherwise never fire another one
+ * and this would hang forever. Redundant, and harmless, if the map isn't idle yet: mapbox-gl/
+ * maplibre-gl coalesce repeated `triggerRepaint()` calls into whatever frame is already pending. */
 export function waitForIdleAndSettle(map: SettleableMap, options: SettleOptions = {}): Promise<void> {
   return new Promise((resolve) => {
     map.once("idle", () => {
       settleAfterIdle(map, options).then(resolve);
     });
+    map.triggerRepaint();
   });
 }
 

@@ -1119,4 +1119,25 @@ describe("Map", () => {
       await expect(resultPromise).resolves.toBe("data:image/jpeg;base64,xyz");
     });
   });
+
+  describe("onCapturerReady without offscreen", () => {
+    it("still calls onCapturerReady once the map loads, exposing the raw map instance", async () => {
+      const mapLib = createMockMapLib();
+      const onCapturerReady = vi.fn();
+      render(() => <MapGL mapLib={mapLib} onCapturerReady={onCapturerReady} />);
+      await waitForLoad();
+
+      expect(onCapturerReady).toHaveBeenCalledTimes(1);
+      const capturer = onCapturerReady.mock.calls[0][0];
+      expect(capturer.map).toBe(mapLib.Map.instances[0]);
+    });
+
+    it("does not disable raster fade when offscreen isn't set", async () => {
+      const mapLib = createMockMapLib();
+      render(() => <MapGL mapLib={mapLib} onCapturerReady={vi.fn()} />);
+      await waitForLoad();
+
+      expect(mapLib.Map.instances[0].getStyle).not.toHaveBeenCalled();
+    });
+  });
 });

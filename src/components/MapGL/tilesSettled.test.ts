@@ -147,6 +147,14 @@ describe("waitForIdleAndSettle", () => {
     await vi.advanceTimersByTimeAsync(100);
     expect(onDone).toHaveBeenCalledTimes(1);
   });
+
+  it("triggers a repaint immediately, so an already-idle map still fires another idle", () => {
+    const map = createMockMap();
+
+    waitForIdleAndSettle(map as any, { fadeMargin: 0 });
+
+    expect(map.triggerRepaint).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("disableRasterFade", () => {

@@ -19,7 +19,7 @@
 | tilesLoadedTimeout | number                          | Max ms to keep polling `areTilesLoaded()` before giving up and moving on anyway (default `10000`) |
 | tilesLoadedFadeMargin | number                       | Extra flat delay (ms) to outlast a `raster-fade-duration` cross-fade still in flight (default `400`; set to `0` to disable) |
 | offscreen         | `{ width, height, disableRasterFade? }` | Renders the map off-screen (fixed, far outside the viewport) instead of filling its container — for capturing map images without showing them. `<Source>`/`<Layer>` children work unchanged |
-| onCapturerReady   | `(capturer) => void`            | Called once, after load, when `offscreen` is set. `capturer.captureWhenSettled()` waits for the map to fully settle and returns a canvas data URL, ready for any PDF/document library |
+| onCapturerReady   | `(capturer) => void`            | Called once, after load, on any map (`offscreen` or not). `capturer.captureWhenSettled()` waits for the map to fully settle and returns a canvas data URL, ready for any PDF/document library |
 | onError           | `(error: Error) => void`        | Called if map initialization fails (unsupported environment, or the underlying map constructor throws). Always logged via `console.error` too, so nothing is silently lost if this isn't given |
 | cursorStyle       | string                          | Map cursor                                                                                   |
 | darkStyle         | object \| string                | Map style when application or browser is in dark mode                                        |
@@ -168,6 +168,38 @@ const App: Component = () => {
       <Source id="pin" type="geojson" data={{ type: "FeatureCollection", features: [] }}>
         <Layer type="circle" paint={{ circleColor: "#f00", circleRadius: 8 }} />
       </Source>
+    </MapGL>
+  );
+};
+```
+
+### **Capturing the On-screen Map**
+
+`onCapturerReady` isn't limited to `offscreen` maps — the same capturer works against a normal,
+visible `<MapGL>`, e.g. for a "export current view" button.
+
+```jsx
+import { Component } from "solid-js";
+import MapGL from "solid-map-gl";
+import type { MapCapturer } from "solid-map-gl";
+import 'mapbox-gl/dist/mapbox-gl.css';
+
+const App: Component = () => {
+  let capturer: MapCapturer;
+
+  const exportView = async () => {
+    const dataUrl = await capturer.captureWhenSettled();
+    // hand dataUrl to pdfmake/jsPDF/whichever document library you're already using
+    return dataUrl;
+  };
+
+  return (
+    <MapGL
+      options={{ style: "mapbox://styles/mapbox/standard-satellite" }}
+      viewport={{ center: [-122.45, 37.78], zoom: 14 }}
+      onCapturerReady={(c) => (capturer = c)}
+    >
+      <button onClick={exportView}>Export</button>
     </MapGL>
   );
 };
