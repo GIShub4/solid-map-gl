@@ -95,7 +95,7 @@ describe("Source", () => {
   // fires. A reactive update on an already-mounted <Source> can land inside that gap, when
   // getSource() transiently returns undefined for a source that hasn't been restored yet — this
   // must be skipped, not thrown, since the swap's own restore will apply the current props anyway.
-  it("does not throw when getSource() transiently returns undefined mid style-swap", async () => {
+  it("does not throw when getSource() transiently returns undefined mid style-swap (vector)", async () => {
     const [url, setUrl] = createSignal("mapbox://a");
     const { map } = renderWithMap(() => (
       <Source id="vec" source={{ type: "vector", url: url() } as any} />
@@ -108,6 +108,56 @@ describe("Source", () => {
     await tick();
 
     expect(handle.setUrl).not.toHaveBeenCalledWith("mapbox://b");
+  });
+
+  it("does not throw when getSource() transiently returns undefined mid style-swap (geojson)", async () => {
+    const [data, setData] = createSignal({ type: "FeatureCollection", features: [] as any[] });
+    const { map } = renderWithMap(() => (
+      <Source id="geo" source={{ type: "geojson", data: data() }} />
+    ));
+    const handle = map.getSource("geo");
+    expect(handle.setData).toHaveBeenCalledTimes(1);
+
+    (map.getSource as any).mockReturnValueOnce(undefined);
+    const newData = { type: "FeatureCollection", features: [{ type: "Feature" }] as any[] };
+    expect(() => setData(newData)).not.toThrow();
+    await tick();
+
+    expect(handle.setData).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not throw when getSource() transiently returns undefined mid style-swap (image)", async () => {
+    const [url, setUrl] = createSignal("a.png");
+    const { map } = renderWithMap(() => (
+      <Source id="img" source={{ type: "image", url: url(), coordinates: [] } as any} />
+    ));
+    const handle = map.getSource("img");
+    expect(handle.updateImage).toHaveBeenCalledTimes(1);
+
+    (map.getSource as any).mockReturnValueOnce(undefined);
+    expect(() => setUrl("b.png")).not.toThrow();
+    await tick();
+
+    expect(handle.updateImage).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not throw when getSource() transiently returns undefined mid style-swap (raster)", async () => {
+    const [url, setUrl] = createSignal("https://example.com/a/{z}/{x}/{y}.png");
+    const { map } = renderWithMap(() => (
+      <Source id="raster4" source={{ type: "raster", url: url() } as any} />
+    ));
+    const handle = map.getSource("raster4");
+    expect(handle.setUrl).toHaveBeenCalledWith("https://example.com/a/{z}/{x}/{y}.png");
+
+    (map.getSource as any).mockReturnValueOnce(undefined);
+    expect(() =>
+      setUrl("https://example.com/b/{z}/{x}/{y}.png"),
+    ).not.toThrow();
+    await tick();
+
+    expect(handle.setUrl).not.toHaveBeenCalledWith(
+      "https://example.com/b/{z}/{x}/{y}.png",
+    );
   });
 
   // Regression test: the old `isSourceLoaded` guard used
