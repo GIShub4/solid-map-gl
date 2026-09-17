@@ -67,11 +67,22 @@ export const Source: Component<Props> = props => {
   debug('Add Source:', props.id)
 
   // Update Data
+  //
+  // Each branch re-reads `ctx.map.getSource(props.id)` rather than closing over the source added
+  // above, because a base style swap (MapGL's "Update map style" effect) tears down and
+  // asynchronously rebuilds every source, including this one — a source present at add time may
+  // already be gone by the time this effect (re-)runs. All four `getSource(...)` calls below can
+  // therefore transiently return undefined for an already-mounted <Source> whose effect fires
+  // while that swap's restore (a second, later `setStyle()` once "styledata" fires) hasn't landed
+  // yet. Skipping the update in that window is safe: the restore re-adds the source using the same
+  // `props.source` this effect would otherwise have applied.
   switch (anySource().type) {
     case 'geojson':
       createEffect(() => {
         const data = anySource().data
-        ;(ctx.map.getSource(props.id) as any).setData(data || {})
+        const source = ctx.map.getSource(props.id) as any
+        if (!source) return
+        source.setData(data || {})
         debug('Update GeoJSON Data:', props.id)
       })
       break
@@ -79,7 +90,9 @@ export const Source: Component<Props> = props => {
       createEffect(() => {
         const url = anySource().url
         const coords = anySource().coordinates
-        ;(ctx.map.getSource(props.id) as any).updateImage(url, coords)
+        const source = ctx.map.getSource(props.id) as any
+        if (!source) return
+        source.updateImage(url, coords)
         debug('Update Image Data:', props.id)
       })
       break
@@ -88,6 +101,7 @@ export const Source: Component<Props> = props => {
         const url = anySource().url
         const tiles = anySource().tiles
         const source = ctx.map.getSource(props.id) as any
+        if (!source) return
         url ? source.setUrl(url) : source.setTiles(tiles)
         debug('Update Vector Data:', props.id)
       })
@@ -96,6 +110,7 @@ export const Source: Component<Props> = props => {
       createEffect(() => {
         const src = lookup(anySource().url)
         const source = ctx.map.getSource(props.id) as any
+        if (!source) return
         src.url ? source.setUrl(src.url) : source.setTiles(src.tiles)
         debug('Update Raster Data:', props.id)
       })

@@ -567,7 +567,7 @@ export const MapGL: Component<Props> = (props) => {
   // Update map style
   createEffect((prev) => {
     const style = getStyle(props.options?.style, props.darkStyle);
-    if (map?.isStyleLoaded() && prev !== style) {
+    if (map && prev !== style) {
       const oldStyle = map.getStyle();
       const oldLayers = oldStyle.layers.filter((l) =>
         map.layerIdList.includes(l.id),

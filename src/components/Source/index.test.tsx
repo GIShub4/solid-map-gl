@@ -90,6 +90,26 @@ describe("Source", () => {
     expect(freshHandle.setData).toHaveBeenCalled();
   });
 
+  // Regression test: a base style swap (MapGL's "Update map style" effect) tears down every
+  // source synchronously and only re-adds them once its later "styledata" merge-back setStyle()
+  // fires. A reactive update on an already-mounted <Source> can land inside that gap, when
+  // getSource() transiently returns undefined for a source that hasn't been restored yet — this
+  // must be skipped, not thrown, since the swap's own restore will apply the current props anyway.
+  it("does not throw when getSource() transiently returns undefined mid style-swap", async () => {
+    const [url, setUrl] = createSignal("mapbox://a");
+    const { map } = renderWithMap(() => (
+      <Source id="vec" source={{ type: "vector", url: url() } as any} />
+    ));
+    const handle = map.getSource("vec");
+    expect(handle.setUrl).toHaveBeenCalledWith("mapbox://a");
+
+    (map.getSource as any).mockReturnValueOnce(undefined);
+    expect(() => setUrl("mapbox://b")).not.toThrow();
+    await tick();
+
+    expect(handle.setUrl).not.toHaveBeenCalledWith("mapbox://b");
+  });
+
   // Regression test: the old `isSourceLoaded` guard used
   // to drop reactive updates if the source happened to be mid-tiling. It's gone now — updates
   // must go through unconditionally, even while `isSourceLoaded` reports false.

@@ -780,6 +780,23 @@ describe("Map", () => {
     );
   });
 
+  it("still applies a style change while isStyleLoaded() reads false (Standard's continuous background streaming can leave it false indefinitely)", async () => {
+    const mapLib = createMockMapLib();
+    const [style, setStyle] = createSignal<any>("mapbox://styles/mapbox/standard");
+    render(() => <MapGL mapLib={mapLib} options={{ style: style() }} />);
+    await waitForLoad();
+    const map = mapLib.Map.instances[0];
+
+    map.isStyleLoaded.mockReturnValue(false);
+    setStyle("mapbox://styles/mapbox/standard-satellite");
+    await tick();
+
+    expect(map.setStyle).toHaveBeenCalledWith(
+      "mapbox://styles/mapbox/standard-satellite",
+      undefined,
+    );
+  });
+
   it("does not render children until the map fires 'load'", () => {
     const mapLib = createMockMapLib();
     const { container } = render(() => (
