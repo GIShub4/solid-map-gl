@@ -1,9 +1,9 @@
 name: Publish to npm
 
 # Finishes what release-pr.yml starts: once a "chore(release): vX.Y.Z" PR
-# (opened after a dependency update changed dependencies/peerDependencies)
-# merges into main, this builds and publishes that already-bumped version to
-# npm, then tags it to match the repo's existing vX.Y.Z tag history.
+# (opened after a push to main changed src/ or package.json) merges into
+# main, this builds and publishes that already-bumped version to npm, then
+# tags it to match the repo's existing vX.Y.Z tag history.
 #
 # Publishes via npm Trusted Publishing (OIDC) rather than a stored NPM_TOKEN
 # secret — nothing here holds a long-lived publish credential. This requires
