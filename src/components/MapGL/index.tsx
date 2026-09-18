@@ -565,6 +565,7 @@ export const MapGL: Component<Props> = (props) => {
   };
 
   // Update map style
+  let pendingStyleLoadHandler: (() => void) | null = null;
   createEffect((prev) => {
     const style = getStyle(props.options?.style, props.darkStyle);
     if (map && prev !== style) {
@@ -577,25 +578,52 @@ export const MapGL: Component<Props> = (props) => {
         .reduce((obj, key) => ({ ...obj, [key]: oldStyle.sources[key] }), {});
 
       const diff = props.shouldDiffStyle ? props.shouldDiffStyle(prev, style) : true;
+      // A style swap in progress from a previous, rapid toggle must not be left dangling: `once`
+      // doesn't self-cancel until it actually fires, so without this a second style change before
+      // the first one finished loading stacked a second pending handler, and both later fired back
+      // to back with different (stale) oldLayers/oldSources snapshots — producing duplicate
+      // reinsertion attempts ("Layer with id ... has a different slot" warnings).
+      if (pendingStyleLoadHandler) {
+        map.off("style.load", pendingStyleLoadHandler);
+        pendingStyleLoadHandler = null;
+      }
       // mapbox-gl's SetStyleOptions type marks localFontFamily/localIdeographFontFamily as
       // required even though they're optional at runtime — cast to sidestep that upstream typing gap.
       map.setStyle(style, diff ? undefined : ({ diff: false } as any));
-      map.once("styledata", () => {
+      // "style.load" (not "styledata", which fires as soon as the style JSON is merely parsed,
+      // before sprite/glyphs/sources are ready) is the point mapbox-gl itself considers the style
+      // done loading — reapplying layers any earlier throws "Style is not done loading" from
+      // setPaintProperty/setLayoutProperty once a Layer's own reactive sync effect runs.
+      pendingStyleLoadHandler = () => {
+        pendingStyleLoadHandler = null;
         if (!oldLayers) return;
         const newStyle = map.getStyle();
-        map.setStyle({
-          ...newStyle,
-          sources: { ...newStyle.sources, ...oldSources },
-          layers: insertLayers(newStyle.layers, oldLayers),
-          fog: oldStyle.fog,
-          terrain: oldStyle.terrain,
-          light: oldStyle.light,
-        });
+        // diff:false here too: this is a full, known-correct re-application of layers/sources this
+        // component already owns, not an incremental update — diffing it against the bare
+        // just-loaded base style is what triggered slot-reordering warnings for no benefit.
+        map.setStyle(
+          {
+            ...newStyle,
+            sources: { ...newStyle.sources, ...oldSources },
+            layers: insertLayers(newStyle.layers, oldLayers),
+            fog: oldStyle.fog,
+            terrain: oldStyle.terrain,
+            light: oldStyle.light,
+          },
+          { diff: false } as any,
+        );
         debug("Set Mapstyle to:", style);
-      });
+      };
+      map.once("style.load", pendingStyleLoadHandler);
     }
     return style;
   }, props.options?.style);
+  onCleanup(() => {
+    if (pendingStyleLoadHandler) {
+      map?.off("style.load", pendingStyleLoadHandler);
+      pendingStyleLoadHandler = null;
+    }
+  });
 
   // Update debug features
   [

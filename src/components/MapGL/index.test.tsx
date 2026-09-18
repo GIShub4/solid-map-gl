@@ -128,10 +128,10 @@ describe("Map", () => {
     // Trigger MapGL's style-swap effect via a reactive options.style change.
     setStyle({ version: 8, sources: {}, layers: [{ id: "labels", type: "symbol" }] });
     await tick();
-    // The effect calls map.setStyle(newStyle) then registers a once("styledata", ...) merge —
-    // fire it manually since the mock doesn't emit styledata on its own.
+    // The effect calls map.setStyle(newStyle) then registers a once("style.load", ...) merge —
+    // fire it manually since the mock doesn't emit style.load on its own.
     map.getStyle.mockReturnValue({ version: 8, sources: {}, layers: [{ id: "labels", type: "symbol" }] });
-    map.fire("styledata");
+    map.fire("style.load");
     await tick();
 
     // After the merge, MapGL's final setStyle call's layers must still contain both "a" and
@@ -514,7 +514,7 @@ describe("Map", () => {
     setStyle({ version: 8, sources: {}, layers: [] });
     await tick();
     map.getStyle.mockReturnValue({ layers: [], sources: {} });
-    map.fire("styledata");
+    map.fire("style.load");
     await tick();
 
     const finalCall = map.setStyle.mock.calls[map.setStyle.mock.calls.length - 1][0];
@@ -720,7 +720,7 @@ describe("Map", () => {
     setStyle({ version: 8, sources: {}, layers: [{ id: "labels", type: "symbol" }] });
     await tick();
     map.getStyle.mockReturnValue({ version: 8, sources: {}, layers: [{ id: "labels", type: "symbol" }] });
-    map.fire("styledata");
+    map.fire("style.load");
     await tick();
 
     const finalCall = map.setStyle.mock.calls[map.setStyle.mock.calls.length - 1][0];
@@ -752,7 +752,7 @@ describe("Map", () => {
       sources: {},
       layers: [{ id: "background", type: "background" }],
     });
-    map.fire("styledata");
+    map.fire("style.load");
     await tick();
 
     const finalCall = map.setStyle.mock.calls[map.setStyle.mock.calls.length - 1][0];

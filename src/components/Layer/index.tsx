@@ -202,6 +202,23 @@ export const Layer: Component<Props> = (props) => {
       console.debug("%c[MapGL]", "color: #10b981", text, value || "");
   };
 
+  // setPaintProperty/setLayoutProperty/setFilter/setLayerZoomRange/moveLayer — unlike addLayer,
+  // which tolerates an in-progress style — throw "Style is not done loading" if they land while a
+  // style swap is mid-flight (MapGL's own style-swap effect tears down and reloads the style
+  // synchronously). That's a narrow, self-resolving window: the swap finishes shortly after, and
+  // whatever triggered this call (a prop change, a timer tick) either already has, or will soon
+  // get, another chance to reapply — so it's swallowed here rather than left to crash the whole
+  // reactive flush/animation frame it happened to run on. Anything else rethrows; this isn't a
+  // general error suppressor, just a fix for this one well-understood race.
+  const ignoringUnloadedStyle = (fn: () => void) => {
+    try {
+      fn();
+    } catch (err) {
+      if (!(err instanceof Error) || err.message !== "Style is not done loading") throw err;
+      debug(`Skipped map update (${layerId}) — style mid-swap`);
+    }
+  };
+
   const getBeforeId = createMemo(() =>
     props.beforeType
       ? ctx.map.getStyle().layers.find((l) => l.type === props.beforeType)?.id
@@ -216,6 +233,11 @@ export const Layer: Component<Props> = (props) => {
       source: sourceId,
       // `slot` is Mapbox Standard-Style-only — MapLibre has no equivalent (see .claude/dev-notes.md)
       ...(ctx.isMapLibre ? {} : { slot: props.slot || "" }),
+      // props.filter (independent from style.filter — see the "Update Filter" effect below) takes
+      // the same precedence here it takes there, so a filter provided at mount is fully in place
+      // from this one addLayer call instead of needing a follow-up setFilter — see that effect's
+      // own comment for why a redundant one is unsafe when a <Layer> mounts mid-style-swap.
+      ...(props.filter !== undefined ? { filter: props.filter } : {}),
       metadata: {
         smg: { beforeType: props.beforeType, beforeId: props.beforeId },
       },
@@ -240,6 +262,15 @@ export const Layer: Component<Props> = (props) => {
   });
 
   // Update Style
+  // The addLayer() call above already passed style.paint/layout/filter/minzoom/maxzoom as part of
+  // the layer spec itself (see baseStyle in ./styles.ts — paint/layout/filter/minzoom/maxzoom are
+  // all in it), so this effect's own first run has nothing left to apply: skip it rather than
+  // re-deriving the identical values through setPaintProperty/setLayoutProperty/setFilter calls
+  // that require the style to already be loaded. Without this, a <Layer> that mounts in the same
+  // reactive tick as a style swap (e.g. a <Show> gated on the same flag that also drives the base
+  // style URL) hit "Style is not done loading" here even though addLayer — which tolerates an
+  // in-progress style — had just succeeded moments earlier.
+  let isFirstStyleUpdate = true;
   createEffect((prev: FlatLayerStyle) => {
     // Read (not otherwise used) so any environment change MapGL noticed (a matchMedia firing, or
     // any attribute mutation on <html>/<body> — not just a "dark" class) re-runs this effect,
@@ -248,23 +279,31 @@ export const Layer: Component<Props> = (props) => {
     // cascade on its own, so this stands in as the "please re-check" trigger.
     ctx.themeVersion;
     const style = updateStyle(props.style, ctx.constants, debug);
+    if (isFirstStyleUpdate) {
+      isFirstStyleUpdate = false;
+      return style;
+    }
     if (style === prev) return;
 
     if (style.layout !== prev?.layout)
       diff(style.layout, prev?.layout).forEach(([key, value]) =>
-        ctx.map.setLayoutProperty(layerId, key as any, value, { validate: false }),
+        ignoringUnloadedStyle(() =>
+          ctx.map.setLayoutProperty(layerId, key as any, value, { validate: false }),
+        ),
       );
 
     if (style.paint !== prev?.paint)
       diff(style.paint, prev?.paint).forEach(([key, value]) =>
-        ctx.map.setPaintProperty(layerId, key as any, value, { validate: false }),
+        ignoringUnloadedStyle(() =>
+          ctx.map.setPaintProperty(layerId, key as any, value, { validate: false }),
+        ),
       );
 
     if (style.minzoom !== prev?.minzoom || style.maxzoom !== prev?.maxzoom)
-      ctx.map.setLayerZoomRange(layerId, style.minzoom, style.maxzoom);
+      ignoringUnloadedStyle(() => ctx.map.setLayerZoomRange(layerId, style.minzoom, style.maxzoom));
 
     if (style.filter !== prev?.filter)
-      ctx.map.setFilter(layerId, style.filter, { validate: false });
+      ignoringUnloadedStyle(() => ctx.map.setFilter(layerId, style.filter, { validate: false }));
 
     debug("Update Layer Style:", layerId);
     return style;
@@ -274,11 +313,13 @@ export const Layer: Component<Props> = (props) => {
   createEffect((prev: boolean) => {
     if (props.visible === prev) return;
 
-    ctx.map.setLayoutProperty(
-      layerId,
-      "visibility",
-      props.visible ? "visible" : "none",
-      { validate: false },
+    ignoringUnloadedStyle(() =>
+      ctx.map.setLayoutProperty(
+        layerId,
+        "visibility",
+        props.visible ? "visible" : "none",
+        { validate: false },
+      ),
     );
     debug(`Update Visibility (${layerId}):`, props.visible.toString());
     return props.visible;
@@ -288,7 +329,7 @@ export const Layer: Component<Props> = (props) => {
   createEffect((prev: string) => {
     if (getBeforeId() === prev) return prev;
 
-    ctx.map.moveLayer(layerId, getBeforeId());
+    ignoringUnloadedStyle(() => ctx.map.moveLayer(layerId, getBeforeId()));
     debug(`Update Layer Z-Index (${layerId}):`, getBeforeId());
     return getBeforeId();
   }, getBeforeId());
@@ -298,44 +339,61 @@ export const Layer: Component<Props> = (props) => {
   // combineFilters() back to undefined) — only the never-used case is left alone, so layers that
   // rely on style.filter instead aren't clobbered by this effect running on mount.
   //
-  // No isStyleLoaded()/styledata gating here (unlike the old version of this effect) — the layer
-  // is always already on the map by the time this runs (addLayer above is synchronous, unguarded),
-  // so setFilter is safe immediately, same as the ungated setFilter in the "Update Style" effect
-  // above for style.filter. Gating on isStyleLoaded() was actively harmful: under Mapbox Standard's
-  // continuous background asset streaming, isStyleLoaded() can read false for extended idle
-  // stretches with no further "styledata" event to resolve the `await` — sibling <Layer>s in the
-  // same reactive flush (e.g. PatientLayer.tsx's pulse + circle layers, both filtered off the same
-  // hiddenUrgencyLevels signal) would each hit this gate, and whichever one's `await` won the race
-  // could end up stuck for a minute or more, until some unrelated later styledata event happened to
-  // resolve it — symptom: re-enabling the last hidden urgency level appeared to do nothing on the
-  // map, sometimes indefinitely.
+  // Seeded with props.filter (not a hardcoded undefined) so a filter already provided at mount —
+  // now also passed straight into addLayer() above — makes this effect's own first run a no-op
+  // for the common case of a static filter prop (reference-equal on that first read). That matters
+  // because setFilter, unlike addLayer, throws "Style is not done loading" against a style that's
+  // mid-swap — exactly the situation a <Layer> mounted from a <Show> gated on the same flag driving
+  // the base style (e.g. RoadNetworkLayer.tsx, gated on mapStore.satellite) can land in. A
+  // reactive filter expression (e.g. ProvinceLayer.tsx's, which re-derives a new array from
+  // mapStore.activeProvinceId on every read) still isn't reference-equal on that first read, so it
+  // still re-applies via setFilter here — acceptable since ProvinceLayer isn't conditionally mounted
+  // on the same flag that swaps styles, so it isn't the case this is guarding against.
+  //
+  // Deliberately no isStyleLoaded()/styledata gating here — that was actively harmful: under Mapbox
+  // Standard's continuous background asset streaming, isStyleLoaded() can read false for extended
+  // idle stretches with no further "styledata" event to resolve an `await` on it — sibling <Layer>s
+  // in the same reactive flush (e.g. PatientLayer.tsx's pulse + circle layers, both filtered off the
+  // same hiddenUrgencyLevels signal) would each hit that gate, and whichever one's `await` won the
+  // race could end up stuck for a minute or more, until some unrelated later styledata event
+  // happened to resolve it — symptom: re-enabling the last hidden urgency level appeared to do
+  // nothing on the map, sometimes indefinitely.
   createEffect((prev: FilterSpecification | undefined) => {
     if (props.filter === prev) return prev;
     if (prev === undefined && !props.filter) return prev;
 
-    ctx.map.setFilter(layerId, props.filter ?? null);
+    ignoringUnloadedStyle(() => ctx.map.setFilter(layerId, props.filter ?? null));
     debug(`Update Filter (${layerId}):`, props.filter);
     return props.filter;
-  }, undefined);
+  }, props.filter);
 
-  // Update Feature State
-  createEffect(async () => {
+  // Update Feature State — same isStyleLoaded()/styledata trap the "Update Filter" effect above
+  // used to have (see its comment): removeFeatureState/setFeatureState call _checkLoaded() just
+  // like setFilter does, so this used to gate on `!ctx.map.isStyleLoaded() && (await
+  // ctx.map.once("styledata"))` — and under Mapbox Standard's continuous background asset
+  // streaming, isStyleLoaded() can read false for extended idle stretches with no further
+  // "styledata" event to resolve that await, so a hover effect (e.g. ProvinceLayer.tsx's, which
+  // recreates its featureState prop on every mapStore.hoveredProvinceId change) could get stuck for
+  // a minute or more — symptom: hovering a province appeared to do nothing, sometimes indefinitely.
+  // ignoringUnloadedStyle replaces it: if the style is genuinely mid-swap this one hover update is
+  // dropped, but the very next mouse-move recomputes featureState and retries — nothing to hang on.
+  createEffect(() => {
     if (!props.featureState || props.featureState.id === null) return;
 
-    !ctx.map.isStyleLoaded() && (await ctx.map.once("styledata"));
-
-    ctx.map.removeFeatureState({
-      source: sourceId,
-      sourceLayer: props.style["source-layer"],
-    });
-    ctx.map.setFeatureState(
-      {
+    ignoringUnloadedStyle(() => {
+      ctx.map.removeFeatureState({
         source: sourceId,
         sourceLayer: props.style["source-layer"],
-        id: props.featureState.id,
-      },
-      props.featureState.state,
-    );
+      });
+      ctx.map.setFeatureState(
+        {
+          source: sourceId,
+          sourceLayer: props.style["source-layer"],
+          id: props.featureState.id,
+        },
+        props.featureState.state,
+      );
+    });
   });
 
   // Pulse Animation — see `PulseConfig`'s doc comment above for why this is a periodic
@@ -357,15 +415,25 @@ export const Layer: Component<Props> = (props) => {
 
       const beat = () => {
         // Snap back to `from` with no transition, instant.
-        ctx.map.setPaintProperty(layerId, `${property}-transition` as any, { duration: 0, delay: 0 }, { validate: false });
-        ctx.map.setPaintProperty(layerId, property as any, from, { validate: false });
+        ignoringUnloadedStyle(() => {
+          ctx.map.setPaintProperty(layerId, `${property}-transition` as any, { duration: 0, delay: 0 }, { validate: false });
+          ctx.map.setPaintProperty(layerId, property as any, from, { validate: false });
+        });
         // ...then, one real frame later, hand the ramp to Mapbox's own transition system. The gap
         // matters: mapbox-gl-js only treats a paint-property change as a transition's starting
         // point once it's actually been rendered — two `setPaintProperty` calls in the same tick
         // would just collapse into the second value, and `from` would never visibly render.
+        //
+        // Guarded the same as above: this timer runs indefinitely (every `duration` ms) for as
+        // long as the layer is pulsing, entirely independent of any one style swap — a click that
+        // mounts a newly-pulsing layer (e.g. HealthFacilityLayer.tsx selecting a facility) can land
+        // a beat mid-swap with no relation to component mount timing at all, and unlike a one-time
+        // mount race, waiting costs nothing here: the next beat, one cycle later, just retries.
         requestAnimationFrame(() => {
-          ctx.map.setPaintProperty(layerId, `${property}-transition` as any, { duration: rampMs, delay: 0 }, { validate: false });
-          ctx.map.setPaintProperty(layerId, property as any, to, { validate: false });
+          ignoringUnloadedStyle(() => {
+            ctx.map.setPaintProperty(layerId, `${property}-transition` as any, { duration: rampMs, delay: 0 }, { validate: false });
+            ctx.map.setPaintProperty(layerId, property as any, to, { validate: false });
+          });
         });
       };
 

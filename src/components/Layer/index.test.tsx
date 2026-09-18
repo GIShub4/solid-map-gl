@@ -565,11 +565,15 @@ describe("Layer", () => {
     );
   });
 
-  it("applies props.filter (independent of style.filter) immediately, without waiting on styledata", async () => {
+  it("applies props.filter (independent of style.filter) via addLayer, without waiting on styledata", async () => {
     // Regression test: an earlier version of this effect gated setFilter behind
     // `!isStyleLoaded() && await map.once("styledata")`, which could hang indefinitely if no
-    // further "styledata" event happened to fire — addLayer above is unguarded/synchronous, so the
-    // layer always already exists by the time this effect runs and setFilter is safe immediately.
+    // further "styledata" event happened to fire. Later, an ungated-but-unconditional setFilter
+    // call on mount turned out to have its own failure mode: setFilter (unlike addLayer) throws
+    // "Style is not done loading" against a style that's mid-swap — hit in practice by a <Layer>
+    // mounted from a <Show> gated on the same flag driving the base style. Fixed by folding
+    // props.filter into the addLayer() call itself instead, so a static filter prop never reaches
+    // setFilter at all on mount — addLayer tolerates an in-progress style, setFilter doesn't.
     const map = createMockMap();
     map.isStyleLoaded.mockReturnValue(false);
     renderWithMap(
@@ -582,7 +586,9 @@ describe("Layer", () => {
     );
     await tick();
 
-    expect(map.setFilter).toHaveBeenCalledWith("l1", ["==", "a", 1]);
+    const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
+    expect(call[0].filter).toEqual(["==", "a", 1]);
+    expect(map.setFilter).not.toHaveBeenCalled();
   });
 
   it("clears props.filter on the map once it goes back to undefined after having been set", async () => {
@@ -593,7 +599,9 @@ describe("Layer", () => {
       </Source>
     ));
     await tick();
-    expect(map.setFilter).toHaveBeenLastCalledWith("l1", ["==", "a", 1]);
+    // The initial value is applied via addLayer (see the test above), not setFilter — only a real
+    // change after mount goes through setFilter.
+    expect(map.setFilter).not.toHaveBeenCalled();
 
     setFilter(undefined);
     await tick();
@@ -636,6 +644,44 @@ describe("Layer", () => {
     });
     expect(map.setFeatureState).toHaveBeenCalledWith(
       { source: "src", sourceLayer: "sl", id: 1 },
+      { hover: true },
+    );
+  });
+
+  it("swallows a mid-style-swap 'Style is not done loading' throw from feature state updates instead of crashing", async () => {
+    // Regression test: this effect used to gate on `!isStyleLoaded() && await
+    // once("styledata")`, which could hang indefinitely (see the "no isStyleLoaded()/styledata
+    // gating" comments elsewhere in this file for why) instead of the map's actual, load-bearing
+    // failure mode here — removeFeatureState/setFeatureState throwing synchronously when a style
+    // swap (e.g. ProvinceLayer.tsx mounted alongside a satellite toggle) is still in flight.
+    const map = createMockMap();
+    map.setFeatureState.mockImplementationOnce(() => {
+      throw new Error("Style is not done loading");
+    });
+    const [hoveredId, setHoveredId] = createSignal(1);
+    renderWithMap(
+      () => (
+        <Source id="src" source={{ type: "geojson", data: {} as any }}>
+          <Layer
+            id="l1"
+            style={{ type: "fill", "source-layer": "sl" } as any}
+            featureState={{ id: hoveredId(), state: { hover: true } }}
+          />
+        </Source>
+      ),
+      { map },
+    );
+    await tick();
+
+    // The throwing call was reached and swallowed — not skipped outright.
+    expect(map.setFeatureState).toHaveBeenCalledTimes(1);
+
+    // A later, unrelated hover change still goes through normally — nothing was left stuck.
+    setHoveredId(2);
+    await tick();
+
+    expect(map.setFeatureState).toHaveBeenLastCalledWith(
+      { source: "src", sourceLayer: "sl", id: 2 },
       { hover: true },
     );
   });
