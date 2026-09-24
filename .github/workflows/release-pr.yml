@@ -1,8 +1,19 @@
 name: Open release PR after a src change lands on main
 
-# Runs on every push to main. Only cuts a release when the push actually
-# changed something a consumer of the published package gets (src/ or
-# package.json) — doc-only, test-only, or workflow-only commits are skipped.
+# Runs when a PR merges into main and its diff touched src/ or package.json —
+# the only changes a consumer of the published package actually gets.
+# doc-only, test-only, or workflow-only PRs are filtered out by the `paths`
+# trigger below, so there's no need for a separate diff-checking step.
+#
+# This listens on `pull_request: closed` rather than `push: branches: [main]`
+# on purpose: PRs merged via `gh pr merge --auto` (both this workflow's own
+# release PR and dependabot's auto-merge.yml) authenticate as the repo's
+# GITHUB_TOKEN, and GitHub does not fire push-triggered workflow runs for
+# pushes made with that token (its built-in recursive-workflow-run guard).
+# That silently ate every dependabot merge and every release merge under the
+# old `push` trigger — see the incident this was fixed after. `pull_request`
+# events aren't subject to that guard, so this fires reliably regardless of
+# which token performed the merge.
 #
 # This can't just `npm version patch` and push straight to main: main
 # requires the "build-and-test" status check, and that check can only ever
@@ -13,8 +24,12 @@ name: Open release PR after a src change lands on main
 # change. publish.yml picks up from there and does the actual `npm publish`
 # once that PR's merge commit lands.
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches: [main]
+    paths:
+      - "src/**"
+      - "package.json"
 
 permissions:
   contents: write
@@ -23,40 +38,32 @@ permissions:
 jobs:
   release-pr:
     runs-on: ubuntu-latest
-    # Guards against this job's own release-PR merge commit re-triggering
-    # itself: that commit always touches package.json (the version bump),
-    # which would otherwise match the path check below and loop forever.
-    if: "${{ !startsWith(github.event.head_commit.message, 'chore(release): v') }}"
+    # Only actual merges (not merely closed-without-merging) count. Also
+    # guards against this job's own release PR re-triggering itself: that
+    # PR's title always starts with "chore(release): v" and it always
+    # touches package.json, which would otherwise match the `paths` filter
+    # above and loop forever.
+    if: >-
+      ${{ github.event.pull_request.merged == true &&
+          !startsWith(github.event.pull_request.title, 'chore(release): v') }}
     steps:
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 2
-
-      - name: Check whether a releasable file changed
-        id: check
-        run: |
-          changed_files=$(git diff --name-only HEAD^ HEAD)
-          echo "$changed_files"
-          if echo "$changed_files" | grep -qE '^(src/|package\.json$)'; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "docs/tests/workflow-only push — skipping release"
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          fi
+          # The PR's own merge ref (refs/pull/N/merge) is torn down once the
+          # PR closes, so check out the actual commit that landed on main.
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
 
       - name: Bump patch version
-        if: steps.check.outputs.changed == 'true'
         id: bump
         run: |
           npm version patch --no-git-tag-version
           echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
 
       - name: Open release PR
-        if: steps.check.outputs.changed == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.bump.outputs.version }}
-          TRIGGER_SHA: ${{ github.sha }}
+          TRIGGER_PR: ${{ github.event.pull_request.html_url }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -65,7 +72,7 @@ jobs:
           git push origin "release/v$VERSION"
           gh pr create \
             --title "chore(release): v$VERSION" \
-            --body "Automated patch release: a push to \`main\` ($TRIGGER_SHA) changed \`src/\` or \`package.json\`." \
+            --body "Automated patch release: $TRIGGER_PR merged into \`main\`, changing \`src/\` or \`package.json\`." \
             --base main \
             --head "release/v$VERSION"
           # No review requested/approved here: branch protection on main
