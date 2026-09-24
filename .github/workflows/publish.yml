@@ -1,9 +1,17 @@
 name: Publish to npm
 
 # Finishes what release-pr.yml starts: once a "chore(release): vX.Y.Z" PR
-# (opened after a push to main changed src/ or package.json) merges into
-# main, this builds and publishes that already-bumped version to npm, then
-# tags it to match the repo's existing vX.Y.Z tag history.
+# (opened after a PR merge into main changed src/ or package.json) itself
+# merges into main, this builds and publishes that already-bumped version to
+# npm, then tags it to match the repo's existing vX.Y.Z tag history.
+#
+# Listens on `pull_request: closed` rather than `push: branches: [main]` —
+# see release-pr.yml's comment for why: the release PR above merges via
+# `gh pr merge --auto`, which authenticates as GITHUB_TOKEN, and GitHub
+# doesn't fire push-triggered workflow runs for pushes made with that token.
+# Under the old `push` trigger this silently ate every release's publish
+# step. `pull_request` events fire regardless of which token performed the
+# merge.
 #
 # Publishes via npm Trusted Publishing (OIDC) rather than a stored NPM_TOKEN
 # secret — nothing here holds a long-lived publish credential. This requires
@@ -12,7 +20,8 @@ name: Publish to npm
 # (publish.yml). `id-token: write` below is what lets npm's CLI exchange this
 # job's GitHub-issued OIDC token for a short-lived publish token.
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches: [main]
 
 permissions:
@@ -22,9 +31,15 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    if: "${{ startsWith(github.event.head_commit.message, 'chore(release): v') }}"
+    if: >-
+      ${{ github.event.pull_request.merged == true &&
+          startsWith(github.event.pull_request.title, 'chore(release): v') }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          # The PR's own merge ref (refs/pull/N/merge) is torn down once the
+          # PR closes, so check out the actual commit that landed on main.
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
 
       - uses: pnpm/action-setup@v6
         with:
