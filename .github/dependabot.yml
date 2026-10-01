@@ -6,7 +6,9 @@
 # .github/workflows/ci.yml passes. If a bump breaks the build/tests, it is
 # never merged and ci.yml pings the maintainer instead (maintainer decision
 # 2026-09-07). The test suite is what's carrying the risk here: this policy
-# is only as safe as that coverage actually is.
+# is only as safe as that coverage actually is. A merged npm update then cuts
+# an automatic patch release (auto-merge.yml dispatches release-pr.yml);
+# github-actions updates don't.
 #
 # NOTE: mapbox-gl, maplibre-gl, and solid-js are currently declared as
 # peerDependencies with an unbounded "*" range in package.json. Dependabot

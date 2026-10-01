@@ -5,6 +5,7 @@ on: pull_request
 permissions:
   contents: write
   pull-requests: write
+  actions: write # to dispatch release-pr.yml
 
 jobs:
   automerge:
@@ -23,15 +24,42 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Enable GitHub's native auto-merge for every update type (patch,
-      # minor, and major alike) — per maintainer decision 2026-09-07, the
-      # size of the version bump doesn't matter, only whether CI passes.
-      # GitHub holds the actual merge until the CI check run on this PR
-      # (.github/workflows/ci.yml) reports success; if it fails, the PR is
-      # never merged — ci.yml's own failure-notification step pings the
-      # maintainer in that case instead.
-      - name: Enable auto-merge
-        run: gh pr merge --auto --squash "$PR_URL"
+      # Merges every update type (patch, minor, and major alike) — per
+      # maintainer decision 2026-09-07, the size of the version bump doesn't
+      # matter, only whether CI passes. This job waits for the required
+      # "build-and-test" check itself and merges, rather than
+      # `gh pr merge --auto`, so it can then cut a release: a merge performed
+      # by GITHUB_TOKEN starts no workflow runs (not even release-pr.yml's
+      # `pull_request: closed`), so release-pr.yml has to be dispatched
+      # explicitly. If CI fails, --fail-fast fails this job and the PR is never
+      # merged — ci.yml's own failure-notification step pings the maintainer.
+      - name: Wait for CI and merge
+        run: |
+          # gh exits non-zero while checks are pending; only its output matters here.
+          for i in $(seq 1 30); do
+            n=$(gh pr checks "$PR_URL" --required --json name -q 'length' 2>/dev/null)
+            [ "${n:-0}" -gt 0 ] && break
+            sleep 10
+          done
+          gh pr checks "$PR_URL" --required --watch --fail-fast
+          gh pr merge "$PR_URL" --squash
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Like release-pr.yml's `paths` (which a dispatch bypasses), plus
+      # pnpm-lock.yaml: almost every npm update here is lockfile-only (no
+      # runtime dependencies, devDependency ranges already satisfied), and a
+      # lockfile bump can still change the published dist/ by upgrading the
+      # build toolchain (tsup, esbuild, babel-preset-solid). GitHub Actions
+      # version bumps (.github/ only) don't release.
+      - name: Cut a release if the update reaches the package
+        run: |
+          if gh pr diff "$PR_URL" --name-only | grep -qE '^(src/|package\.json$|pnpm-lock\.yaml$)'; then
+            gh workflow run release-pr.yml --ref main -f trigger="$PR_URL"
+          else
+            echo "No src/, package.json or pnpm-lock.yaml change, no release."
+          fi
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
