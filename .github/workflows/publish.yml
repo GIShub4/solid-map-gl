@@ -5,13 +5,17 @@ name: Publish to npm
 # merges into main, this builds and publishes that already-bumped version to
 # npm, then tags it to match the repo's existing vX.Y.Z tag history.
 #
-# Listens on `pull_request: closed` rather than `push: branches: [main]` —
-# see release-pr.yml's comment for why: the release PR above merges via
-# `gh pr merge --auto`, which authenticates as GITHUB_TOKEN, and GitHub
-# doesn't fire push-triggered workflow runs for pushes made with that token.
-# Under the old `push` trigger this silently ate every release's publish
-# step. `pull_request` events fire regardless of which token performed the
-# merge.
+# Normally started by release-pr.yml via `gh workflow run publish.yml`, right
+# after it merges the release PR itself. That has to be an explicit dispatch:
+# GitHub starts no workflow runs at all for events caused by GITHUB_TOKEN
+# (pushes, tags, *and* pull_request events, including the release PR's
+# `closed` event when it's merged by a bot), with the sole exceptions of
+# workflow_dispatch and repository_dispatch. Relying on the release PR's
+# `closed` event silently skipped publishing v2.2.5-v2.2.7. A dispatched run
+# publishes whatever version is on main, and is a no-op if npm already has it,
+# so it's also safe to run by hand (Actions tab -> Run workflow) to catch up.
+# The `pull_request: closed` trigger is kept for a release PR merged by a
+# human, which does fire normally.
 #
 # Publishes via npm Trusted Publishing (OIDC) rather than a stored NPM_TOKEN
 # secret — nothing here holds a long-lived publish credential. This requires
@@ -20,6 +24,7 @@ name: Publish to npm
 # (publish.yml). `id-token: write` below is what lets npm's CLI exchange this
 # job's GitHub-issued OIDC token for a short-lived publish token.
 on:
+  workflow_dispatch:
   pull_request:
     types: [closed]
     branches: [main]
@@ -32,14 +37,16 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     if: >-
-      ${{ github.event.pull_request.merged == true &&
-          startsWith(github.event.pull_request.title, 'chore(release): v') }}
+      ${{ github.event_name == 'workflow_dispatch' ||
+          (github.event.pull_request.merged == true &&
+           startsWith(github.event.pull_request.title, 'chore(release): v')) }}
     steps:
       - uses: actions/checkout@v7
         with:
           # The PR's own merge ref (refs/pull/N/merge) is torn down once the
           # PR closes, so check out the actual commit that landed on main.
-          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          # A dispatched run has no PR, so it takes main as-is.
+          ref: ${{ github.event.pull_request.merge_commit_sha || 'main' }}
 
       - uses: pnpm/action-setup@v6
         with:
@@ -51,16 +58,35 @@ jobs:
           cache: pnpm
           registry-url: "https://registry.npmjs.org"
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-
-      # Trusted Publishing needs a recent npm CLI; Node 22's bundled npm predates it.
-      - run: npm install -g npm@latest
-
-      - run: npm publish
-
-      - name: Tag release
+      # Makes every later step a no-op if this version is already on npm — a
+      # dispatch can run more than once for the same version (e.g. by hand
+      # after a merge-triggered run already published it).
+      - name: Check whether this version is already published
+        id: check
         run: |
           version=$(node -p "require('./package.json').version")
-          git tag "v$version"
-          git push origin "v$version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if npm view "solid-map-gl@$version" version >/dev/null 2>&1; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "solid-map-gl@$version is already on npm, nothing to do."
+          fi
+
+      - if: steps.check.outputs.published != 'true'
+        run: pnpm install --frozen-lockfile
+      - if: steps.check.outputs.published != 'true'
+        run: pnpm build
+
+      # Trusted Publishing needs a recent npm CLI; Node 22's bundled npm predates it.
+      - if: steps.check.outputs.published != 'true'
+        run: npm install -g npm@latest
+
+      - if: steps.check.outputs.published != 'true'
+        run: npm publish
+
+      - name: Tag release
+        if: steps.check.outputs.published != 'true'
+        env:
+          VERSION: ${{ steps.check.outputs.version }}
+        run: |
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
