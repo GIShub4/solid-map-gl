@@ -5,10 +5,13 @@ name: Open release PR after a src change lands on main
 # doc-only, test-only, or workflow-only PRs are filtered out by the `paths`
 # trigger below, so there's no need for a separate diff-checking step.
 #
-# Triggered by `pull_request: closed`, which fires for a PR merged by a human.
-# Note it does NOT fire for one merged by GITHUB_TOKEN (e.g. dependabot's
-# auto-merge.yml): GitHub starts no workflow runs for any event caused by that
-# token, except workflow_dispatch/repository_dispatch.
+# Triggered by `pull_request: closed` for a PR merged by a human, and by
+# workflow_dispatch from auto-merge.yml after it merges a dependabot PR that
+# touched src/ or package.json. The dispatch is necessary because GitHub starts
+# no workflow runs for any event caused by GITHUB_TOKEN (which is what merges
+# dependabot PRs), except workflow_dispatch/repository_dispatch. auto-merge.yml
+# does its own src/package.json check, since `paths` below doesn't apply to a
+# dispatch.
 #
 # This can't just `npm version patch` and push straight to main: main
 # requires the "build-and-test" status check, and that check can only ever
@@ -22,12 +25,26 @@ name: Open release PR after a src change lands on main
 # happens as GITHUB_TOKEN and its `closed` event starts no workflows (this is
 # exactly how v2.2.5-v2.2.7 silently never got published).
 on:
+  workflow_dispatch:
+    inputs:
+      trigger:
+        description: URL of the PR whose merge this release is for (shown in the release PR body)
+        required: false
   pull_request:
     types: [closed]
     branches: [main]
     paths:
       - "src/**"
       - "package.json"
+
+# One release at a time: each run bumps main's current version, so two running
+# side by side (e.g. several dependabot PRs merging back to back) would both
+# open the same vX.Y.Z. Queued runs wait rather than cancel — and GitHub keeps
+# only the newest pending run per group, so a burst of merges coalesces into
+# one follow-up release that includes all of them.
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -43,14 +60,16 @@ jobs:
     # touches package.json, which would otherwise match the `paths` filter
     # above and loop forever.
     if: >-
-      ${{ github.event.pull_request.merged == true &&
-          !startsWith(github.event.pull_request.title, 'chore(release): v') }}
+      ${{ github.event_name == 'workflow_dispatch' ||
+          (github.event.pull_request.merged == true &&
+           !startsWith(github.event.pull_request.title, 'chore(release): v')) }}
     steps:
       - uses: actions/checkout@v7
         with:
-          # The PR's own merge ref (refs/pull/N/merge) is torn down once the
-          # PR closes, so check out the actual commit that landed on main.
-          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          # main's tip, not the triggering PR's merge commit: with runs
+          # serialized above, a queued run must bump from whatever the previous
+          # release already left on main, or it would reopen the same version.
+          ref: main
 
       - name: Bump patch version
         id: bump
@@ -62,7 +81,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.bump.outputs.version }}
-          TRIGGER_PR: ${{ github.event.pull_request.html_url }}
+          TRIGGER_PR: ${{ github.event.pull_request.html_url || inputs.trigger || 'a dependency update' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
