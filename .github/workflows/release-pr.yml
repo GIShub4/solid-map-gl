@@ -5,15 +5,10 @@ name: Open release PR after a src change lands on main
 # doc-only, test-only, or workflow-only PRs are filtered out by the `paths`
 # trigger below, so there's no need for a separate diff-checking step.
 #
-# This listens on `pull_request: closed` rather than `push: branches: [main]`
-# on purpose: PRs merged via `gh pr merge --auto` (both this workflow's own
-# release PR and dependabot's auto-merge.yml) authenticate as the repo's
-# GITHUB_TOKEN, and GitHub does not fire push-triggered workflow runs for
-# pushes made with that token (its built-in recursive-workflow-run guard).
-# That silently ate every dependabot merge and every release merge under the
-# old `push` trigger — see the incident this was fixed after. `pull_request`
-# events aren't subject to that guard, so this fires reliably regardless of
-# which token performed the merge.
+# Triggered by `pull_request: closed`, which fires for a PR merged by a human.
+# Note it does NOT fire for one merged by GITHUB_TOKEN (e.g. dependabot's
+# auto-merge.yml): GitHub starts no workflow runs for any event caused by that
+# token, except workflow_dispatch/repository_dispatch.
 #
 # This can't just `npm version patch` and push straight to main: main
 # requires the "build-and-test" status check, and that check can only ever
@@ -21,8 +16,11 @@ name: Open release PR after a src change lands on main
 # commit created here has no status yet, so a direct push would be rejected.
 # Routing the version bump through its own PR lets it pick up a real
 # "build-and-test" run and merge through the exact same gate as every other
-# change. publish.yml picks up from there and does the actual `npm publish`
-# once that PR's merge commit lands.
+# change. This job then waits for that check itself, merges the release PR,
+# and dispatches publish.yml explicitly — it can't leave the merge to
+# `gh pr merge --auto` and expect publish.yml to notice, since that merge
+# happens as GITHUB_TOKEN and its `closed` event starts no workflows (this is
+# exactly how v2.2.5-v2.2.7 silently never got published).
 on:
   pull_request:
     types: [closed]
@@ -34,6 +32,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  actions: write # to dispatch publish.yml
 
 jobs:
   release-pr:
@@ -70,12 +69,29 @@ jobs:
           git checkout -b "release/v$VERSION"
           git commit -am "chore(release): v$VERSION"
           git push origin "release/v$VERSION"
+          # No review requested/approved: branch protection on main doesn't
+          # require one (only the "build-and-test" status check), and this
+          # token can't approve its own PR anyway.
           gh pr create \
             --title "chore(release): v$VERSION" \
             --body "Automated patch release: $TRIGGER_PR merged into \`main\`, changing \`src/\` or \`package.json\`." \
             --base main \
             --head "release/v$VERSION"
-          # No review requested/approved here: branch protection on main
-          # doesn't require one (only the "build-and-test" status check), and
-          # this token can't approve its own PR anyway.
-          gh pr merge --auto --squash "release/v$VERSION"
+
+      - name: Wait for CI, merge, and publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.bump.outputs.version }}
+        run: |
+          branch="release/v$VERSION"
+          # `gh pr checks --watch` exits immediately with "no checks reported"
+          # until CI has registered its check run, so wait for it to appear.
+          for i in $(seq 1 30); do
+            # gh exits non-zero while checks are pending; only its output matters here.
+            n=$(gh pr checks "$branch" --required --json name -q 'length' 2>/dev/null)
+            [ "${n:-0}" -gt 0 ] && break
+            sleep 10
+          done
+          gh pr checks "$branch" --required --watch --fail-fast
+          gh pr merge "$branch" --squash --delete-branch
+          gh workflow run publish.yml --ref main
