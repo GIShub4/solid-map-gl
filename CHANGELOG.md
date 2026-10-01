@@ -10,6 +10,17 @@ rejected, what's still open), see `.claude/dev-notes.md`.
 
 ## [Unreleased]
 
+### Fixed
+
+- **`ctx.mapLib` is no longer proxied by `solid-js/store`** — `MapProvider` stored the resolved
+  `mapbox-gl`/`maplibre-gl` module in its store, so reading `ctx.mapLib.X` inside a tracking scope
+  (e.g. `<Control>` rendered from a reactive `children` getter) made the store wrap the module and
+  redefine every accessor property on the module object itself. In production builds where
+  `version` is non-configurable that threw `TypeError: Cannot redefine property: version`, breaking
+  the map; elsewhere it silently mutated the user's module. `mapLib` is now a plain, non-reactive
+  property layered over the store (it never changes after mount); every other context field is
+  unchanged. Affects `Control`, `Marker`, `Popup`, `Camera` and `Layer3D`.
+
 ## [2.2.2] - 2026-09-16
 
 ### Changed

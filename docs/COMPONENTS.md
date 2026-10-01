@@ -108,7 +108,10 @@ const App = () => (
 
 `src/components/MapProvider/index.tsx` — internal plumbing, exported for advanced use.
 
-A `solid-js/store`-backed context holding `{ map, mapLib, isMapLibre, constants, themeVersion }`.
+A `solid-js/store`-backed context holding `{ map, mapLib, isMapLibre, constants, themeVersion }` —
+except `mapLib`, which is a plain, never-proxied property layered over the store (a bundled
+mapbox-gl module is a plain object the store would otherwise wrap, redefining its accessors and
+throwing "Cannot redefine property: version" in production builds).
 `MapGL` renders this automatically, passing the map instance it created plus whichever
 Mapbox/MapLibre module it resolved (`props.mapLib`, or its dynamic `import("mapbox-gl")`), a
 computed `isMapLibre` flag, its own `constants` prop, and its own `themeVersion` counter; you

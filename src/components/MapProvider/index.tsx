@@ -42,7 +42,6 @@ export const MapProvider: ParentComponent<{
   const [state, setState] = createStore<MapContextState>({ ...defaultState })
 
   props.map && setState('map', props.map)
-  props.mapLib && setState('mapLib', props.mapLib)
   setState('isMapLibre', !!props.isMapLibre)
   // Set synchronously (not just in the createEffect below) so a child that reads `ctx.constants`
   // during its own synchronous setup — e.g. Layer's initial `addLayer` call — sees the real value
@@ -58,7 +57,19 @@ export const MapProvider: ParentComponent<{
   createEffect(() => setState('constants', props.constants || {}))
   createEffect(() => setState('themeVersion', props.themeVersion || 0))
 
+  // mapLib is deliberately kept *out* of the store. A bundled mapbox-gl/maplibre-gl module is a
+  // plain object (or null-prototype namespace), which solid-js/store treats as wrappable: reading
+  // `ctx.mapLib.X` inside a tracking scope made it proxy the module and redefine each of its
+  // accessor properties on the module object itself — throwing "Cannot redefine property:
+  // version" in production builds where `version` is non-configurable, and mutating the user's
+  // module even where it didn't throw. It never changes after mount, so it needs no reactivity:
+  // it's an own, plain data property on an object whose prototype is the store, so every other
+  // field (`map`, `constants`, `themeVersion`, ...) still resolves through the reactive store.
+  const ctx: MapContextState = Object.create(state, {
+    mapLib: { value: props.mapLib || null, enumerable: true },
+  })
+
   return (
-    <MapContext.Provider value={[state]}>{props.children}</MapContext.Provider>
+    <MapContext.Provider value={[ctx]}>{props.children}</MapContext.Provider>
   )
 }
