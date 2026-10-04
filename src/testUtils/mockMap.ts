@@ -248,8 +248,8 @@ class MockPopup {
     this.options = options;
     MockPopup.instances.push(this);
   }
-  on = vi.fn(() => this);
-  off = vi.fn(() => this);
+  on = vi.fn((..._args: any[]) => this);
+  off = vi.fn((..._args: any[]) => this);
   addTo = vi.fn(() => {
     this.open = true;
     return this;
@@ -277,8 +277,8 @@ class MockMarker {
     this.options = options;
     MockMarker.instances.push(this);
   }
-  on = vi.fn(() => this);
-  off = vi.fn(() => this);
+  on = vi.fn((..._args: any[]) => this);
+  off = vi.fn((..._args: any[]) => this);
   addTo = vi.fn(() => this);
   remove = vi.fn(() => this);
   setLngLat = vi.fn(() => this);

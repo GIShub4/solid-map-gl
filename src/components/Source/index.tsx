@@ -44,7 +44,7 @@ export const Source: Component<Props> = props => {
         tiles: [
           s
             .replace(
-              '{apikey}', //@ts-ignore
+              '{apikey}', //@ts-expect-error -- import.meta.env is Vite-only
               anySource().apikey || import.meta.env?.VITE_RASTER_API_KEY
             )
             .replace('{r}', window.devicePixelRatio > 1 ? '@2x' : ''),

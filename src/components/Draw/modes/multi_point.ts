@@ -4,7 +4,7 @@ const MultiPointMode: any = {};
 // The `opts` argument comes from `draw.changeMode('lotsofpoints', {count:7})`.
 // The value returned should be an object and will be passed to all other lifecycle functions
 MultiPointMode.onSetup = function (opts) {
-  var state: any = {};
+  const state: any = {};
   state.count = opts.count || 0;
   return state;
 };
@@ -12,7 +12,7 @@ MultiPointMode.onSetup = function (opts) {
 // Whenever a user clicks on the map, Draw will call `onClick`
 MultiPointMode.onClick = function (state, e) {
   // `this.newFeature` takes geojson and makes a DrawFeature
-  var point = this.newFeature({
+  const point = this.newFeature({
     type: "Feature",
     properties: {
       count: state.count,

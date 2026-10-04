@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { length, midpoint, area, centerOfMass } from "./geo";
+import type { Position } from "./geo";
 
 describe("length", () => {
   it("matches the known great-circle distance between two well-known cities", () => {
@@ -97,14 +98,14 @@ describe("area", () => {
   });
 
   it("subtracts hole rings from the outer ring", () => {
-    const outer = [
+    const outer: Position[] = [
       [0, 0],
       [0.01, 0],
       [0.01, 0.01],
       [0, 0.01],
       [0, 0],
     ];
-    const hole = [
+    const hole: Position[] = [
       [0.002, 0.002],
       [0.008, 0.002],
       [0.008, 0.008],

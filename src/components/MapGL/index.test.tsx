@@ -21,7 +21,7 @@ describe("Map", () => {
   // the hand-rolled mock in the first place).
   it("renders", () => {
     const { container, unmount } = render(() => (
-      <MapGL mapLib={createMockMapLib()} options={{ testMode: true }}></MapGL>
+      <MapGL mapLib={createMockMapLib()} options={{ testMode: true }} />
     ));
     expect(container.innerHTML).toMatchSnapshot();
     unmount();
@@ -29,7 +29,7 @@ describe("Map", () => {
 
   it("renders with static viewport", () =>
     render(() => (
-      <MapGL mapLib={createMockMapLib()} viewport={{ center: [0, 0], zoom: 5 }}></MapGL>
+      <MapGL mapLib={createMockMapLib()} viewport={{ center: [0, 0], zoom: 5 }} />
     )));
 
   it("calls setConfigProperty for each config key on a Mapbox-shaped map", async () => {
@@ -156,7 +156,7 @@ describe("Map", () => {
     render(() => <MapGL mapLib={mapLib} options={{ style: "mb:light" }} />);
     await waitForLoad();
 
-    expect(ctorSpy.mock.calls[0][0].style).toContain("light-v11");
+    expect((ctorSpy.mock.calls[0][0] as any).style).toContain("light-v11");
   });
 
   it("dispatches a function-form map event prop after a click that isn't from a layer", async () => {
@@ -204,7 +204,7 @@ describe("Map", () => {
   it("dispatches an object-form (per-layer) map event prop", async () => {
     const mapLib = createMockMapLib();
     const onLayerClick = vi.fn();
-    render(() => <MapGL mapLib={mapLib} onClick={{ myLayer: onLayerClick }} />);
+    render(() => <MapGL mapLib={mapLib} onClick={{ myLayer: onLayerClick } as any} />);
     await waitForLoad();
     const map = mapLib.Map.instances[0];
 
@@ -232,11 +232,11 @@ describe("Map", () => {
     let changeListener: (() => void) | undefined;
     const matches = { current: false };
     const origMatchMedia = window.matchMedia;
-    // @ts-ignore
     window.matchMedia = () => ({
       get matches() {
         return matches.current;
       },
+      // @ts-expect-error -- partial MediaQueryList stub
       addEventListener: (_: string, cb: () => void) => {
         changeListener = cb;
       },
@@ -269,7 +269,7 @@ describe("Map", () => {
   it("resizes the map (debounced) when its container's ResizeObserver fires", async () => {
     let roCallback: (() => void) | undefined;
     const OrigRO = window.ResizeObserver;
-    // @ts-ignore
+    // @ts-expect-error -- minimal ResizeObserver stub
     window.ResizeObserver = class {
       constructor(cb: () => void) {
         roCallback = cb;
@@ -539,7 +539,6 @@ describe("Map", () => {
   it("does not observe resize when disableResize is set", async () => {
     let observed = false;
     const OrigRO = window.ResizeObserver;
-    // @ts-ignore
     window.ResizeObserver = class {
       observe() {
         observed = true;
@@ -614,7 +613,7 @@ describe("Map", () => {
     const mapLib = createMockMapLib();
     const onLayerClick = vi.fn();
     render(() => (
-      <MapGL mapLib={mapLib} debugEvents onClick={{ myLayer: onLayerClick }} />
+      <MapGL mapLib={mapLib} debugEvents onClick={{ myLayer: onLayerClick } as any} />
     ));
     await waitForLoad();
     const map = mapLib.Map.instances[0];
@@ -639,13 +638,13 @@ describe("Map", () => {
 
   it("falls back to a window global map library when the given mapLib has no .Map", async () => {
     const realLib = createMockMapLib();
-    // @ts-ignore
+    // @ts-expect-error -- global not declared on Window
     window.maplibregl = realLib;
     render(() => <MapGL mapLib={{} as any} />);
     await waitForLoad();
 
     expect(realLib.Map.instances.length).toBe(1);
-    // @ts-ignore
+    // @ts-expect-error -- global not declared on Window
     delete window.maplibregl;
   });
 
@@ -812,11 +811,11 @@ describe("Map", () => {
     let changeListener: (() => void) | undefined;
     const matches = { current: false };
     const origMatchMedia = window.matchMedia;
-    // @ts-ignore
     window.matchMedia = () => ({
       get matches() {
         return matches.current;
       },
+      // @ts-expect-error -- partial MediaQueryList stub
       addEventListener: (_: string, cb: () => void) => {
         changeListener = cb;
       },
@@ -858,7 +857,7 @@ describe("Map", () => {
     render(() => <MapGL mapLib={mapLib} options={{ style: styleObj as any }} />);
     await waitForLoad();
 
-    expect(ctorSpy.mock.calls[0][0].style).toBe(styleObj);
+    expect((ctorSpy.mock.calls[0][0] as any).style).toBe(styleObj);
   });
 
   it("passes through a style string unchanged when it doesn't match any shorthand prefix", async () => {
@@ -867,7 +866,7 @@ describe("Map", () => {
     render(() => <MapGL mapLib={mapLib} options={{ style: "not-a-known-shorthand" }} />);
     await waitForLoad();
 
-    expect(ctorSpy.mock.calls[0][0].style).toBe("not-a-known-shorthand");
+    expect((ctorSpy.mock.calls[0][0] as any).style).toBe("not-a-known-shorthand");
   });
 
   it("dynamically imports mapbox-gl when no mapLib prop is given", async () => {
@@ -888,13 +887,12 @@ describe("Map", () => {
 
   it("falls back to window.mapboxgl when neither the given mapLib nor window.maplibregl has .Map", async () => {
     const realLib = createMockMapLib();
-    // @ts-ignore
+    // @ts-expect-error -- global not declared on Window
     window.mapboxgl = realLib;
     render(() => <MapGL mapLib={{} as any} />);
     await waitForLoad();
 
     expect(realLib.Map.instances.length).toBe(1);
-    // @ts-ignore
     delete window.mapboxgl;
   });
 

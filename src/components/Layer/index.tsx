@@ -176,9 +176,9 @@ const updateStyle = (
   debug: (text: string, value?: any) => void = () => {},
 ): FlatLayerStyle => {
   if (!oldStyle) return;
-  let layout = {};
-  let paint = {};
-  let style = {};
+  const layout = {};
+  const paint = {};
+  const style = {};
 
   const resolvePaint = (key: string, value: any) =>
     resolveColor(key, resolveConstant(key, value, constants, debug));
@@ -322,7 +322,7 @@ export const Layer: Component<Props> = (props) => {
     // needed to re-probe any "bg-x dark:bg-y" color pair (see resolveColor in ./colors.ts): the
     // browser's cascade decides which of the two applies, but nothing tells Solid to re-read that
     // cascade on its own, so this stands in as the "please re-check" trigger.
-    ctx.themeVersion;
+    void ctx.themeVersion;
     const style = updateStyle(flatStyle(props), ctx.constants, debug);
     if (isFirstStyleUpdate) {
       isFirstStyleUpdate = false;

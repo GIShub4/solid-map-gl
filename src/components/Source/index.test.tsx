@@ -205,7 +205,6 @@ describe("Source", () => {
 
   it("substitutes {r} with '@2x' on a high-DPI screen for a raster shorthand", () => {
     const originalRatio = window.devicePixelRatio;
-    // @ts-ignore
     window.devicePixelRatio = 2;
     const { map } = renderWithMap(() => (
       <Source id="raster3" source={{ type: "raster", url: "carto:voyager" } as any} />

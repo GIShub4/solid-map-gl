@@ -112,7 +112,7 @@ describe("radius mode", () => {
     const mode = createRadiusMode(lib);
     const display = vi.fn();
     const state = { line: { id: "line1" } };
-    const geojson = { properties: { id: "other" }, geometry: { coordinates: [] } };
+    const geojson: any = { properties: { id: "other" }, geometry: { coordinates: [] } };
 
     mode.toDisplayFeatures(state, geojson, display);
 

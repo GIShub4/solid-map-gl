@@ -34,9 +34,9 @@ function createGeoJSONCircle(
   const distanceY = radius / 110.574;
 
   for (let i = 0; i < points; i += 1) {
-    let theta = (i / points) * (2 * Math.PI);
-    let x = distanceX * Math.cos(theta);
-    let y = distanceY * Math.sin(theta);
+    const theta = (i / points) * (2 * Math.PI);
+    const x = distanceX * Math.cos(theta);
+    const y = distanceY * Math.sin(theta);
     ret.push([center[0] + x, center[1] + y]);
   }
   ret.push(ret[0]);
@@ -91,7 +91,7 @@ const RadiusMode = (lib) => ({
       e.lngLat.lat,
     );
     if (state.direction === "forward") {
-      state.currentVertexPosition += 1; // eslint-disable-line
+      state.currentVertexPosition += 1;
       state.line.updateCoordinate(
         state.currentVertexPosition,
         e.lngLat.lng,

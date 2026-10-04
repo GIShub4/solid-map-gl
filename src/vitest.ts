@@ -5,7 +5,6 @@ import 'jsdom-worker'
 // unconditionally constructs one once the map loads (unless disableResize), so every test that
 // lets `load` fire needs this stubbed or it throws asynchronously, outside any test's own
 // try/catch, as an unhandled rejection.
-// @ts-ignore
 window.ResizeObserver =
   window.ResizeObserver ||
   class {
@@ -16,12 +15,12 @@ window.ResizeObserver =
 
 // jsdom doesn't implement the Canvas Path2D API; only Image's pattern renderer
 // (components/Image) and its canvas-fallback image loader construct one.
-// @ts-ignore
+// @ts-expect-error -- jsdom stub, not a full Path2D
 window.Path2D = window.Path2D || class Path2D {
   constructor(_path?: string) {}
 }
 
-// @ts-ignore
+// @ts-expect-error -- jsdom stub, not a full MediaQueryList
 window.matchMedia =
   window.matchMedia ||
   (() => ({

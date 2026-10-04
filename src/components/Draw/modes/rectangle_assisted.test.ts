@@ -250,7 +250,7 @@ describe("rectangle_assisted mode", () => {
   it("marks any non-active feature accordingly and still displays it", () => {
     const display = vi.fn();
     const state = { rectangle: { id: "rect1" }, angle: 12 };
-    const geojson = { properties: { id: "other" }, geometry: { coordinates: [] } };
+    const geojson: any = { properties: { id: "other" }, geometry: { coordinates: [] } };
 
     RectangleAssistedMode.toDisplayFeatures(state, geojson, display);
 
