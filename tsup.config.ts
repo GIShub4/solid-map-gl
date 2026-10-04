@@ -1,3 +1,5 @@
+import { readFileSync, renameSync, writeFileSync } from "node:fs";
+import { threadId } from "node:worker_threads";
 import { defineConfig } from "tsup";
 import * as preset from "tsup-preset-solid";
 import pkg from "./package.json" with { type: "json" };
@@ -13,6 +15,22 @@ const external = [
   "solid-js/store",
   "solid-js/web",
 ];
+
+// Replaces preset.writePackageJson, which un-awaited rewrites package.json in place (truncate, then
+// write) on every config evaluation — and tsup evaluates this config twice, once more in its DTS
+// worker, while esbuild is already reading package.json for the ESM build. That race fails CI with
+// "package.json: Unexpected end of file in JSON" (and is the likely source of the stale/empty
+// package.json reads worked around elsewhere in this file). Write only when the content actually
+// changes, and atomically via rename, so a concurrent reader always sees a complete file.
+function writePackageJson(fields: Record<string, unknown>) {
+  const path = "package.json";
+  const current = readFileSync(path, "utf-8");
+  const next = JSON.stringify({ ...JSON.parse(current), type: "module", ...fields }, null, 2) + "\n";
+  if (next === current) return;
+  const tmp = `${path}.${process.pid}-${threadId}.tmp`; // DTS worker shares the pid
+  writeFileSync(tmp, next);
+  renameSync(tmp, path);
+}
 
 const preset_options: preset.PresetOptions = {
   entries: [{ entry: "src/index.tsx" }, { entry: "src/testing.tsx" }],
@@ -46,7 +64,7 @@ export default defineConfig((config) => {
       };
     }
     package_fields.exports = exports as typeof package_fields.exports;
-    preset.writePackageJson(package_fields);
+    writePackageJson(package_fields);
   }
 
   return preset.generateTsupOptions(parsed_data).map((options) => {

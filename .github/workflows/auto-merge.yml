@@ -35,9 +35,10 @@ jobs:
       # merged — ci.yml's own failure-notification step pings the maintainer.
       - name: Wait for CI and merge
         run: |
-          # gh exits non-zero while checks are pending; only its output matters here.
+          # gh exits non-zero while checks are pending (or not yet reported); only its
+          # output matters, and `|| true` keeps `bash -e` from aborting the step.
           for i in $(seq 1 30); do
-            n=$(gh pr checks "$PR_URL" --required --json name -q 'length' 2>/dev/null)
+            n=$(gh pr checks "$PR_URL" --required --json name -q 'length' 2>/dev/null || true)
             [ "${n:-0}" -gt 0 ] && break
             sleep 10
           done
