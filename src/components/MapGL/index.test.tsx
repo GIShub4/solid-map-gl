@@ -109,8 +109,8 @@ describe("Map", () => {
     render(() => (
       <MapGL mapLib={mapLib} options={{ style: style() }}>
         <Source id="src" source={{ type: "geojson", data: {} as any }}>
-          <Layer id="a" style={{ type: "fill" }} beforeType="symbol" />
-          <Layer id="b" style={{ type: "line" }} beforeType="symbol" />
+          <Layer id="a" type="fill" beforeType="symbol" />
+          <Layer id="b" type="line" beforeType="symbol" />
         </Source>
       </MapGL>
     ));
@@ -705,7 +705,7 @@ describe("Map", () => {
     render(() => (
       <MapGL mapLib={mapLib} options={{ style: style() }}>
         <Source id="src" source={{ type: "geojson", data: {} as any }}>
-          <Layer id="a" style={{ type: "fill" }} beforeId="labels" />
+          <Layer id="a" type="fill" beforeId="labels" />
         </Source>
       </MapGL>
     ));
@@ -734,7 +734,7 @@ describe("Map", () => {
     render(() => (
       <MapGL mapLib={mapLib} options={{ style: style() }}>
         <Source id="src" source={{ type: "geojson", data: {} as any }}>
-          <Layer id="a" style={{ type: "fill" }} beforeType="symbol" />
+          <Layer id="a" type="fill" beforeType="symbol" />
         </Source>
       </MapGL>
     ));

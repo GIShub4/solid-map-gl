@@ -57,7 +57,7 @@ describe("Layer", () => {
     document.documentElement.style.setProperty("--color-blue-600", "#123456");
     const { map } = renderWithMap(() => (
       <Source id="src" source={{ type: "geojson", data: {} as any }}>
-        <Layer id="l1" style={{ type: "fill", fillColor: "blue-600", fillOpacity: 1 }} />
+        <Layer id="l1" type="fill" paint={{ fillColor: "blue-600", fillOpacity: 1 }} />
       </Source>
     ));
     const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
@@ -70,7 +70,7 @@ describe("Layer", () => {
   it("leaves a Tailwind name unchanged when no matching --color-{name} variable is set", () => {
     const { map } = renderWithMap(() => (
       <Source id="src" source={{ type: "geojson", data: {} as any }}>
-        <Layer id="l1" style={{ type: "fill", fillColor: "blue-600" }} />
+        <Layer id="l1" type="fill" paint={{ fillColor: "blue-600" }} />
       </Source>
     ));
     const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
@@ -82,7 +82,8 @@ describe("Layer", () => {
       <Source id="src" source={{ type: "geojson", data: {} as any }}>
         <Layer
           id="l1"
-          style={{ type: "fill", fillColor: "oklch(54.6% 0.245 262.881)" }}
+          type="fill"
+          paint={{ fillColor: "oklch(54.6% 0.245 262.881)" }}
         />
       </Source>
     ));
@@ -96,7 +97,7 @@ describe("Layer", () => {
   it("leaves non-Tailwind-name strings on paint color properties untouched", () => {
     const { map } = renderWithMap(() => (
       <Source id="src" source={{ type: "geojson", data: {} as any }}>
-        <Layer id="l1" style={{ type: "fill", fillColor: "#f00" }} />
+        <Layer id="l1" type="fill" paint={{ fillColor: "#f00" }} />
       </Source>
     ));
     const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
@@ -117,7 +118,7 @@ describe("Layer", () => {
     const { map } = renderWithMap(
       () => (
         <Source id="src" source={{ type: "geojson", data: {} as any }}>
-          <Layer id="l1" style={{ type: "fill", fillColor: "@primary" }} />
+          <Layer id="l1" type="fill" paint={{ fillColor: "@primary" }} />
         </Source>
       ),
       { constants: { primary: "#123456" } },
@@ -130,7 +131,7 @@ describe("Layer", () => {
     const { map } = renderWithMap(
       () => (
         <Source id="src" source={{ type: "geojson", data: {} as any }}>
-          <Layer id="l1" style={{ type: "line", lineWidth: "@roadWidth" }} />
+          <Layer id="l1" type="line" paint={{ lineWidth: "@roadWidth" }} />
         </Source>
       ),
       { constants: { roadWidth: 4 } },
@@ -144,7 +145,7 @@ describe("Layer", () => {
     const { map } = renderWithMap(
       () => (
         <Source id="src" source={{ type: "geojson", data: {} as any }}>
-          <Layer id="l1" style={{ type: "fill", fillColor: "@primary" }} />
+          <Layer id="l1" type="fill" paint={{ fillColor: "@primary" }} />
         </Source>
       ),
       { constants: { primary: "blue-600" } },
@@ -157,7 +158,7 @@ describe("Layer", () => {
     const { map } = renderWithMap(
       () => (
         <Source id="src" source={{ type: "geojson", data: {} as any }}>
-          <Layer id="l1" style={{ type: "fill", fillColor: "@missing" }} />
+          <Layer id="l1" type="fill" paint={{ fillColor: "@missing" }} />
         </Source>
       ),
       { constants: { primary: "#123456" } },
@@ -182,8 +183,8 @@ describe("Layer", () => {
         <Source id="src" source={{ type: "geojson", data: {} as any }}>
           <Layer
             id="l1"
-            style={{
-              type: "fill",
+            type="fill"
+            paint={{
               fillColor: ["case", ["boolean", ["feature-state", "hover"], false], "@hoverFill", "#000"],
             }}
           />
@@ -204,8 +205,8 @@ describe("Layer", () => {
         <Source id="src" source={{ type: "geojson", data: {} as any }}>
           <Layer
             id="l1"
-            style={{
-              type: "fill",
+            type="fill"
+            paint={{
               fillColor: ["case", ["boolean", ["feature-state", "hover"], false], "@hoverFill", "#000"],
             }}
           />
@@ -225,7 +226,8 @@ describe("Layer", () => {
         <Source id="src" source={{ type: "geojson", data: {} as any }}>
           <Layer
             id="l1"
-            style={{ type: "fill", fillColor: ["case", ["==", ["get", "x"], 1], "@missing", "#000"] }}
+            type="fill"
+            paint={{ fillColor: ["case", ["==", ["get", "x"], 1], "@missing", "#000"] }}
           />
         </Source>
       ),
@@ -240,7 +242,7 @@ describe("Layer", () => {
   it("resolves a 'bg-x dark:bg-y' pair to the light class when not in dark mode", () => {
     const { map } = renderWithMap(() => (
       <Source id="src" source={{ type: "geojson", data: {} as any }}>
-        <Layer id="l1" style={{ type: "fill", fillColor: "bg-blue-600 dark:bg-blue-400" }} />
+        <Layer id="l1" type="fill" paint={{ fillColor: "bg-blue-600 dark:bg-blue-400" }} />
       </Source>
     ));
     const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
@@ -251,7 +253,7 @@ describe("Layer", () => {
     document.body.classList.add("dark");
     const { map } = renderWithMap(() => (
       <Source id="src" source={{ type: "geojson", data: {} as any }}>
-        <Layer id="l1" style={{ type: "fill", fillColor: "bg-blue-600 dark:bg-blue-400" }} />
+        <Layer id="l1" type="fill" paint={{ fillColor: "bg-blue-600 dark:bg-blue-400" }} />
       </Source>
     ));
     const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
@@ -266,7 +268,7 @@ describe("Layer", () => {
     render(() => (
       <MapProvider map={map} mapLib={mapLib} themeVersion={version()}>
         <Source id="src" source={{ type: "geojson", data: {} as any }}>
-          <Layer id="l1" style={{ type: "fill", fillColor: "bg-blue-600 dark:bg-blue-400" }} />
+          <Layer id="l1" type="fill" paint={{ fillColor: "bg-blue-600 dark:bg-blue-400" }} />
         </Source>
       </MapProvider>
     ));
@@ -291,7 +293,7 @@ describe("Layer", () => {
     render(() => (
       <MapProvider map={map} mapLib={mapLib} themeVersion={version()}>
         <Source id="src" source={{ type: "geojson", data: {} as any }}>
-          <Layer id="l1" style={{ type: "fill", fillColor: "bg-blue-600 dark:bg-blue-400" }} />
+          <Layer id="l1" type="fill" paint={{ fillColor: "bg-blue-600 dark:bg-blue-400" }} />
         </Source>
       </MapProvider>
     ));
@@ -318,7 +320,7 @@ describe("Layer", () => {
     render(() => (
       <MapProvider map={map} mapLib={mapLib} constants={{ primary: primary() }}>
         <Source id="src" source={{ type: "geojson", data: {} as any }}>
-          <Layer id="l1" style={{ type: "fill", fillColor: "@primary" }} />
+          <Layer id="l1" type="fill" paint={{ fillColor: "@primary" }} />
         </Source>
       </MapProvider>
     ));
@@ -338,7 +340,7 @@ describe("Layer", () => {
     const [color, setColor] = createSignal("#fff");
     const { map } = renderWithMap(() => (
       <Source id="src" source={{ type: "geojson", data: {} as any }}>
-        <Layer id="l1" style={{ type: "fill", fillColor: color(), fillOpacity: 1 }} />
+        <Layer id="l1" type="fill" paint={{ fillColor: color(), fillOpacity: 1 }} />
       </Source>
     ));
 
@@ -366,7 +368,7 @@ describe("Layer", () => {
     renderWithMap(
       () => (
         <Source id="src" source={{ type: "geojson", data: {} as any }}>
-          <Layer id="l1" style={{ type: "fill" }} beforeType="symbol" />
+          <Layer id="l1" type="fill" beforeType="symbol" />
         </Source>
       ),
       { map },
@@ -381,7 +383,7 @@ describe("Layer", () => {
   it("passes beforeId straight through when no beforeType is given", () => {
     const { map } = renderWithMap(() => (
       <Source id="src" source={{ type: "geojson", data: {} as any }}>
-        <Layer id="l1" style={{ type: "fill" }} beforeId="anchor" />
+        <Layer id="l1" type="fill" beforeId="anchor" />
       </Source>
     ));
     expect(map.addLayer).toHaveBeenCalledWith(
@@ -394,7 +396,7 @@ describe("Layer", () => {
     const [beforeId, setBeforeId] = createSignal("anchor");
     const { map } = renderWithMap(() => (
       <Source id="src" source={{ type: "geojson", data: {} as any }}>
-        <Layer id="l1" style={{ type: "fill" }} beforeId={beforeId()} />
+        <Layer id="l1" type="fill" beforeId={beforeId()} />
       </Source>
     ));
     expect(map.moveLayer).not.toHaveBeenCalled();
@@ -412,7 +414,7 @@ describe("Layer", () => {
     renderWithMap(
       () => (
         <Source id="src" source={{ type: "geojson", data: {} as any }}>
-          <Layer id="l1" style={{ type: "fill" }} beforeType={beforeType()} />
+          <Layer id="l1" type="fill" beforeType={beforeType()} />
         </Source>
       ),
       { map },
@@ -429,7 +431,7 @@ describe("Layer", () => {
   it("removes the layer on cleanup", () => {
     const { map, unmount } = renderWithMap(() => (
       <Source id="src" source={{ type: "geojson", data: {} as any }}>
-        <Layer id="l1" style={{ type: "fill" }} />
+        <Layer id="l1" type="fill" />
       </Source>
     ));
     unmount();
@@ -449,11 +451,9 @@ describe("Layer", () => {
       <Source id="src" source={{ type: "geojson", data: {} as any }}>
         <Layer
           id="l1"
-          style={{
-            type: "fill",
-            paint: { fillColor: "#fff" },
-            layout: { visibility: "visible" },
-          }}
+          type="fill"
+          paint={{ fillColor: "#fff" }}
+          layout={{ visibility: "visible" }}
         />
       </Source>
     ));
@@ -472,7 +472,7 @@ describe("Layer", () => {
     renderWithMap(
       () => (
         <Source id="src" source={{ type: "geojson", data: {} as any }}>
-          <Layer id="l1" style={{ type: "fill" }} onClick={onClick} />
+          <Layer id="l1" type="fill" onClick={onClick} />
         </Source>
       ),
       { map },
@@ -491,7 +491,7 @@ describe("Layer", () => {
     renderWithMap(
       () => (
         <Source id="src" source={{ type: "geojson", data: {} as any }}>
-          <Layer id="l1" style={{ type: "fill" }} onMouseMove={onMouseMove} />
+          <Layer id="l1" type="fill" onMouseMove={onMouseMove} />
         </Source>
       ),
       { map },
@@ -508,7 +508,7 @@ describe("Layer", () => {
     const [visible, setVisible] = createSignal(true);
     const { map } = renderWithMap(() => (
       <Source id="src" source={{ type: "geojson", data: {} as any }}>
-        <Layer id="l1" style={{ type: "fill" }} visible={visible()} />
+        <Layer id="l1" type="fill" visible={visible()} />
       </Source>
     ));
     expect(map.setLayoutProperty).not.toHaveBeenCalledWith(
@@ -579,7 +579,7 @@ describe("Layer", () => {
     renderWithMap(
       () => (
         <Source id="src" source={{ type: "geojson", data: {} as any }}>
-          <Layer id="l1" style={{ type: "fill" }} filter={["==", "a", 1] as any} />
+          <Layer id="l1" type="fill" filter={["==", "a", 1] as any} />
         </Source>
       ),
       { map },
@@ -595,7 +595,7 @@ describe("Layer", () => {
     const [filter, setFilter] = createSignal<any>(["==", "a", 1]);
     const { map } = renderWithMap(() => (
       <Source id="src" source={{ type: "geojson", data: {} as any }}>
-        <Layer id="l1" style={{ type: "fill" }} filter={filter()} />
+        <Layer id="l1" type="fill" filter={filter()} />
       </Source>
     ));
     await tick();
@@ -629,7 +629,7 @@ describe("Layer", () => {
         <Source id="src" source={{ type: "geojson", data: {} as any }}>
           <Layer
             id="l1"
-            style={{ type: "fill", "source-layer": "sl" } as any}
+            type="fill" sourceLayer="sl"
             featureState={{ id: 1, state: { hover: true } }}
           />
         </Source>
@@ -664,7 +664,7 @@ describe("Layer", () => {
         <Source id="src" source={{ type: "geojson", data: {} as any }}>
           <Layer
             id="l1"
-            style={{ type: "fill", "source-layer": "sl" } as any}
+            type="fill" sourceLayer="sl"
             featureState={{ id: hoveredId(), state: { hover: true } }}
           />
         </Source>
@@ -692,7 +692,7 @@ describe("Layer", () => {
       () => (
         <Layer
           id="l1"
-          style={{ type: "circle" }}
+          type="circle"
           pulse={{ property: "circle-radius", from: 0, to: 20, duration: 1000 }}
         />
       ),
@@ -727,7 +727,7 @@ describe("Layer", () => {
       () => (
         <Layer
           id="l1"
-          style={{ type: "circle" }}
+          type="circle"
           // holdFraction 0.25 (default) -> ramp gets 75% of the 1000ms cycle = 750ms.
           pulse={{ property: "circle-radius", from: 0, to: 20, duration: 1000 }}
         />
@@ -776,7 +776,7 @@ describe("Layer", () => {
       () => (
         <Layer
           id="l1"
-          style={{ type: "circle" }}
+          type="circle"
           pulse={{ property: "circle-radius", from: 0, to: 20, duration: 1000 }}
         />
       ),
@@ -810,7 +810,7 @@ describe("Layer", () => {
       () => (
         <Layer
           id="l1"
-          style={{ type: "circle" }}
+          type="circle"
           pulse={[
             { property: "circle-radius", from: 0, to: 20 },
             { property: "circle-color", from: "rgba(200,0,0,1)", to: "rgba(200,0,0,0)" },
@@ -832,7 +832,7 @@ describe("Layer", () => {
   it("does not start a pulse when the prop is unset", async () => {
     const intervalSpy = vi.spyOn(window, "setInterval");
     const map = createMockMap();
-    renderWithMap(() => <Layer id="l1" style={{ type: "fill" }} />, { map });
+    renderWithMap(() => <Layer id="l1" type="fill" />, { map });
     await tick();
 
     expect(intervalSpy).not.toHaveBeenCalled();
@@ -846,7 +846,7 @@ describe("Layer", () => {
       () => (
         <Layer
           id="l1"
-          style={{ type: "circle" }}
+          type="circle"
           pulse={[
             { property: "circle-radius", from: 0, to: 20, duration: 1000 },
             { property: "circle-color", from: "rgba(200,0,0,1)", to: "rgba(200,0,0,0)", duration: 1000 },
@@ -889,7 +889,7 @@ describe("Layer", () => {
       () => (
         <Layer
           id="l1"
-          style={{ type: "circle" }}
+          type="circle"
           // Half the cycle held -> half spent ramping.
           pulse={{ property: "circle-radius", from: 0, to: 20, duration: 1000, holdFraction: 0.5 }}
         />
@@ -916,7 +916,7 @@ describe("Layer", () => {
       () => (
         <Layer
           id="l1"
-          style={{ type: "circle" }}
+          type="circle"
           pulse={{ property: "circle-color", from: "blue-600", to: "blue-600" }}
         />
       ),
@@ -938,7 +938,7 @@ describe("Layer", () => {
       () => (
         <Layer
           id="l1"
-          style={{ type: "circle" }}
+          type="circle"
           pulse={{ property: "circle-radius", from: 0, to: 20 }}
         />
       ),
@@ -952,5 +952,101 @@ describe("Layer", () => {
       0,
       { validate: false },
     );
+  });
+
+  describe("flat props (type/paint/layout/minzoom/maxzoom/sourceLayer)", () => {
+    it("builds the same layer spec as the deprecated style object", () => {
+      const { map } = renderWithMap(() => (
+        <Source id="src" source={{ type: "vector", url: "mapbox://x" }}>
+          <Layer
+            id="l1"
+            type="line"
+            sourceLayer="road"
+            minzoom={4}
+            maxzoom={18}
+            paint={{ lineColor: "#fff", "line-width": 2 }}
+            layout={{ lineCap: "round" }}
+          />
+        </Source>
+      ));
+      const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
+      expect(call[0]).toMatchObject({
+        type: "line",
+        "source-layer": "road",
+        minzoom: 4,
+        maxzoom: 18,
+        paint: { "line-color": "#fff", "line-width": 2 },
+        layout: { "line-cap": "round" },
+      });
+    });
+
+    it("accepts a plain Mapbox layer spec spread in, including its kebab-case source-layer key", () => {
+      const spec = { type: "fill", "source-layer": "buildings", paint: { "fill-color": "#000" } } as const;
+      const { map } = renderWithMap(() => (
+        <Source id="src" source={{ type: "vector", url: "mapbox://x" }}>
+          <Layer id="l1" {...spec} />
+        </Source>
+      ));
+      const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
+      expect(call[0]).toMatchObject({
+        type: "fill",
+        "source-layer": "buildings",
+        paint: { "fill-color": "#000" },
+      });
+    });
+
+    it("diff-updates a reactive paint prop like the style object does", async () => {
+      const [color, setColor] = createSignal("#fff");
+      const { map } = renderWithMap(() => (
+        <Source id="src" source={{ type: "geojson", data: {} as any }}>
+          <Layer id="l1" type="fill" paint={{ fillColor: color(), fillOpacity: 1 }} />
+        </Source>
+      ));
+
+      setColor("#000");
+      await tick();
+
+      expect(map.setPaintProperty).toHaveBeenCalledWith("l1", "fill-color", "#000", { validate: false });
+      expect(map.setPaintProperty).not.toHaveBeenCalledWith("l1", "fill-opacity", expect.anything(), expect.anything());
+    });
+
+    it("updates the zoom range reactively", async () => {
+      const [minzoom, setMinzoom] = createSignal(0);
+      const { map } = renderWithMap(() => (
+        <Source id="src" source={{ type: "geojson", data: {} as any }}>
+          <Layer id="l1" type="fill" minzoom={minzoom()} maxzoom={10} />
+        </Source>
+      ));
+
+      setMinzoom(3);
+      await tick();
+
+      expect(map.setLayerZoomRange).toHaveBeenCalledWith("l1", 3, 10);
+    });
+
+    it("lets a flat prop win over the same key inside the deprecated style object", () => {
+      const { map } = renderWithMap(() => (
+        <Source id="src" source={{ type: "geojson", data: {} as any }}>
+          <Layer id="l1" style={{ type: "fill", minzoom: 2 }} minzoom={5} />
+        </Source>
+      ));
+      const call = map.addLayer.mock.calls.find((c: any[]) => c[0].id === "l1");
+      expect(call[0]).toMatchObject({ type: "fill", minzoom: 5 });
+    });
+
+    it("uses sourceLayer for feature state, without a style object", async () => {
+      const map = createMockMap();
+      renderWithMap(
+        () => (
+          <Source id="src" source={{ type: "geojson", data: {} as any }}>
+            <Layer id="l1" type="fill" sourceLayer="sl" featureState={{ id: 1, state: { hover: true } }} />
+          </Source>
+        ),
+        { map },
+      );
+      await tick();
+
+      expect(map.setFeatureState).toHaveBeenCalledWith({ source: "src", sourceLayer: "sl", id: 1 }, { hover: true });
+    });
   });
 });

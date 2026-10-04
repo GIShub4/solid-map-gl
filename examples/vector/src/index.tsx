@@ -22,13 +22,11 @@ const App: Component = () => {
     >
       <Source source={{ type: "vector", url: "mapbox://mapbox.mapbox-terrain-v2" }}>
         <Layer
-          style={{
-            "source-layer": "contour",
-            type: "line",
-            paint: {
-              "line-width": 2,
-              "line-color": "hsla(200, 50%, 50%, 0.5)",
-            },
+          sourceLayer="contour"
+          type="line"
+          paint={{
+            "line-width": 2,
+            "line-color": "hsla(200, 50%, 50%, 0.5)",
           }}
         />
       </Source>

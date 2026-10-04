@@ -28,11 +28,9 @@ const App: Component = () => {
     >
       <Source source={{ type: "vector", url: `pmtiles://${PMTILES_URL}` }}>
         <Layer
-          style={{
-            "source-layer": "roads",
-            type: "line",
-            paint: { "line-color": "#666", "line-width": 1 },
-          }}
+          sourceLayer="roads"
+          type="line"
+          paint={{ "line-color": "#666", "line-width": 1 }}
         />
       </Source>
     </MapGL>

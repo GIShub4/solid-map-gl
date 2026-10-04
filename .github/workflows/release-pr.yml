@@ -71,13 +71,42 @@ jobs:
           # release already left on main, or it would reopen the same version.
           ref: main
 
+      # A PR can bump package.json itself (e.g. to a minor/major version this
+      # job would never pick, since it only ever bumps patch). If main's version
+      # isn't on npm yet, that bump is the release: skip opening a patch-bump PR
+      # on top of it and publish main as-is. Only an explicit E404 counts as
+      # "not published" — any other `npm view` failure (registry/network) fails
+      # the job rather than silently publishing or skipping.
+      - name: Check whether main's version is already published
+        id: check
+        run: |
+          version=$(node -p "require('./package.json').version")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if out=$(npm view "solid-map-gl@$version" version 2>&1); then
+            echo "unpublished=false" >> "$GITHUB_OUTPUT"
+          elif grep -q E404 <<<"$out"; then
+            echo "unpublished=true" >> "$GITHUB_OUTPUT"
+            echo "solid-map-gl@$version isn't on npm yet — publishing it instead of bumping patch."
+          else
+            echo "$out"
+            exit 1
+          fi
+
+      - name: Publish main's unpublished version
+        if: steps.check.outputs.unpublished == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run publish.yml --ref main
+
       - name: Bump patch version
+        if: steps.check.outputs.unpublished != 'true'
         id: bump
         run: |
           npm version patch --no-git-tag-version
           echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
 
       - name: Open release PR
+        if: steps.check.outputs.unpublished != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.bump.outputs.version }}
@@ -98,6 +127,7 @@ jobs:
             --head "release/v$VERSION"
 
       - name: Wait for CI, merge, and publish
+        if: steps.check.outputs.unpublished != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.bump.outputs.version }}

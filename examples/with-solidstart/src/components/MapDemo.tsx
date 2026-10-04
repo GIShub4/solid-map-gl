@@ -27,12 +27,10 @@ const MapDemo: Component = () => {
         }}
       >
         <Layer
-          style={{
-            type: "circle",
-            paint: {
-              "circle-radius": 8,
-              "circle-color": "red",
-            },
+          type="circle"
+          paint={{
+            "circle-radius": 8,
+            "circle-color": "red",
           }}
         />
       </Source>

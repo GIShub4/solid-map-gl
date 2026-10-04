@@ -28,7 +28,7 @@ const App: Component = () => {
           maxzoom: 14,
         }}
       >
-        <Layer style={{ type: "hillshade" }} />
+        <Layer type="hillshade" />
       </Source>
     </MapGL>
   );

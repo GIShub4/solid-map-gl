@@ -10,6 +10,20 @@ rejected, what's still open), see `.claude/dev-notes.md`.
 
 ## [Unreleased]
 
+### Added
+
+- **`<Layer>` takes the layer spec as flat props** — `type`, `paint`, `layout`, `minzoom`,
+  `maxzoom` and `sourceLayer` (`"source-layer"` is accepted too, so a plain Mapbox layer spec can be
+  spread in: `<Layer {...spec} />`), matching react-map-gl. Same pipeline as before: camelCase
+  keys, `'@name'` constants and Tailwind color names all still work inside `paint`/`layout`.
+
+### Deprecated
+
+- **`<Layer style={...}>`** — `eslint-plugin-solid`'s `solid/style-prop` rule treats any JSX `style`
+  attribute as CSS, so every `<Layer style>` was flagged (`type is not a valid CSS property`, ...).
+  It still works unchanged and logs a one-time `console.warn`; when both are given, a flat prop
+  wins over the same key inside `style`. Planned for removal in 3.0.
+
 ### Fixed
 
 - **`ctx.mapLib` is no longer proxied by `solid-js/store`** — `MapProvider` stored the resolved

@@ -8,7 +8,7 @@
 
 > **renderWithMap**(`ui`, `opts?`): `object` & `object` & `object` & `object`
 
-Defined in: [src/testUtils/renderWithMap.tsx:10](https://github.com/GIShub4/solid-map-gl/blob/163a7e03cd52ceb723738d08b0dfd1b9405617e8/src/testUtils/renderWithMap.tsx#L10)
+Defined in: [src/testUtils/renderWithMap.tsx:10](https://github.com/GIShub4/solid-map-gl/blob/1edfb2779e99e094b00b8a942205afe91669c6ca/src/testUtils/renderWithMap.tsx#L10)
 
 Renders `ui` inside a `<MapProvider>` backed by a mock map, mirroring how every real
 component is only ever mounted underneath `<MapGL>`. Reused across component test files

@@ -25,16 +25,14 @@ const App: Component = () => {
     >
       <Layer
         sourceId="composite"
-        style={{
-          "source-layer": "building",
-          type: "fill-extrusion",
-          filter: ["==", "extrude", "true"],
-          paint: {
-            "fill-extrusion-color": "#aaa",
-            "fill-extrusion-height": ["get", "height"],
-            "fill-extrusion-base": ["get", "min_height"],
-            "fill-extrusion-opacity": 0.6,
-          },
+        sourceLayer="building"
+        type="fill-extrusion"
+        filter={["==", "extrude", "true"]}
+        paint={{
+          "fill-extrusion-color": "#aaa",
+          "fill-extrusion-height": ["get", "height"],
+          "fill-extrusion-base": ["get", "min_height"],
+          "fill-extrusion-opacity": 0.6,
         }}
       />
     </MapGL>

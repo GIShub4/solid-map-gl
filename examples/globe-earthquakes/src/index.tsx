@@ -44,8 +44,8 @@ const App: Component = () => {
         }}
       >
         <Layer
-          style={{
-            type: "circle",
+          type="circle"
+          paint={{
             radius: ["*", ["get", "mag"], 2],
             color: ["match", ["get", "tsunami"], 0, "#F00", 1, "#03A", "#CCC"],
             opacity: 0.5,

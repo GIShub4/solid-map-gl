@@ -8,7 +8,7 @@
 
 > **createMockMap**(`opts?`): `any`
 
-Defined in: [src/testUtils/mockMap.ts:25](https://github.com/GIShub4/solid-map-gl/blob/163a7e03cd52ceb723738d08b0dfd1b9405617e8/src/testUtils/mockMap.ts#L25)
+Defined in: [src/testUtils/mockMap.ts:25](https://github.com/GIShub4/solid-map-gl/blob/1edfb2779e99e094b00b8a942205afe91669c6ca/src/testUtils/mockMap.ts#L25)
 
 Public `solid-map-gl/testing` entry point — the same mock `mapboxgl.Map`/`maplibregl.Map` and
 `<MapProvider>` render helper this library's own test suite uses (see `.claude/dev-notes.md`

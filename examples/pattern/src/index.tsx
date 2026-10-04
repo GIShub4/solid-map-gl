@@ -52,7 +52,7 @@ const App: Component = () => {
           },
         }}
       >
-        <Layer style={{ type: "fill", paint: { "fill-pattern": "fill-pattern" } }} />
+        <Layer type="fill" paint={{ "fill-pattern": "fill-pattern" }} />
       </Source>
       <div style={{ position: "absolute", top: "10px", left: "10px" }}>
         <For each={patternList}>

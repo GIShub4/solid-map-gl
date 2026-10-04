@@ -28,7 +28,7 @@ const App: Component = () => {
       onViewportChange={(evt: Viewport) => setViewport(evt)}
     >
       <Source source={{ type: "raster", url: url(), tileSize: 256 }}>
-        <Layer style={{ type: "raster" }} />
+        <Layer type="raster" />
       </Source>
       <div style={{ position: "absolute", top: "10px", left: "10px" }}>
         <For each={Object.entries(rasterStyles)}>

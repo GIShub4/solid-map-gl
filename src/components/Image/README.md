@@ -66,14 +66,12 @@ runs the rasterized `source` through an actual distance transform before it reac
 <Image id="triangle" source={triangleSvg} sdf />
 <Source ...>
   <Layer
-    style={{
-      type: 'symbol',
-      layout: { 'icon-image': 'triangle', 'icon-size': 0.5 },
-      paint: {
-        'icon-color': ['get', 'color'], // driven by feature data, not baked into the icon
-        'icon-halo-color': '#fff',
-        'icon-halo-width': 1.5,
-      },
+    type="symbol"
+    layout={{ 'icon-image': 'triangle', 'icon-size': 0.5 }}
+    paint={{
+      'icon-color': ['get', 'color'], // driven by feature data, not baked into the icon
+      'icon-halo-color': '#fff',
+      'icon-halo-width': 1.5,
     }}
   />
 </Source>
@@ -189,12 +187,10 @@ const App: Component = () => {
         }}
       >
         <Layer
-          style={{
-            type: 'symbol',
-            layout: {
-              'icon-image': 'cat',
-              'icon-size': 0.25,
-            },
+          type="symbol"
+          layout={{
+            'icon-image': 'cat',
+            'icon-size': 0.25,
           }}
         />
       </Source>

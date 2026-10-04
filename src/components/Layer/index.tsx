@@ -11,7 +11,7 @@ import { layerEvents } from "../../lib/events";
 import { baseStyle, layoutStyles } from "./styles";
 import { resolveColor as resolveColorValue } from "./colors";
 import type { layerEventTypes } from "../../lib/events";
-import type { FilterSpecification, CustomLayerInterface } from "mapbox-gl";
+import type { FilterSpecification, CustomLayerInterface, LayerSpecification } from "mapbox-gl";
 
 // `style` accepts a mix of base layer keys (`type`, `filter`, `minzoom`/`maxzoom`,
 // `source-layer`) and flat paint/layout properties (e.g. `fillColor` or `fill-color`), which
@@ -50,11 +50,29 @@ const diff = (
   }, []);
 };
 
+// `(string & {})` keeps MapLibre-only types (e.g. `"color-relief"`) accepted without losing
+// autocomplete for Mapbox's own.
+type LayerType = LayerSpecification["type"] | (string & {});
+
 type Props = {
   id?: string;
   /** A string that uniquely identifies the layer. If not provided, a unique ID will be generated. */
+  type?: LayerType;
+  /** The Mapbox layer type, e.g. `"circle"`, `"fill"`, `"line"`, `"symbol"`. */
+  paint?: FlatLayerStyle;
+  /** Paint properties — kebab-case (`"fill-color"`) or camelCase (`fillColor`/`color`) keys. */
+  layout?: FlatLayerStyle;
+  /** Layout properties — kebab-case (`"line-cap"`) or camelCase (`lineCap`/`cap`) keys. */
+  minzoom?: number;
+  /** The minimum zoom level for the layer. */
+  maxzoom?: number;
+  /** The maximum zoom level for the layer. */
+  sourceLayer?: string;
+  /** The layer of a vector tile source to use. */
+  "source-layer"?: string;
+  /** Alias of `sourceLayer`, so a plain Mapbox layer spec object can be spread straight into `<Layer>`. */
   style?: FlatLayerStyle;
-  /** A Mapbox Style Specification object that defines the visual appearance of the layer. */
+  /** @deprecated Pass `type`/`paint`/`layout`/`minzoom`/`maxzoom`/`sourceLayer` as top-level props instead. */
   customLayer?: CustomLayerInterface;
   /** An object that implements the `CustomLayerInterface` interface, which allows you to create custom layers using WebGL. */
   filter?: FilterSpecification;
@@ -191,8 +209,35 @@ const updateStyle = (
   return { ...style, paint, layout };
 };
 
+// `style` predates the flat props and collides with `eslint-plugin-solid`'s `solid/style-prop` rule
+// (which treats any JSX `style` attribute as CSS) — warned once per page, not once per <Layer>.
+let warnedStyleDeprecation = false;
+
+// Merges the flat props over the deprecated `style` object into the single flat shape
+// `updateStyle()` buckets into paint/layout — so both APIs share one pipeline, and a flat prop wins
+// over the same key inside `style` when both are given.
+const flatStyle = (props: Props): FlatLayerStyle | undefined => {
+  const flat: FlatLayerStyle = {
+    type: props.type,
+    paint: props.paint,
+    layout: props.layout,
+    minzoom: props.minzoom,
+    maxzoom: props.maxzoom,
+    "source-layer": props.sourceLayer ?? props["source-layer"],
+  };
+  for (const key of Object.keys(flat)) if (flat[key] === undefined) delete flat[key];
+  if (!props.style) return Object.keys(flat).length ? flat : undefined;
+  return { ...props.style, ...flat };
+};
+
 export const Layer: Component<Props> = (props) => {
   const [ctx] = useMapContext();
+  if (props.style && !warnedStyleDeprecation) {
+    warnedStyleDeprecation = true;
+    console.warn(
+      "[solid-map-gl] <Layer style={...}> is deprecated — pass type/paint/layout/minzoom/maxzoom/sourceLayer as top-level <Layer> props instead.",
+    );
+  }
   const sourceId: string =
     props.sourceId || props.style?.source || useSourceId();
   const layerId: string = props.id || props.customLayer?.id || createUniqueId();
@@ -228,7 +273,7 @@ export const Layer: Component<Props> = (props) => {
   // Add Layer
   ctx.map.addLayer(
     (props.customLayer || {
-      ...updateStyle(props.style, ctx.constants, debug),
+      ...updateStyle(flatStyle(props), ctx.constants, debug),
       id: layerId,
       source: sourceId,
       // `slot` is Mapbox Standard-Style-only — MapLibre has no equivalent (see .claude/dev-notes.md)
@@ -278,7 +323,7 @@ export const Layer: Component<Props> = (props) => {
     // browser's cascade decides which of the two applies, but nothing tells Solid to re-read that
     // cascade on its own, so this stands in as the "please re-check" trigger.
     ctx.themeVersion;
-    const style = updateStyle(props.style, ctx.constants, debug);
+    const style = updateStyle(flatStyle(props), ctx.constants, debug);
     if (isFirstStyleUpdate) {
       isFirstStyleUpdate = false;
       return style;
@@ -307,7 +352,7 @@ export const Layer: Component<Props> = (props) => {
 
     debug("Update Layer Style:", layerId);
     return style;
-  }, updateStyle(props.style, ctx.constants, debug));
+  }, updateStyle(flatStyle(props), ctx.constants, debug));
 
   // Update Visibility
   createEffect((prev: boolean) => {
@@ -383,12 +428,12 @@ export const Layer: Component<Props> = (props) => {
     ignoringUnloadedStyle(() => {
       ctx.map.removeFeatureState({
         source: sourceId,
-        sourceLayer: props.style["source-layer"],
+        sourceLayer: flatStyle(props)?.["source-layer"],
       });
       ctx.map.setFeatureState(
         {
           source: sourceId,
-          sourceLayer: props.style["source-layer"],
+          sourceLayer: flatStyle(props)?.["source-layer"],
           id: props.featureState.id,
         },
         props.featureState.state,

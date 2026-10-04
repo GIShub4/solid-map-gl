@@ -27,14 +27,12 @@ const App: Component = () => {
         }}
       >
         <Layer
-          style={{
-            type: "heatmap",
-            paint: {
-              "heatmap-weight": ["interpolate", ["linear"], ["get", "mag"], 0, 0, 6, 1],
-              "heatmap-intensity": 1,
-              "heatmap-radius": 20,
-              "heatmap-opacity": 0.8,
-            },
+          type="heatmap"
+          paint={{
+            "heatmap-weight": ["interpolate", ["linear"], ["get", "mag"], 0, 0, 6, 1],
+            "heatmap-intensity": 1,
+            "heatmap-radius": 20,
+            "heatmap-opacity": 0.8,
           }}
         />
       </Source>

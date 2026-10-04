@@ -40,11 +40,9 @@ const App: Component = () => {
     >
       <Source source={{ type: "geojson", data }}>
         <Layer
-          style={{
-            type: "line",
-            layout: { "line-join": "round", "line-cap": "round" },
-            paint: { "line-color": "#F88", "line-width": 8 },
-          }}
+          type="line"
+          layout={{ "line-join": "round", "line-cap": "round" }}
+          paint={{ "line-color": "#F88", "line-width": 8 }}
         />
       </Source>
     </MapGL>

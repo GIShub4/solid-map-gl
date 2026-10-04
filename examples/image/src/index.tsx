@@ -37,10 +37,8 @@ const App: Component = () => {
         }}
       >
         <Layer
-          style={{
-            type: "symbol",
-            layout: { "icon-image": "cat", "icon-size": 0.25 },
-          }}
+          type="symbol"
+          layout={{ "icon-image": "cat", "icon-size": 0.25 }}
         />
       </Source>
     </MapGL>
