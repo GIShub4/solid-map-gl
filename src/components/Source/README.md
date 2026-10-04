@@ -42,13 +42,11 @@ const App: Component = () => {
         }}
       >
         <Layer
-          style={{
-            type: 'circle',
-            source: 'earthquakes',
-            paint: {
-              'circle-radius': 5,
-              'circle-color': 'red',
-            },
+          type="circle"
+          sourceId="earthquakes"
+          paint={{
+            'circle-radius': 5,
+            'circle-color': 'red',
           }}
         />
       </Source>
@@ -113,16 +111,14 @@ const App: Component = () => {
         }}
       >
         <Layer
-          style={{
-            type: 'line',
-            layout: {
-              'line-join': 'round',
-              'line-cap': 'round',
-            },
-            paint: {
-              'line-color': '#F88',
-              'line-width': 8,
-            },
+          type="line"
+          layout={{
+            'line-join': 'round',
+            'line-cap': 'round',
+          }}
+          paint={{
+            'line-color': '#F88',
+            'line-width': 8,
           }}
         />
       </Source>
@@ -157,13 +153,11 @@ const App: Component = () => {
         }}
       >
         <Layer
-          style={{
-            'source-layer': 'contour',
-            type: 'line',
-            paint: {
-              'line-width': 2,
-              'line-color': 'hsla(200, 50%, 50%, 0.5)',
-            },
+          sourceLayer="contour"
+          type="line"
+          paint={{
+            'line-width': 2,
+            'line-color': 'hsla(200, 50%, 50%, 0.5)',
           }}
         />
       </Source>

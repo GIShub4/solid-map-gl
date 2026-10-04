@@ -8,4 +8,4 @@
 
 > `const` **Camera**: `Component`\<`Props`\>
 
-Defined in: [src/components/Camera/index.tsx:82](https://github.com/GIShub4/solid-map-gl/blob/163a7e03cd52ceb723738d08b0dfd1b9405617e8/src/components/Camera/index.tsx#L82)
+Defined in: [src/components/Camera/index.tsx:82](https://github.com/GIShub4/solid-map-gl/blob/1edfb2779e99e094b00b8a942205afe91669c6ca/src/components/Camera/index.tsx#L82)

@@ -32,7 +32,7 @@ const App: Component = () => {
           ],
         }}
       >
-        <Layer style={{ type: "raster", paint: { "raster-fade-duration": 0 } }} />
+        <Layer type="raster" paint={{ "raster-fade-duration": 0 }} />
       </Source>
     </MapGL>
   );

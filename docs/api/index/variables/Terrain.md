@@ -8,4 +8,4 @@
 
 > `const` **Terrain**: `VoidComponent`\<`TerrainSpecification`\>
 
-Defined in: [src/components/Terrain/index.tsx:15](https://github.com/GIShub4/solid-map-gl/blob/163a7e03cd52ceb723738d08b0dfd1b9405617e8/src/components/Terrain/index.tsx#L15)
+Defined in: [src/components/Terrain/index.tsx:15](https://github.com/GIShub4/solid-map-gl/blob/1edfb2779e99e094b00b8a942205afe91669c6ca/src/components/Terrain/index.tsx#L15)

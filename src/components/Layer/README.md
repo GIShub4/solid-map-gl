@@ -9,7 +9,13 @@ description: Layer Component
 | Name         | Type                                                                                              | Description                                                                                               |
 | ------------ | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | id           | string                                                                                            | only required if referenced outside of nested layer                                                       |
-| style        | object                                                                                            | [Layer Style Object](https://docs.mapbox.com/mapbox-gl-js/style-spec/layers/) — any paint/layout value also accepts `'@name'` to reuse a value from `<MapGL>`'s `constants` prop; a `*-color` paint property additionally accepts a [Tailwind CSS v4](https://tailwindcss.com/docs/colors) color name (e.g. `'blue-600'`, resolved from the page's live `--color-blue-600` variable), a raw CSS Color 4 value (e.g. `'oklch(54.6% 0.245 262.881)'`) that Mapbox itself can't parse, or `'bg-{name} dark:bg-{name}'` (e.g. `'bg-blue-600 dark:bg-blue-400'`) to pick whichever the browser's cascade resolves for the real, compiled Tailwind classes — automatically tracking the page's dark mode |
+| type         | string                                                                                            | [Layer type](https://docs.mapbox.com/mapbox-gl-js/style-spec/layers/#type), e.g. `circle`, `fill`, `line`, `symbol` |
+| paint        | object                                                                                            | Paint properties (kebab-case or camelCase keys) — any paint/layout value also accepts `'@name'` to reuse a value from `<MapGL>`'s `constants` prop; a `*-color` paint property additionally accepts a [Tailwind CSS v4](https://tailwindcss.com/docs/colors) color name (e.g. `'blue-600'`, resolved from the page's live `--color-blue-600` variable), a raw CSS Color 4 value (e.g. `'oklch(54.6% 0.245 262.881)'`) that Mapbox itself can't parse, or `'bg-{name} dark:bg-{name}'` (e.g. `'bg-blue-600 dark:bg-blue-400'`) to pick whichever the browser's cascade resolves for the real, compiled Tailwind classes — automatically tracking the page's dark mode |
+| layout       | object                                                                                            | Layout properties (kebab-case or camelCase keys); accepts `'@name'` constants like `paint` |
+| minzoom      | number                                                                                            | Minimum zoom level for the layer                                                                          |
+| maxzoom      | number                                                                                            | Maximum zoom level for the layer                                                                          |
+| sourceLayer  | string                                                                                            | Vector tile source layer (`source-layer` is accepted too, so a Mapbox layer spec object can be spread in: `<Layer {...spec} />`) |
+| style        | object                                                                                            | **Deprecated** — the previous single-object form of `type`/`paint`/`layout`/`minzoom`/`maxzoom`/`source-layer`. Still works; flat props win over the same key inside it |
 | customLayer  | [CustomLayerInterface](https://docs.mapbox.com/mapbox-gl-js/api/properties/#customlayerinterface) | To include external layers e.g. [deck.gl](https://deck.gl/)                                               |
 | filter       | [FilterSpecification](https://docs.mapbox.com/mapbox-gl-js/style-spec/expressions/)               | Filter expression                                                                                         |
 | visible      | boolean                                                                                           | Show/Hide Layer                                                                                           |
@@ -49,12 +55,10 @@ const App: Component = (props) => {
         }}
       >
         <Layer
-          style={{
-            type: 'circle',
-            paint: {
-              'circle-radius': 5,
-              'circle-color': 'red',
-            },
+          type="circle"
+          paint={{
+            'circle-radius': 5,
+            'circle-color': 'red',
           }}
         />
       </Source>
@@ -71,8 +75,8 @@ number of `<Layer>` style props — updating `constants` re-applies it everywher
 ```jsx
 <MapGL options={{ style: 'mb:light' }} constants={{ primary: '#e0492b', roadWidth: 2 }}>
   <Source source={{ type: 'geojson', data: '...' }}>
-    <Layer style={{ type: 'fill', paint: { 'fill-color': '@primary' } }} />
-    <Layer style={{ type: 'line', paint: { 'line-color': '@primary', 'line-width': '@roadWidth' } }} />
+    <Layer type="fill" paint={{ 'fill-color': '@primary' }} />
+    <Layer type="line" paint={{ 'line-color': '@primary', 'line-width': '@roadWidth' }} />
   </Source>
 </MapGL>
 ```
@@ -86,7 +90,7 @@ than `solid-map-gl` guessing. This needs the full `bg-`-prefixed class names to 
 your own source (not just the bare color name) so Tailwind's build actually generates them.
 
 ```jsx
-<Layer style={{ type: 'fill', paint: { 'fill-color': 'bg-blue-600 dark:bg-blue-400' } }} />
+<Layer type="fill" paint={{ 'fill-color': 'bg-blue-600 dark:bg-blue-400' }} />
 ```
 
 ### Pulsing a paint property
@@ -100,7 +104,7 @@ map genuinely goes idle during each hold — see the performance note below.
 ```jsx
 <Source source={{ type: 'geojson', data: pointFeature }}>
   <Layer
-    style={{ type: 'circle', paint: { 'circle-color': '#2563eb' } }}
+    type="circle" paint={{ 'circle-color': '#2563eb' }}
     pulse={[
       { property: 'circle-radius', from: 4, to: 20 },
       { property: 'circle-color', from: 'rgba(37, 99, 235, 1)', to: 'rgba(37, 99, 235, 0)' },

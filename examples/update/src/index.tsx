@@ -47,10 +47,8 @@ const App: Component = () => {
         }}
       >
         <Layer
-          style={{
-            type: "circle",
-            paint: { "circle-radius": 5, "circle-color": "#1978c8" },
-          }}
+          type="circle"
+          paint={{ "circle-radius": 5, "circle-color": "#1978c8" }}
         />
       </Source>
     </MapGL>

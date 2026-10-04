@@ -80,24 +80,22 @@ const App: Component = () => {
             }}
           >
             <Layer
-              style={{
-                type: "symbol",
-                layout: {
-                  "icon-image": "dot",
-                  "icon-size": 0.4,
-                  "icon-allow-overlap": true,
-                  "text-field": ["get", "label"],
-                  "text-offset": [0, 2],
-                  "text-anchor": "top",
-                  "text-size": 11,
-                  "text-allow-overlap": true,
-                },
-                paint: {
-                  "icon-color": "#2563eb",
-                  "icon-halo-color": "#2563eb",
-                  "text-halo-color": "#fff",
-                  "text-halo-width": 1,
-                },
+              type="symbol"
+              layout={{
+                "icon-image": "dot",
+                "icon-size": 0.4,
+                "icon-allow-overlap": true,
+                "text-field": ["get", "label"],
+                "text-offset": [0, 2],
+                "text-anchor": "top",
+                "text-size": 11,
+                "text-allow-overlap": true,
+              }}
+              paint={{
+                "icon-color": "#2563eb",
+                "icon-halo-color": "#2563eb",
+                "text-halo-color": "#fff",
+                "text-halo-width": 1,
               }}
               pulse={marker.pulse}
             />

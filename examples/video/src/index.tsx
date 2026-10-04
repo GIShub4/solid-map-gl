@@ -36,7 +36,7 @@ const App: Component = () => {
           ],
         }}
       >
-        <Layer style={{ type: "raster" }} />
+        <Layer type="raster" />
       </Source>
     </MapGL>
   );

@@ -181,7 +181,7 @@ On cleanup, removes any layers still referencing this source before removing the
 
 ```jsx
 <Source source={{ type: "geojson", data: "https://.../earthquakes.geojson" }}>
-  <Layer style={{ type: "circle", paint: { "circle-radius": 5, "circle-color": "red" } }} />
+  <Layer type="circle" paint={{ "circle-radius": 5, "circle-color": "red" }} />
 </Source>
 ```
 
@@ -192,14 +192,19 @@ On cleanup, removes any layers still referencing this source before removing the
 `src/components/Layer/index.tsx`
 
 Wraps `map.addLayer`/`removeLayer`. `sourceId` defaults to `style.source`, then to the nearest
-`useSourceId()` from a parent `Source`. `style` is a flat Mapbox layer-style object; `updateStyle`
+`useSourceId()` from a parent `Source`. The layer spec comes in as flat props — `type`, `paint`,
+`layout`, `minzoom`, `maxzoom`, `sourceLayer` (or `"source-layer"`, so a plain Mapbox layer spec can
+be spread in) — which `flatStyle()` merges over the deprecated single-object `style` prop (flat props
+win per key) into one flat Mapbox layer-style object. `style` was renamed away from because
+`eslint-plugin-solid`'s `solid/style-prop` rule treats any JSX `style` attribute as CSS; it still
+works, with a one-time `console.warn`. `updateStyle`
 (using `baseStyle`/`layoutStyles` from `src/components/Layer/styles.ts`) buckets each key into `paint` vs. `layout`
 automatically. On every reactive update, `diff()` compares the new bucketed style against the
 previous one and calls only the matching `setLayoutProperty`/`setPaintProperty`/`setFilter`/
 `setLayerZoomRange` — the layer itself is never removed and re-added for a style change. Supports
 inserting relative to existing layers via `beforeId`/`beforeType` (recorded in
 `layer.metadata.smg` so it survives base-style swaps, see `MapGL`'s `insertLayers`). Also supports
-raw `customLayer` (a `CustomLayerInterface`, e.g. for deck.gl) instead of `style`, and per-layer
+raw `customLayer` (a `CustomLayerInterface`, e.g. for deck.gl) instead of `type`/`paint`/`layout`, and per-layer
 feature state via `featureState`.
 
 Every bucketed paint/layout value is first checked against `resolveConstant()`: a string matching
@@ -322,8 +327,13 @@ former `toRgbaComponents` export (only ever used by the old per-frame loop) is g
 | Name | Type | Description |
 | --- | --- | --- |
 | `id` | `string` | Layer id; generated if omitted |
-| `style` | [`StyleSpecification`](https://docs.mapbox.com/mapbox-gl-js/style-spec/layers/) | Flat layer style (paint + layout properties mixed at the top level) |
-| `customLayer` | [`CustomLayerInterface`](https://docs.mapbox.com/mapbox-gl-js/api/properties/#customlayerinterface) | Use instead of `style` for custom WebGL layers (e.g. deck.gl) |
+| `type` | `LayerSpecification["type"]` | Layer type (`circle`, `fill`, `line`, `symbol`, ...) |
+| `paint` | `object` | Paint properties, kebab-case or camelCase keys |
+| `layout` | `object` | Layout properties, kebab-case or camelCase keys |
+| `minzoom` / `maxzoom` | `number` | Layer zoom range |
+| `sourceLayer` / `"source-layer"` | `string` | Vector tile source layer |
+| `style` | `object` | **Deprecated** single-object form of the above (paint + layout properties may also be mixed at its top level); flat props win per key |
+| `customLayer` | [`CustomLayerInterface`](https://docs.mapbox.com/mapbox-gl-js/api/properties/#customlayerinterface) | Use instead of `type`/`paint`/`layout` for custom WebGL layers (e.g. deck.gl) |
 | `filter` | `FilterSpecification` | Filter expression |
 | `visible` | `boolean` | Toggles the `visibility` layout property |
 | `sourceId` | `string` | Overrides the inherited source id (required for some vector-tile setups) |
@@ -339,7 +349,7 @@ former `toRgbaComponents` export (only ever used by the old per-frame loop) is g
 
 ```jsx
 <Source source={{ type: "geojson", data: earthquakesUrl }}>
-  <Layer style={{ type: "circle", paint: { "circle-radius": 5, "circle-color": "red" } }} />
+  <Layer type="circle" paint={{ "circle-radius": 5, "circle-color": "red" }} />
 </Source>
 ```
 
@@ -476,7 +486,7 @@ The transform itself is also exported package-wide as `toSDF`/`PixelData`/`SDFOp
 ```jsx
 <Image id="cat" source="https://docs.mapbox.com/mapbox-gl-js/assets/cat.png" />
 <Source source={{ type: "geojson", data: pointFeature }}>
-  <Layer style={{ type: "symbol", layout: { "icon-image": "cat", "icon-size": 0.25 } }} />
+  <Layer type="symbol" layout={{ "icon-image": "cat", "icon-size": 0.25 }} />
 </Source>
 ```
 

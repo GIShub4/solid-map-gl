@@ -21,7 +21,7 @@ const App: Component = () => {
       onViewportChange={(evt: Viewport) => setViewport(evt)}
     >
       <Source source={{ type: "raster", url: "osm:org", tileSize: 256 }}>
-        <Layer style={{ type: "raster" }} />
+        <Layer type="raster" />
       </Source>
     </MapGL>
   );

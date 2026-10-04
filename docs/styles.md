@@ -116,9 +116,7 @@ Additionally to the default [Mapbox referencing of raster styles ](https://docs.
   }}
 >
   <Layer
-    style={{
-      type: 'raster',
-    }}
+    type="raster"
   />
 </Source>
 ```
