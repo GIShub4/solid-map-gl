@@ -1,0 +1,15 @@
+# Categories for GitHub's auto-generated release notes (publish.yml's
+# `gh release create --generate-notes`). The release-bot's own
+# "chore(release): vX.Y.Z" PRs are left out; Dependabot PRs (labelled
+# "dependencies" by dependabot.yml) are grouped separately.
+changelog:
+  exclude:
+    authors:
+      - github-actions[bot]
+  categories:
+    - title: Changes
+      labels: ["*"]
+      exclude:
+        labels: [dependencies]
+    - title: Dependencies
+      labels: [dependencies]

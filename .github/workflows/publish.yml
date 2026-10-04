@@ -3,7 +3,8 @@ name: Publish to npm
 # Finishes what release-pr.yml starts: once a "chore(release): vX.Y.Z" PR
 # (opened after a PR merge into main changed src/ or package.json) itself
 # merges into main, this builds and publishes that already-bumped version to
-# npm, then tags it to match the repo's existing vX.Y.Z tag history.
+# npm, then tags it to match the repo's existing vX.Y.Z tag history and
+# creates a GitHub release for that tag.
 #
 # Normally started by release-pr.yml via `gh workflow run publish.yml`, right
 # after it merges the release PR itself. That has to be an explicit dispatch:
@@ -90,3 +91,12 @@ jobs:
         run: |
           git tag "v$VERSION"
           git push origin "v$VERSION"
+
+      # Notes are generated from the PR titles merged since the previous
+      # GitHub release. Edit them by hand afterwards for minor/major releases.
+      - name: Create GitHub release
+        if: steps.check.outputs.published != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.check.outputs.version }}
+        run: gh release create "v$VERSION" --verify-tag --generate-notes --title "v$VERSION"
