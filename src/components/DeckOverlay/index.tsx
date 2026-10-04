@@ -1,5 +1,4 @@
 import { createEffect, VoidComponent } from "solid-js";
-import { useMapContext } from "../MapProvider";
 import { useControlPosition } from "../../lib/createMapControl";
 
 type Props = {
@@ -13,7 +12,6 @@ type Props = {
 
 /** Adds a deck.gl overlay control to the map, forwarding `props` reactively via `setProps`. */
 export const DeckOverlay: VoidComponent<Props> = (props) => {
-  const [ctx] = useMapContext();
   let overlay: any;
 
   const control = () => {

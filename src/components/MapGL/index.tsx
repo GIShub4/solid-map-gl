@@ -206,6 +206,7 @@ type Props = {
 /** Creates a new Map Container */
 export const MapGL: Component<Props> = (props) => {
   let map: Map;
+  // eslint-disable-next-line no-unassigned-vars -- assigned by Solid via ref={mapRef}
   let mapRef: HTMLDivElement;
   let resizeObserver: ResizeObserver;
   let mutationObserver: MutationObserver;
@@ -259,7 +260,7 @@ export const MapGL: Component<Props> = (props) => {
           .reduce((p: any, c) => p && p[c], vectorStyleList)
           ?.replace(
             "{apikey}",
-            //@ts-ignore
+            //@ts-expect-error -- import.meta.env is Vite-only
             props.apikey || import.meta.env?.VITE_VECTOR_API_KEY,
           ) || style
       : style;
@@ -289,7 +290,7 @@ export const MapGL: Component<Props> = (props) => {
     map = new mapLib.Map({
       accessToken:
         props.options?.accessToken ||
-        //@ts-ignore
+        //@ts-expect-error -- import.meta.env is Vite-only
         import.meta.env?.VITE_MAPBOX_ACCESS_TOKEN,
       interactive: props.options?.interactive || !!props.onViewportChange,
       ...props.options,

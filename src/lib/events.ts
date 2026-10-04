@@ -168,23 +168,23 @@ const drawEvents: any[] = [
 ]
 
 type drawEventTypes = {
-  onCreate?: (event: Object) => void
+  onCreate?: (event: object) => void
   /** called when a feature is created */
-  onDelete?: (event: Object) => void
+  onDelete?: (event: object) => void
   /** called when a feature is deleted */
-  onCombine?: (event: Object) => void
+  onCombine?: (event: object) => void
   /** called when features are combined */
-  onUncombine?: (event: Object) => void
+  onUncombine?: (event: object) => void
   /** called when features are uncombined */
-  onUpdate?: (event: Object) => void
+  onUpdate?: (event: object) => void
   /** called when a feature is updated */
-  onSelectionchange?: (event: Object) => void
+  onSelectionchange?: (event: object) => void
   /** called when the selected features change */
-  onModechange?: (event: Object) => void
+  onModechange?: (event: object) => void
   /** called when the draw mode changes */
-  onRender?: (event: Object) => void
+  onRender?: (event: object) => void
   /** called when the draw canvas is re-rendered */
-  onActionable?: (event: Object) => void
+  onActionable?: (event: object) => void
   /** called when the state of the draw controls changes */
 }
 

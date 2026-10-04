@@ -235,7 +235,6 @@ describe("MGL_Image", () => {
     const restoreCanvas = stubCanvasContext();
     let capturedImg: HTMLImageElement | undefined;
     const OrigImage = window.Image;
-    // @ts-ignore
     window.Image = class extends OrigImage {
       constructor() {
         super();
@@ -265,11 +264,10 @@ describe("MGL_Image", () => {
     const restoreCanvas = stubCanvasContext();
     const svg = '<svg xmlns="http://www.w3.org/2000/svg"><rect width="1" height="1"/></svg>';
     const fetchSpy = vi
-      .spyOn(global, "fetch")
+      .spyOn(globalThis, "fetch")
       .mockResolvedValue({ text: () => Promise.resolve(svg) } as any);
     let capturedImg: HTMLImageElement | undefined;
     const OrigImage = window.Image;
-    // @ts-ignore
     window.Image = class extends OrigImage {
       constructor() {
         super();
@@ -347,7 +345,6 @@ describe("MGL_Image", () => {
   it("falls back to a hardcoded pixelRatio when devicePixelRatio is unset", async () => {
     const restoreCanvas = stubCanvasContext();
     const originalRatio = window.devicePixelRatio;
-    // @ts-ignore
     delete window.devicePixelRatio;
 
     const { map } = renderWithMap(() => (
@@ -391,11 +388,9 @@ describe("MGL_Image", () => {
   it("falls back to a hardcoded pixelRatio for canvas rendering when devicePixelRatio is unset", async () => {
     const restoreCanvas = stubCanvasContext();
     const originalRatio = window.devicePixelRatio;
-    // @ts-ignore
     delete window.devicePixelRatio;
     let capturedImg: HTMLImageElement | undefined;
     const OrigImage = window.Image;
-    // @ts-ignore
     window.Image = class extends OrigImage {
       constructor() {
         super();
@@ -426,7 +421,6 @@ describe("MGL_Image", () => {
     const restoreCanvas = stubCanvasContext();
     let capturedImg: HTMLImageElement | undefined;
     const OrigImage = window.Image;
-    // @ts-ignore
     window.Image = class extends OrigImage {
       constructor() {
         super();
@@ -459,7 +453,6 @@ describe("MGL_Image", () => {
     const fakeCtx = (restoreCanvas as any).fakeCtx;
     let capturedImg: HTMLImageElement | undefined;
     const OrigImage = window.Image;
-    // @ts-ignore
     window.Image = class extends OrigImage {
       constructor() {
         super();
@@ -499,7 +492,6 @@ describe("MGL_Image", () => {
     const fakeCtx = (restoreCanvas as any).fakeCtx;
     let capturedImg: HTMLImageElement | undefined;
     const OrigImage = window.Image;
-    // @ts-ignore
     window.Image = class extends OrigImage {
       constructor() {
         super();
@@ -583,7 +575,6 @@ describe("MGL_Image", () => {
     const fakeCtx = (restoreCanvas as any).fakeCtx;
     let capturedImg: HTMLImageElement | undefined;
     const OrigImage = window.Image;
-    // @ts-ignore
     window.Image = class extends OrigImage {
       constructor() {
         super();
@@ -619,7 +610,6 @@ describe("MGL_Image", () => {
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     let capturedImg: HTMLImageElement | undefined;
     const OrigImage = window.Image;
-    // @ts-ignore
     window.Image = class extends OrigImage {
       constructor() {
         super();

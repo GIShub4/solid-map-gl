@@ -34,7 +34,7 @@ describe("line_string mode", () => {
     const lib = makeLib();
     const mode = createLineStringMode(lib);
     const updateCoordinate = vi.fn();
-    const state = {
+    const state: any = {
       line: {
         coordinates: [
           [0, 0],
@@ -54,7 +54,7 @@ describe("line_string mode", () => {
   it("leaves the measure label untouched with fewer than two coordinates", () => {
     const lib = makeLib();
     const mode = createLineStringMode(lib);
-    const state = { line: { coordinates: [[0, 0]] }, measure: { properties: {} } };
+    const state: any = { line: { coordinates: [[0, 0]] }, measure: { properties: {} } };
 
     mode.onMouseMove.call({}, state, { lngLat: { lng: 0, lat: 0 } });
 

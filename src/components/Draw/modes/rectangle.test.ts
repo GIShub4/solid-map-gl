@@ -78,7 +78,7 @@ describe("rectangle mode", () => {
     const mode = createRectangleMode(lib);
     const ctx = { updateUIClasses: vi.fn(), changeMode: vi.fn() };
     const rectangle = { id: "rect1" };
-    const state = { startPoint: [0, 0], rectangle };
+    const state: any = { startPoint: [0, 0], rectangle };
 
     mode.onClick.call(ctx, state, { lngLat: { lng: 5, lat: 6 } });
 
@@ -166,7 +166,7 @@ describe("rectangle mode", () => {
     const mode = createRectangleMode(lib);
     const display = vi.fn();
     const state = { rectangle: { id: "rect1" } };
-    const geojson = { properties: { id: "other" } };
+    const geojson: any = { properties: { id: "other" } };
 
     mode.toDisplayFeatures.call({}, state, geojson, display);
 

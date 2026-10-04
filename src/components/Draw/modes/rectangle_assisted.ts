@@ -25,7 +25,7 @@ const doubleClickZoom = {
 };
 
 const RectangleAssistedMode = {
-  onSetup: function (opts) {
+  onSetup: function (_opts) {
     const rectangle = this.newFeature({
       type: "Feature",
       properties: {},
@@ -136,13 +136,13 @@ const RectangleAssistedMode = {
         180) /
       Math.PI;
 
-    let angleSudGraus = -1.0 * (angleStdGraus + 90);
+    const angleSudGraus = -1.0 * (angleStdGraus + 90);
     const angle = angleSudGraus < 0 ? angleSudGraus + 360 : angleSudGraus;
 
     state.angle = parseFloat(angle.toFixed(2));
   },
 
-  calculatepXY3: function (state, e, tmp) {
+  calculatepXY3: function (state, e, _tmp) {
     const pXY0 = state.rectangle.getCoordinate("0.0");
     const pXY0_3857 = this.deegrees2meters(pXY0);
     const pXY1 = state.rectangle.getCoordinate("0.1");

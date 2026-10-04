@@ -21,7 +21,7 @@ describe("point mode", () => {
   it("writes the formatted coordinate label and moves the point on mouse move", () => {
     const mode = createPointMode({ modes: { draw_point: {} } });
     const updateCoordinate = vi.fn();
-    const state = { point: { properties: {}, updateCoordinate } };
+    const state: any = { point: { properties: {}, updateCoordinate } };
 
     mode.onMouseMove(state, { lngLat: { lng: 2.3522, lat: 48.8566 } });
 

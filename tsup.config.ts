@@ -57,11 +57,8 @@ export default defineConfig((config) => {
     // always included one).
     const exports: Record<string, unknown> = { "./package.json": "./package.json" };
     for (const [subpath, conditions] of Object.entries(package_fields.exports)) {
-      exports[subpath] = {
-        types: (conditions as any).import?.types,
-        ...(conditions as any),
-        default: (conditions as any).import?.default,
-      };
+      const c = conditions as { import?: { types?: string; default?: string } };
+      exports[subpath] = { types: c.import?.types, ...c, default: c.import?.default };
     }
     package_fields.exports = exports as typeof package_fields.exports;
     writePackageJson(package_fields);

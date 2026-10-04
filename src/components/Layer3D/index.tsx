@@ -8,9 +8,7 @@ import {
   useContext,
   JSX,
 } from "solid-js";
-import { unwrap } from "solid-js/store";
 import { useMapContext } from "../MapProvider";
-import { Logger } from "@babylonjs/core";
 
 declare global {
   interface Window {
@@ -30,25 +28,6 @@ type Props = {
   /** A string that specifies the type of layer before which the current layer should be inserted. */
   beforeId?: string;
   disableProjectionMatrix?: boolean;
-};
-
-const deg2rad = (degrees: number) => {
-  return (degrees * Math.PI) / 180;
-};
-
-const latLng2Mercator = (lat: number, lng: number, altitude: number) => {
-  const R = 6378137.0; // earth radius in meters
-  const x = R * deg2rad(lng);
-  const y = R * Math.log(Math.tan(Math.PI / 4 + deg2rad(lat) / 2));
-  return [x, y, altitude];
-};
-
-const latLng2Cartesian = ({ lat, lng }, altitude: number = 0) => {
-  const R = 6378137.0; // earth radius in meters
-  const x = R * Math.cos(deg2rad(lat)) * Math.cos(deg2rad(lng));
-  const y = R * Math.cos(deg2rad(lat)) * Math.sin(deg2rad(lng));
-  const z = altitude; // + R * Math.sin(deg2rad(lat));
-  return { x, y, z };
 };
 
 const LayerContext = createContext<any>();
@@ -202,8 +181,6 @@ export const Layer3D: Component<Props> = (props) => {
 
             // this.scene.activeCamera.getWorldMatrix().copyFrom(transform);
 
-            const pitch = this.map.getPitch() * (Math.PI / 180);
-            const bearing = this.map.getBearing() * (Math.PI / 180);
 
             // this.scene.activeCamera.rotation.x = Math.asin(pitch);
             // this.scene.activeCamera.rotation.y = Math.atan(bearing / pitch);
