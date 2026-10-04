@@ -106,8 +106,9 @@ jobs:
           # `gh pr checks --watch` exits immediately with "no checks reported"
           # until CI has registered its check run, so wait for it to appear.
           for i in $(seq 1 30); do
-            # gh exits non-zero while checks are pending; only its output matters here.
-            n=$(gh pr checks "$branch" --required --json name -q 'length' 2>/dev/null)
+            # gh exits non-zero while checks are pending (or not yet reported); only its
+            # output matters, and `|| true` keeps `bash -e` from aborting the step.
+            n=$(gh pr checks "$branch" --required --json name -q 'length' 2>/dev/null || true)
             [ "${n:-0}" -gt 0 ] && break
             sleep 10
           done
