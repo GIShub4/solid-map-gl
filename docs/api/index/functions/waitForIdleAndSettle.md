@@ -8,7 +8,7 @@
 
 > **waitForIdleAndSettle**(`map`, `options?`): `Promise`\<`void`\>
 
-Defined in: [src/components/MapGL/tilesSettled.ts:108](https://github.com/GIShub4/solid-map-gl/blob/1edfb2779e99e094b00b8a942205afe91669c6ca/src/components/MapGL/tilesSettled.ts#L108)
+Defined in: [src/components/MapGL/tilesSettled.ts:108](https://github.com/GIShub4/solid-map-gl/blob/main/src/components/MapGL/tilesSettled.ts#L108)
 
 Waits for the map's next 'idle' event, then `settleAfterIdle`. The convenience entry point for
 off-screen/headless capture: call your own `jumpTo`/`fitBounds`/`setData` first, then `await` this
