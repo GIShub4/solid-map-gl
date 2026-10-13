@@ -48,12 +48,12 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Like release-pr.yml's `paths` (which a dispatch bypasses), plus
-      # pnpm-lock.yaml: almost every npm update here is lockfile-only (no
-      # runtime dependencies, devDependency ranges already satisfied), and a
-      # lockfile bump can still change the published dist/ by upgrading the
-      # build toolchain (tsup, esbuild, babel-preset-solid). GitHub Actions
-      # version bumps (.github/ only) don't release.
+      # Same paths as release-pr.yml's `paths` filter, which a dispatch
+      # bypasses. Almost every npm update here is lockfile-only (no runtime
+      # dependencies, devDependency ranges already satisfied). GitHub Actions
+      # version bumps (.github/ only) don't release. GH_REPO is needed because
+      # this job has no checkout for `gh workflow run` to read the repo from
+      # (`gh pr diff` gets it from the PR URL).
       - name: Cut a release if the update reaches the package
         run: |
           if gh pr diff "$PR_URL" --name-only | grep -qE '^(src/|package\.json$|pnpm-lock\.yaml$)'; then
@@ -62,5 +62,6 @@ jobs:
             echo "No src/, package.json or pnpm-lock.yaml change, no release."
           fi
         env:
+          GH_REPO: ${{ github.repository }}
           PR_URL: ${{ github.event.pull_request.html_url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
