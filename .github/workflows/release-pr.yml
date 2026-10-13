@@ -1,16 +1,18 @@
 name: Open release PR after a src change lands on main
 
-# Runs when a PR merges into main and its diff touched src/ or package.json —
-# the only changes a consumer of the published package actually gets.
-# doc-only, test-only, or workflow-only PRs are filtered out by the `paths`
-# trigger below, so there's no need for a separate diff-checking step.
+# Runs when a PR merges into main and its diff touched src/, package.json or
+# pnpm-lock.yaml — the changes that can reach the published package (a
+# lockfile bump can change dist/ by upgrading the build toolchain, e.g. tsup,
+# esbuild, babel-preset-solid). doc-only, test-only, or workflow-only PRs are
+# filtered out by the `paths` trigger below, so there's no need for a separate
+# diff-checking step.
 #
 # Triggered by `pull_request: closed` for a PR merged by a human, and by
 # workflow_dispatch from auto-merge.yml after it merges a dependabot PR that
-# touched src/ or package.json. The dispatch is necessary because GitHub starts
+# touched the same paths. The dispatch is necessary because GitHub starts
 # no workflow runs for any event caused by GITHUB_TOKEN (which is what merges
 # dependabot PRs), except workflow_dispatch/repository_dispatch. auto-merge.yml
-# does its own src/package.json check, since `paths` below doesn't apply to a
+# does its own path check, since `paths` below doesn't apply to a
 # dispatch.
 #
 # This can't just `npm version patch` and push straight to main: main
@@ -36,6 +38,7 @@ on:
     paths:
       - "src/**"
       - "package.json"
+      - "pnpm-lock.yaml"
 
 # One release at a time: each run bumps main's current version, so two running
 # side by side (e.g. several dependabot PRs merging back to back) would both
