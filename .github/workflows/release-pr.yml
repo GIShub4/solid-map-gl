@@ -52,7 +52,7 @@ concurrency:
 permissions:
   contents: write
   pull-requests: write
-  actions: write # to dispatch publish.yml
+  actions: write # to dispatch ci.yml and publish.yml
 
 jobs:
   release-pr:
@@ -125,7 +125,7 @@ jobs:
           # token can't approve its own PR anyway.
           gh pr create \
             --title "chore(release): v$VERSION" \
-            --body "Automated patch release: $TRIGGER_PR merged into \`main\`, changing \`src/\` or \`package.json\`." \
+            --body "Automated patch release: $TRIGGER_PR merged into \`main\`, changing \`src/\`, \`package.json\` or \`pnpm-lock.yaml\`." \
             --base main \
             --head "release/v$VERSION"
 
@@ -136,6 +136,10 @@ jobs:
           VERSION: ${{ steps.bump.outputs.version }}
         run: |
           branch="release/v$VERSION"
+          # The PR above was opened with GITHUB_TOKEN, so its pull_request event
+          # starts no CI run; dispatch ci.yml on the branch to get the required
+          # build-and-test check onto the PR's head commit.
+          gh workflow run ci.yml --ref "$branch"
           # `gh pr checks --watch` exits immediately with "no checks reported"
           # until CI has registered its check run, so wait for it to appear.
           for i in $(seq 1 30); do
