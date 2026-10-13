@@ -10,11 +10,10 @@
 # an automatic patch release (auto-merge.yml dispatches release-pr.yml);
 # github-actions updates don't.
 #
-# NOTE: mapbox-gl, maplibre-gl, and solid-js are currently declared as
-# peerDependencies with an unbounded "*" range in package.json. Dependabot
-# cannot propose a version bump for a range that already matches everything —
-# these three will only start generating PRs once their peerDependency ranges
-# are tightened. Until then, this config mainly keeps devDependencies current.
+# This file only drives the weekly version updates. Fix PRs for Dependabot
+# security alerts (e.g. a vulnerable transitive dependency) come from the
+# separate "Dependabot security updates" repo setting (Settings -> Code
+# security), which ignores this schedule.
 
 version: 2
 
