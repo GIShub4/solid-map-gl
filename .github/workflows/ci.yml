@@ -4,10 +4,6 @@ on:
   push:
     branches: [main]
   pull_request:
-  # release-pr.yml dispatches this on its release branch: the release PR is
-  # opened with GITHUB_TOKEN, whose events start no workflow runs, so the
-  # required build-and-test check would otherwise never report on it.
-  workflow_dispatch:
 
 permissions:
   contents: read
