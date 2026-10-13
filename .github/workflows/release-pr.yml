@@ -26,6 +26,14 @@ name: Open release PR after a src change lands on main
 # `gh pr merge --auto` and expect publish.yml to notice, since that merge
 # happens as GITHUB_TOKEN and its `closed` event starts no workflows (this is
 # exactly how v2.2.5-v2.2.7 silently never got published).
+#
+# The release branch is pushed and its PR opened with RELEASE_TOKEN (a
+# fine-grained PAT, Contents + Pull requests read/write on this repo only)
+# rather than GITHUB_TOKEN: a PR opened as GITHUB_TOKEN starts no CI, and a
+# build-and-test run dispatched onto its branch by hand doesn't get attached
+# to the PR, so the required check never reports and the PR stays blocked.
+# When the PAT expires this job fails at "Open release PR" — regenerate it and
+# update the RELEASE_TOKEN repo secret.
 on:
   workflow_dispatch:
     inputs:
@@ -52,7 +60,7 @@ concurrency:
 permissions:
   contents: write
   pull-requests: write
-  actions: write # to dispatch ci.yml and publish.yml
+  actions: write # to dispatch publish.yml
 
 jobs:
   release-pr:
@@ -73,6 +81,8 @@ jobs:
           # serialized above, a queued run must bump from whatever the previous
           # release already left on main, or it would reopen the same version.
           ref: main
+          # Persisted for the release branch push below (see header comment).
+          token: ${{ secrets.RELEASE_TOKEN || github.token }}
 
       # A PR can bump package.json itself (e.g. to a minor/major version this
       # job would never pick, since it only ever bumps patch). If main's version
@@ -111,18 +121,21 @@ jobs:
       - name: Open release PR
         if: steps.check.outputs.unpublished != 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           VERSION: ${{ steps.bump.outputs.version }}
           TRIGGER_PR: ${{ github.event.pull_request.html_url || inputs.trigger || 'a dependency update' }}
         run: |
+          if [ -z "$GITHUB_TOKEN" ]; then
+            echo "::error::RELEASE_TOKEN secret is missing — a release PR opened as GITHUB_TOKEN never gets CI (see header comment)."
+            exit 1
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b "release/v$VERSION"
           git commit -am "chore(release): v$VERSION"
           git push origin "release/v$VERSION"
           # No review requested/approved: branch protection on main doesn't
-          # require one (only the "build-and-test" status check), and this
-          # token can't approve its own PR anyway.
+          # require one (only the "build-and-test" status check).
           gh pr create \
             --title "chore(release): v$VERSION" \
             --body "Automated patch release: $TRIGGER_PR merged into \`main\`, changing \`src/\`, \`package.json\` or \`pnpm-lock.yaml\`." \
@@ -136,10 +149,6 @@ jobs:
           VERSION: ${{ steps.bump.outputs.version }}
         run: |
           branch="release/v$VERSION"
-          # The PR above was opened with GITHUB_TOKEN, so its pull_request event
-          # starts no CI run; dispatch ci.yml on the branch to get the required
-          # build-and-test check onto the PR's head commit.
-          gh workflow run ci.yml --ref "$branch"
           # `gh pr checks --watch` exits immediately with "no checks reported"
           # until CI has registered its check run, so wait for it to appear.
           for i in $(seq 1 30); do
