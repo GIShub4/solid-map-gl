@@ -28,11 +28,25 @@ describe("Source", () => {
       <Source id="geo" source={{ type: "geojson", data: data() }} />
     ));
     const handle = map.getSource("geo");
-    expect(handle.setData).toHaveBeenCalledTimes(1);
+    expect(handle.setData).not.toHaveBeenCalled();
 
     setData({ type: "FeatureCollection", features: [{ type: "Feature" }] as any[] });
     await tick();
-    expect(handle.setData).toHaveBeenCalledTimes(2);
+    expect(handle.setData).toHaveBeenCalledTimes(1);
+  });
+
+  // Regression test (#166): addSource() already carries the initial data, so an extra setData()
+  // of the same data on mount made a clustered source load twice and render stale clusters.
+  it("does not re-send the initial geojson data via setData on mount (#166)", () => {
+    const data = { type: "FeatureCollection", features: [] as any[] };
+    const { map } = renderWithMap(() => (
+      <Source
+        id="geo"
+        source={{ type: "geojson", data, cluster: true } as any}
+      />
+    ));
+    expect(map.addSource).toHaveBeenCalledWith("geo", expect.objectContaining({ data, cluster: true }));
+    expect(map.getSource("geo").setData).not.toHaveBeenCalled();
   });
 
   it("calls setUrl/setTiles when the reactive vector source prop changes", async () => {
@@ -116,14 +130,13 @@ describe("Source", () => {
       <Source id="geo" source={{ type: "geojson", data: data() }} />
     ));
     const handle = map.getSource("geo");
-    expect(handle.setData).toHaveBeenCalledTimes(1);
 
     (map.getSource as any).mockReturnValueOnce(undefined);
     const newData = { type: "FeatureCollection", features: [{ type: "Feature" }] as any[] };
     expect(() => setData(newData)).not.toThrow();
     await tick();
 
-    expect(handle.setData).toHaveBeenCalledTimes(1);
+    expect(handle.setData).not.toHaveBeenCalled();
   });
 
   it("does not throw when getSource() transiently returns undefined mid style-swap (image)", async () => {
@@ -174,7 +187,7 @@ describe("Source", () => {
     setData({ type: "FeatureCollection", features: [{ type: "Feature" }] as any[] });
     await tick();
 
-    expect(handle.setData).toHaveBeenCalledTimes(2);
+    expect(handle.setData).toHaveBeenCalledTimes(1);
   });
 
   it("defaults to an empty object when geojson data is not given", () => {

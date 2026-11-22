@@ -11,6 +11,7 @@ import type { SourceSpecification } from 'mapbox-gl'
 import { rasterStyleList } from '../../lib/mapStyles'
 
 const SourceContext = createContext<string>()
+const NOT_SENT = Symbol()
 export const useSourceId = (): string => useContext(SourceContext)
 
 type Props = {
@@ -78,13 +79,21 @@ export const Source: Component<Props> = props => {
   // `props.source` this effect would otherwise have applied.
   switch (anySource().type) {
     case 'geojson':
-      createEffect(() => {
+      // Seeded with the data addSource() above was just given, so the effect's first run is a
+      // no-op instead of an immediate setData() of the same data. That redundant call made
+      // Mapbox/MapLibre load and tile the source twice back to back, and a clustered source
+      // could then render tiles from both loads at once — a cluster circle plus the single
+      // point it contains drawn on top of it, differing between refreshes (#166). Missing data
+      // still goes through setData({}) once on mount, as before.
+      createEffect((prev: unknown) => {
         const data = anySource().data
+        if (data === prev) return prev
         const source = ctx.map.getSource(props.id) as any
-        if (!source) return
+        if (!source) return data
         source.setData(data || {})
         debug('Update GeoJSON Data:', props.id)
-      })
+        return data
+      }, anySource().data ?? NOT_SENT)
       break
     case 'image':
       createEffect(() => {
