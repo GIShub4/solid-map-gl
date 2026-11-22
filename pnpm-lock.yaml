@@ -45,8 +45,8 @@ importers:
         specifier: ^10.12.0
         version: 10.15.0
       eslint-plugin-solid:
-        specifier: ^0.19.0
-        version: 0.19.0(eslint@10.15.0)
+        specifier: ^0.20.0
+        version: 0.20.0(eslint@10.15.0)
       globals:
         specifier: ^17.13.0
         version: 17.14.0
@@ -1175,8 +1175,8 @@ packages:
     resolution: {integrity: sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==}
     engines: {node: '>=10'}
 
-  eslint-plugin-solid@0.19.0:
-    resolution: {integrity: sha512-Is7Aj9bfce774C9B6ivc/S5HNmUpYwlzYx8bO13EIIF7JaY8c6OACxE0LTyhNLDeMR3VNBDn+a/k830dvYl4uQ==}
+  eslint-plugin-solid@0.20.0:
+    resolution: {integrity: sha512-+cA9Yz+ON+Sr3sfl2RJePrPDXZmIAleS3D6W5rRuP/BKRqnt2DcSXi2YMFi52oClWGoOfBl29FdtLere7qoJUQ==}
     engines: {node: '>=22.0.0'}
     peerDependencies:
       eslint: ^9.0.0 || ^10.0.0
@@ -3120,7 +3120,7 @@ snapshots:
 
   escape-string-regexp@4.0.0: {}
 
-  eslint-plugin-solid@0.19.0(eslint@10.15.0):
+  eslint-plugin-solid@0.20.0(eslint@10.15.0):
     dependencies:
       eslint-visitor-keys: 3.4.3
       estraverse: 5.3.0
